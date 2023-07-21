@@ -4,7 +4,13 @@
   "description": "",
   "main": "index.html",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "test": "vitest"
+  },
   "author": "simon raynor",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "jsdom": "^22.1.0",
+    "vitest": "^0.33.0"
+  }
 }
