@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import cells from './generate.js';
-import { idxToXYZ } from './geometry.js';
+import { idxToXYZ, xyzToIdx } from './geometry.js';
+import { total } from './config.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -32,26 +33,30 @@ scene.add(ambientLight);
 
 
 
-for (let i = 0; i < 1000; i++) {
+const wallMaterial = new THREE.MeshLambertMaterial({
+    color: 0x99aacc,
+    transparent: true,
+    opacity: 0.1
+});
+
+const spaceMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+
+
+const boxes = [];
+
+for (let i = 0; i < total; i++) {
     const [x, y, z] = idxToXYZ(i);
 
     const geometry = createRhombic();
-    let material = new THREE.MeshLambertMaterial({
-        color: 0x99aacc,
-        transparent: true,
-        opacity: 0.5
-    });
-    if (cells[i]) {
-        material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
-    }
 
-    const box = new THREE.Mesh(geometry, material);
+    const box = new THREE.Mesh(geometry, wallMaterial);
 
     box.position.set(
         x, y, z
     );
 
     scene.add(box);
+    boxes.push(box);
 }
 
 
@@ -60,6 +65,14 @@ function animate() {
     requestAnimationFrame(animate);
 
     controls.update();
+
+    boxes.forEach(
+        (box, idx) => {
+            if (cells[idx]) {
+                box.material = spaceMaterial;
+            }
+        }
+    )
 
     renderer.render(scene, camera);
 }

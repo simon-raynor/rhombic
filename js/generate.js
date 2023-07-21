@@ -49,26 +49,35 @@ const dirCount = directions.length;
 
 // which cells have been removed
 const cells = [];
+const visited = [];
+const exhausted = [];
 export default cells;
 
 // current cursor position
-let cursor = 25;
+let cursor = Math.floor((height * width) / 2);
 
 cells[cursor] = true;
 
 
 function step() {
     const next = advanceCursor();
+    
+    visited.push(cursor);
 
     if (next !== null) {
         cells[next] = true;
         cursor = next;
+    } else {
+        exhausted[cursor] = true;
+
+        cursor = visited.shift();
+
+        if (!cursor) {
+            return;
+        }
     }
 
-    if (next) {
-        //requestAnimationFrame(step);
-        step();
-    }
+    requestAnimationFrame(step);
 }
 
 step();

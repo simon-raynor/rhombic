@@ -1,8 +1,6 @@
 import { total, height, width, depth } from "./config.js";
 
 
-const [maxX, maxY, maxZ] = idxToXYZ(total - 1);
-
 export function idxToXYZ(idx) {
     if (idx < 0 || idx >= total) return null;
 
@@ -19,11 +17,15 @@ export function idxToXYZ(idx) {
 
 
 export function xyzToIdx(x, y, z) {
+    const { minZ, maxZ, minY, maxY, minX, maxX } = getBounds(y, z);
+
     if (
-        x < 0 || x > maxX
-        || y < 0 || y > maxY
-        || z < 0 || z > maxZ
-    ) return null;
+        x < minX || x > maxX
+        || y < minY || y > maxY
+        || z < minZ || z > maxZ
+    ) {
+        return null;
+    }
 
     const k = z / 2;
     const j = (y / 2) - k;
@@ -34,4 +36,16 @@ export function xyzToIdx(x, y, z) {
     return (idx < 0 || idx >= total)
         ? null
         : idx;
+}
+
+
+function getBounds(y, z) {
+    const minZ = 0;
+    const maxZ = 2 * (depth - 1);
+    const minY = z;
+    const maxY = minY + (2 * (height - 1));
+    const minX = y - z;
+    const maxX = minX + (4 * (width - 1));
+
+    return { minZ, maxZ, minY, maxY, minX, maxX };
 }
