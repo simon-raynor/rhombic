@@ -26,29 +26,33 @@ lattice
      o o 
 
 */
-
-
-
-const height = 10;
-const width = 10;
-const depth = 10;
-
-const total = height * width * depth;
+import { total, height, width, depth } from "./config.js";
+import { idxToXYZ, xyzToIdx } from "./geometry.js";
 
 
 const directions = [
-    [0, 0, -1], [0, 1, -1], [1, 0, -1],
-    [1,0,0], [1,-1,0], [0,-1,0], [-1,0,0], [-1,1,0], [0,1,0],
-    [-1, -1, 1], [0,-1,1], [0,0,1]
-];
+    [0,1,-1],
+    [0,-1,-1],
+    [1,0,-1],
+    [1,-1,0],
+    [1,0,1],
+    [1,1,0],
+
+    [0,-1,1],
+    [0,1,1],
+    [-1,0,1],
+    [-1,1,0],
+    [-1,0,-1],
+    [-1,-1,0]
+].map(dir => dir.map(v => v * 2));
 const dirCount = directions.length;
-console.log(directions)
 
 // which cells have been removed
 const cells = [];
+export default cells;
 
 // current cursor position
-let cursor = 15;
+let cursor = 25;
 
 cells[cursor] = true;
 
@@ -61,9 +65,10 @@ function step() {
         cursor = next;
     }
 
-    console.log(cells);
-
-    requestAnimationFrame(step);
+    if (next) {
+        //requestAnimationFrame(step);
+        step();
+    }
 }
 
 step();
@@ -80,28 +85,28 @@ function advanceCursor() {
         }
     }
 
-    console.log(valid)
-
     return valid.length
         ? valid[Math.floor(valid.length * Math.random())]
         : null;
 }
 
 function checkDirection(cellIdx, direction) {
-    const [x, y, z] = iToXYZ(cellIdx);
+    const [x, y, z] = idxToXYZ(cellIdx);
 
     const [dx, dy, dz] = directions[direction];
 
     const [tx, ty, tz] = [x + dx, y + dy, z + dz];
-    const targetIdx = xyzToI(tx, ty, tz);
+    const targetIdx = xyzToIdx(tx, ty, tz);
 
     if (targetIdx === null || cells[targetIdx]) return false;
 
+    const opposite = (direction + (dirCount / 2)) % dirCount;
+
     for (let i = 0; i < dirCount; i++) {
-        //if (i == direction) continue; // TODO
+        if (i == opposite) continue;
 
         const [dx2, dy2, dz2] = directions[i];
-        const neighbourIdx = xyzToI(tx + dx2, ty + dy2, tz + dz2);
+        const neighbourIdx = xyzToIdx(tx + dx2, ty + dy2, tz + dz2);
 
         if (neighbourIdx === null || cells[neighbourIdx]) return false;
     }
@@ -109,23 +114,3 @@ function checkDirection(cellIdx, direction) {
     return targetIdx;
 }
 
-
-function iToXYZ(i) {
-    if (i < 0 || i > total) return null;
-
-    const z = Math.floor(i / (depth * height));
-    const y = Math.floor((i - (z * depth * height)) / height);
-    const x = i - (z * depth * height) - (y * height);
-
-    return [x, y, z];
-}
-
-function xyzToI(x, y, z) {
-    if (
-        x < 0 || x > width
-        || y < 0 || y > height
-        || z < 0 || z > depth
-    ) return null;
-
-    return x + (y * height) + (z * depth * height);
-}

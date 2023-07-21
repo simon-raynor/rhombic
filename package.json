@@ -1,0 +1,10 @@
+{
+  "name": "rhombic",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {},
+  "author": "simon raynor",
+  "license": "ISC"
+}

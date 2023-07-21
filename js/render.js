@@ -1,3 +1,75 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import cells from './generate.js';
+import { idxToXYZ } from './geometry.js';
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
+
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+
+const controls = new OrbitControls(camera, renderer.domElement);
+camera.position.z = 25;
+controls.target = new THREE.Vector3(20, 20, 10);
+controls.update();
+
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLight.position.set(-1, 0, 1).normalize();
+scene.add(directionalLight);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+
+
+for (let i = 0; i < 1000; i++) {
+    const [x, y, z] = idxToXYZ(i);
+
+    const geometry = createRhombic();
+    let material = new THREE.MeshLambertMaterial({
+        color: 0x99aacc,
+        transparent: true,
+        opacity: 0.5
+    });
+    if (cells[i]) {
+        material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+    }
+
+    const box = new THREE.Mesh(geometry, material);
+
+    box.position.set(
+        x, y, z
+    );
+
+    scene.add(box);
+}
+
+
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    controls.update();
+
+    renderer.render(scene, camera);
+}
+animate();
+
+
+
+
+
+
 function createRhombic() {
     const indexedgeometry = new THREE.BufferGeometry();
 
