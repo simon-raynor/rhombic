@@ -39,7 +39,11 @@ const wallMaterial = new THREE.MeshLambertMaterial({
     opacity: 0.1
 });
 
-const spaceMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+const spaceMaterial = new THREE.MeshLambertMaterial({
+    color: 0xff0000,
+    transparent: true,
+    opacity: 0.5
+});
 
 
 const boxes = [];
