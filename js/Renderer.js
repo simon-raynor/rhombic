@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import cells from './generate.js';
-import { idxToXYZ, xyzToIdx } from './geometry.js';
-import { total } from './config.js';
+
+
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -19,24 +18,23 @@ document.body.appendChild(renderer.domElement);
 
 
 const controls = new OrbitControls(camera, renderer.domElement);
-camera.position.z = 25;
-controls.target = new THREE.Vector3(20, 20, 10);
-controls.update();
 
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(-1, 0, 1).normalize();
 scene.add(directionalLight);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
 
+/* const fog = new THREE.Fog(0x000000, 30, 50);
+scene.fog = fog; */
 
 
 const wallMaterial = new THREE.MeshLambertMaterial({
     color: 0x99aacc,
     transparent: true,
-    opacity: 0.1
+    //opacity: 0.25,
 });
 
 const spaceMaterial = new THREE.MeshLambertMaterial({
@@ -44,47 +42,6 @@ const spaceMaterial = new THREE.MeshLambertMaterial({
     transparent: true,
     opacity: 0.5
 });
-
-
-const boxes = [];
-
-for (let i = 0; i < total; i++) {
-    const [x, y, z] = idxToXYZ(i);
-
-    const geometry = createRhombic();
-
-    const box = new THREE.Mesh(geometry, wallMaterial);
-
-    box.position.set(
-        x, y, z
-    );
-
-    scene.add(box);
-    boxes.push(box);
-}
-
-
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    controls.update();
-
-    boxes.forEach(
-        (box, idx) => {
-            if (cells[idx]) {
-                box.material = spaceMaterial;
-            }
-        }
-    )
-
-    renderer.render(scene, camera);
-}
-animate();
-
-
-
-
 
 
 function createRhombic() {
@@ -115,4 +72,56 @@ function createRhombic() {
     geometry.computeVertexNormals();
 
     return geometry;
+}
+
+
+export default class Renderer {
+    constructor(lattice) {
+        this.lattice = lattice;
+
+        this.mesh = new THREE.InstancedMesh(
+            createRhombic(),
+            wallMaterial,
+            this.lattice.total
+        );
+
+        this.fillLatticeMesh();
+
+        scene.add(this.mesh);
+
+        camera.position.x = lattice.width;
+        camera.position.y = lattice.height;
+        camera.position.z = -1 * lattice.depth;
+        controls.target = new THREE.Vector3(lattice.width, lattice.height, lattice.depth);
+        controls.update();
+    }
+
+    fillLatticeMesh() {
+        const dummy = new THREE.Object3D();
+
+        let count = 0;
+        this.lattice.cells.forEach(
+            cell => {
+                if (cell.filled) {
+                    count++;
+                    dummy.position.set(cell.x, cell.y, cell.z);
+                    dummy.updateMatrix();
+
+                    this.mesh.count = count;
+                    this.mesh.setMatrixAt(count, dummy.matrix);
+                    this.mesh.setColorAt(count, new THREE.Color(cell.x / 10, cell.y / 10, cell.z / 10));
+                }
+
+            }
+        )
+
+        this.mesh.instanceMatrix.needsUpdate = true;
+        this.mesh.instanceColor.needsUpdate = true;
+        this.mesh.computeBoundingSphere();
+    }
+
+    render() {
+        controls.update();
+        renderer.render(scene, camera);
+    }
 }
