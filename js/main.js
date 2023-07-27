@@ -2,21 +2,26 @@ import Lattice from './Lattice.js';
 import Renderer from './Renderer.js';
 
 
-const lattice = new Lattice(3, 6, 6);
+const lattice = new Lattice(6, 12, 12);
 const renderer = new Renderer(lattice);
 
 
-let cursor = lattice.cells[2];
+let cursor = lattice.cells[50];
+const visited = [];
+
+while (cursor.isOutside) {
+    cursor = lattice.cells[cursor.idx + 1];
+}
 
 console.log(cursor);
 
 cursor = advanceCursor();
 
+
 function advanceCursor() {
     cursor.filled = false;
-    //cursor.neighbours.forEach(n => n.filled = false);
-    /* console.log(cursor);
-
+    visited.push(cursor);
+    
     const valid = cursor.neighbours.filter(
         // check each direct neighbour
         neighbour => neighbour.filled && !neighbour.isOutside 
@@ -28,18 +33,22 @@ function advanceCursor() {
 
     if (valid.length) {
         return valid[Math.floor(Math.random() * valid.length)];
-    } */
+    } else {
+        visited.splice(visited.indexOf(cursor), 1);
+
+        return visited.length
+            ? visited[Math.floor(visited.length * Math.random())]
+            : null;
+    }
 }
 
 
-let i = 0;
-setInterval(() => i++, 500);
 function tick() {
     requestAnimationFrame(tick);
-    if (i < lattice.total) lattice.cells[i].filled = false;
-    /* if (cursor) {
+    
+    if (cursor) {
         cursor = advanceCursor();
-    } */
+    }
 
     renderer.fillLatticeMesh();
     renderer.render();

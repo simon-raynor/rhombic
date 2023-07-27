@@ -28,39 +28,6 @@ export default class Lattice {
             2 * k
         ];
     }
-
-    xyzToIdx(x, y, z) {
-        const { minZ, maxZ, minY, maxY, minX, maxX } = this.getBounds(y, z);
-    
-        if (
-            x < minX || x > maxX
-            || y < minY || y > maxY
-            || z < minZ || z > maxZ
-        ) {
-            return null;
-        }
-    
-        const k = z / 2;
-        const j = (y / 2) - (k % 2);
-        const i = ((x / 2) - (j % 2)) / 2;
-    
-        const idx = i + (j * this.height) + (k * this.depth * this.height);
-    
-        return (idx < 0 || idx >= this.total)
-            ? null
-            : idx;
-    }
-
-    getBounds(y, z) {
-        const minZ = 0;
-        const maxZ = 2 * (this.depth - 1);
-        const minY = (z % 2) * 2;
-        const maxY = minY + (2 * (this.width - 1));
-        const minX = (y % 2) * 2;
-        const maxX = minX + (2 * (this.height - 1));
-    
-        return { minZ, maxZ, minY, maxY, minX, maxX };
-    }
 }
 
 
@@ -82,11 +49,16 @@ const directions = [
 ].map(dir => dir.map(v => v * 2));
 
 class LatticeCell {
+    // define these here so they're 1st in devtools
+    x;
+    y;
+    z;
     constructor(lattice, idx) {
         this.lattice = lattice;
         this.idx = idx;
 
         this.filled = true;
+        this.exhausted = false;
 
         this.setXYZ();
     }
@@ -109,19 +81,13 @@ class LatticeCell {
                 const [dx, dy, dz] = dir;
 
                 const [tx, ty, tz] = [x + dx, y + dy, z + dz];
-                const targetIdx = this.lattice.xyzToIdx(tx, ty, tz);
-                
-                if (targetIdx !== null) {
-                    this.neighbours.push(this.lattice.cells[targetIdx]);
-                }
+
+                const target = this.lattice.cells.find(({x, y, z}) => x === tx && y === ty && z ==tz);
+
+                if (target) this.neighbours.push(target);
             }
         );
 
-        const { minZ, maxZ, minY, maxY, minX, maxX } = this.lattice.getBounds(this.y, this.z);
-
-        this.isOutside = this.x === minX || this.x === maxX
-                        || this.y === minY || this.y === maxY
-                        || this.z === minZ || this.z === maxZ;
-        //this.neighbours.length !== directions.length;
+        this.isOutside = this.neighbours.length !== directions.length;
     }
 }

@@ -37,7 +37,7 @@ scene.add( axesHelper );
 const blockMaterial = new THREE.MeshLambertMaterial({
     color: 0x99aacc,
     transparent: true,
-    opacity: 0.25,
+    opacity: 0.1,
 });
 
 const spaceMaterial = new THREE.MeshLambertMaterial({
@@ -103,8 +103,8 @@ export default class Renderer {
         this.fillLatticeMesh();
 
         camera.position.x = lattice.width;
-        camera.position.y = lattice.height;
-        camera.position.z = -1 * lattice.depth;
+        camera.position.y = 3 * lattice.height;
+        camera.position.z = lattice.depth;
         controls.target = new THREE.Vector3(lattice.width, lattice.height, lattice.depth);
         controls.update();
     }
