@@ -21,7 +21,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(-1, 0, 1).normalize();
+directionalLight.position.set(-2, 1, 3).normalize();
 scene.add(directionalLight);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -30,11 +30,14 @@ scene.add(ambientLight);
 /* const fog = new THREE.Fog(0x000000, 30, 50);
 scene.fog = fog; */
 
+const axesHelper = new THREE.AxesHelper( 64 );
+scene.add( axesHelper );
 
-const wallMaterial = new THREE.MeshLambertMaterial({
+
+const blockMaterial = new THREE.MeshLambertMaterial({
     color: 0x99aacc,
     transparent: true,
-    //opacity: 0.25,
+    opacity: 0.25,
 });
 
 const spaceMaterial = new THREE.MeshLambertMaterial({
@@ -79,15 +82,25 @@ export default class Renderer {
     constructor(lattice) {
         this.lattice = lattice;
 
-        this.mesh = new THREE.InstancedMesh(
-            createRhombic(),
-            wallMaterial,
+        const rhombic = createRhombic();
+
+        this.blockMesh = new THREE.InstancedMesh(
+            rhombic,
+            blockMaterial,
             this.lattice.total
         );
+        this.blockMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(this.blockMesh);
+
+        this.spaceMesh = new THREE.InstancedMesh(
+            rhombic,
+            spaceMaterial,
+            this.lattice.total
+        );
+        this.spaceMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(this.spaceMesh);
 
         this.fillLatticeMesh();
-
-        scene.add(this.mesh);
 
         camera.position.x = lattice.width;
         camera.position.y = lattice.height;
@@ -99,25 +112,48 @@ export default class Renderer {
     fillLatticeMesh() {
         const dummy = new THREE.Object3D();
 
-        let count = 0;
+        let blockCount = 0;
+        let spaceCount = 0;
         this.lattice.cells.forEach(
             cell => {
-                if (cell.filled) {
-                    count++;
-                    dummy.position.set(cell.x, cell.y, cell.z);
-                    dummy.updateMatrix();
+                dummy.position.set(cell.x, cell.y, cell.z);
+                dummy.updateMatrix();
 
-                    this.mesh.count = count;
-                    this.mesh.setMatrixAt(count, dummy.matrix);
-                    this.mesh.setColorAt(count, new THREE.Color(cell.x / 10, cell.y / 10, cell.z / 10));
+                if (cell.filled) {
+                    this.blockMesh.setMatrixAt(blockCount, dummy.matrix);
+                    //this.blockMesh.setColorAt(blockCount, new THREE.Color(cell.x / 10, cell.y / 10, cell.z / 10));
+                    blockCount++;
+                } else {
+                    this.spaceMesh.setMatrixAt(spaceCount, dummy.matrix);
+                    spaceCount++;
                 }
 
             }
-        )
+        );
+        console.log(blockCount, spaceCount, blockCount + spaceCount)
 
-        this.mesh.instanceMatrix.needsUpdate = true;
-        this.mesh.instanceColor.needsUpdate = true;
-        this.mesh.computeBoundingSphere();
+        // hide the remaining instances
+        dummy.position.set(-10000, -10000, -10000);
+        dummy.updateMatrix();
+        
+        let i = blockCount;
+
+        while (i < this.lattice.total) {
+            this.blockMesh.setMatrixAt(i++, dummy.matrix);
+        }
+
+        let j = spaceCount;
+
+        while (j < this.lattice.total) {
+            this.spaceMesh.setMatrixAt(j++, dummy.matrix);
+        }
+
+        this.blockMesh.instanceMatrix.needsUpdate = true;
+        //this.blockMesh.instanceColor.needsUpdate = true;
+        this.blockMesh.computeBoundingSphere();
+
+        this.spaceMesh.instanceMatrix.needsUpdate = true;
+        this.spaceMesh.computeBoundingSphere();
     }
 
     render() {

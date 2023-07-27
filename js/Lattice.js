@@ -55,9 +55,9 @@ export default class Lattice {
         const minZ = 0;
         const maxZ = 2 * (this.depth - 1);
         const minY = (z % 2) * 2;
-        const maxY = minY + (2 * (this.height - 1));
+        const maxY = minY + (2 * (this.width - 1));
         const minX = (y % 2) * 2;
-        const maxX = minX + (4 * (this.width - 1));
+        const maxX = minX + (2 * (this.height - 1));
     
         return { minZ, maxZ, minY, maxY, minX, maxX };
     }
@@ -117,6 +117,11 @@ class LatticeCell {
             }
         );
 
-        this.onEdge = this.neighbours.length !== directions.length;
+        const { minZ, maxZ, minY, maxY, minX, maxX } = this.lattice.getBounds(this.y, this.z);
+
+        this.isOutside = this.x === minX || this.x === maxX
+                        || this.y === minY || this.y === maxY
+                        || this.z === minZ || this.z === maxZ;
+        //this.neighbours.length !== directions.length;
     }
 }
