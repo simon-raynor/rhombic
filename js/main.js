@@ -6,21 +6,24 @@ const lattice = new Lattice(6, 12, 12);
 const renderer = new Renderer(lattice);
 
 
-let cursor = lattice.cells[50];
+let firstInside = lattice.cells[0];
 const visited = [];
 
-while (cursor.isOutside) {
-    cursor = lattice.cells[cursor.idx + 1];
+while (firstInside.isOutside) {
+    firstInside = lattice.cells[firstInside.idx + 1];
 }
 
-console.log(cursor);
+
+renderer.registerCameraControls(firstInside);
+
+let cursor = firstInside;
 
 cursor = advanceCursor();
 
 
 function advanceCursor() {
     cursor.filled = false;
-    visited.push(cursor);
+    if (visited.indexOf(cursor) < 0) visited.push(cursor);
     
     const valid = cursor.neighbours.filter(
         // check each direct neighbour
@@ -42,18 +45,29 @@ function advanceCursor() {
     }
 }
 
+while (cursor) {
+    cursor = advanceCursor();
+}
+lattice.buildMesh();
+
+
+let t = Date.now();
 
 function tick() {
     requestAnimationFrame(tick);
+
+    const now = Date.now();
+    const dt = now - t;
+    t = now;
     
     if (cursor) {
         cursor = advanceCursor();
+        lattice.buildMesh();
     }
 
-    renderer.fillLatticeMesh();
-    renderer.render();
+    renderer.render(dt);
 }
 tick();
 
 
-console.log(lattice, lattice.cells.filter(cell => cell.isOutside));
+console.log(lattice);
