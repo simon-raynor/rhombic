@@ -50,13 +50,17 @@ export default class Renderer {
         scene.add(this.lattice.blockMesh);
     }
 
-    registerCameraControls(latticeCell) {
+    registerCameraControls(latticeCell, leftstick, rightstick) {
         camera.position.set(latticeCell.x, latticeCell.y, latticeCell.z);
+
+        this.leftstick = leftstick;
+        this.rightstick = rightstick;
     }
 
     render(dt) {
-        flyControls.update(dt / 1000);
+        //flyControls.update(dt / 1000);
 
+        console.log(this.leftstick);
         renderer.render(scene, camera);
     }
 }
