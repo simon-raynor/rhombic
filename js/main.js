@@ -1,22 +1,13 @@
+import Controls from './Controls.js';
 import Lattice from './Lattice.js';
 import Renderer from './Renderer.js';
-import nipplejs from 'nipplejs';
-
-//document.body.requestFullscreen();
-
-const leftstick = nipplejs.create({
-    zone: document.querySelector('.controls.left')
-});
-const rightstick = nipplejs.create({
-    zone: document.querySelector('.controls.right')
-});
 
 
 
 
 const lattice = new Lattice(6, 12, 12);
 const renderer = new Renderer(lattice);
-
+const controls = new Controls();
 
 let firstInside = lattice.cells[0];
 const visited = [];
@@ -26,7 +17,7 @@ while (firstInside.isOutside) {
 }
 
 
-renderer.registerCameraControls(firstInside, leftstick, rightstick);
+renderer.registerCameraControls(firstInside, controls);
 
 let cursor = firstInside;
 

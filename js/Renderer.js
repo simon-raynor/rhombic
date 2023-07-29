@@ -20,11 +20,13 @@ renderer.pixelRatio = window.devicePixelRatio;
 document.body.appendChild(renderer.domElement);
 
 
-const flyControls = new FlyControls(camera, renderer.domElement)
-//flyControls.dragToLook = true;
-flyControls.movementSpeed = 2;
-flyControls.rollSpeed = Math.PI / 4;
-flyControls.autoForward = false;
+window.onresize = function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+};
+
 
 const spotlight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 7, 0.5, 5);
 camera.add(spotlight);
@@ -50,17 +52,29 @@ export default class Renderer {
         scene.add(this.lattice.blockMesh);
     }
 
-    registerCameraControls(latticeCell, leftstick, rightstick) {
+    registerCameraControls(latticeCell, controls) {
         camera.position.set(latticeCell.x, latticeCell.y, latticeCell.z);
 
-        this.leftstick = leftstick;
-        this.rightstick = rightstick;
+        this.controls = controls;
     }
 
     render(dt) {
-        //flyControls.update(dt / 1000);
+        if (this.controls.moving) {
+            const { x, y, force } = this.controls.moving;
+            const vec = new THREE.Vector3(x, y, 0).multiplyScalar(dt * Math.max(force, 1) / 1000);
+            camera.translateX(vec.x);
+            camera.translateZ(-vec.y);
+        }
 
-        console.log(this.leftstick);
+        if (this.controls.looking) {
+            const { x, y, force } = this.controls.looking;
+            const vec = new THREE.Vector3(x, y, 0).multiplyScalar(dt * Math.max(force, 1) / 1000);
+            camera.rotateX(vec.y);
+            camera.rotateY(-vec.x);
+        }
+
+        camera.updateMatrix();
+
         renderer.render(scene, camera);
     }
 }
