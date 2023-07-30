@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { FlyControls } from 'three/addons/controls/FlyControls.js';
 
 
 
@@ -62,11 +61,6 @@ export default class Renderer {
         if (this.controls.moving) {
             const { x, y, force } = this.controls.moving;
             const vec = new THREE.Vector3(x, y, 0).multiplyScalar(dt * Math.max(force, 1) / 1000);
-            camera.translateX(vec.x);
-            camera.translateZ(-vec.y);
-        } if (this.controls.keyMove) {
-            const [x, y] = this.controls.keyMove;
-            const vec = new THREE.Vector3(x, y, 0).multiplyScalar(dt / 1000);
             camera.translateX(vec.x);
             camera.translateZ(-vec.y);
         }

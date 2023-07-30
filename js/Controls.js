@@ -9,7 +9,22 @@ document.querySelector('.btn-fullscreen').addEventListener(
             document.exitFullscreen();
         }
     }
-)
+);
+
+
+const baseMovement = {x: 0, y: 0, z: 0, force: 1};
+
+const keys = {
+    'w': (ctrl, reverse) => ctrl.keymove('moving', 'up', reverse),
+    'a': (ctrl, reverse) => ctrl.keymove('moving', 'left', reverse),
+    's': (ctrl, reverse) => ctrl.keymove('moving', 'down', reverse),
+    'd': (ctrl, reverse) => ctrl.keymove('moving', 'right', reverse),
+    'ArrowUp': (ctrl, reverse) => ctrl.keymove('looking', 'up', reverse),
+    'ArrowLeft': (ctrl, reverse) => ctrl.keymove('looking', 'left', reverse),
+    'ArrowDown': (ctrl, reverse) => ctrl.keymove('looking', 'down', reverse),
+    'ArrowRight': (ctrl, reverse) => ctrl.keymove('looking', 'right', reverse),
+}
+
 
 
 export default class Controls {
@@ -70,31 +85,13 @@ export default class Controls {
     bindKeypress() {
         const ac = this.abortController;
 
-        this.keyboarddirection = {
-            fwd: 0,
-            back: 0,
-            left: 0,
-            right: 0
-        }
-
         window.addEventListener(
             'keydown',
             evt => {
                 const { key } = evt;
 
-                switch (key) {
-                    case 'w':
-                        this.keyboarddirection.fwd = 1;
-                        break;
-                    case 'a':
-                        this.keyboarddirection.left = 1;
-                        break;
-                    case 's':
-                        this.keyboarddirection.back = 1;
-                        break;
-                    case 'd':
-                        this.keyboarddirection.right = 1;
-                        break;
+                if (keys[key]) {
+                    keys[key](this, false);
                 }
             },
             {signal: ac.signal}
@@ -105,29 +102,40 @@ export default class Controls {
             evt => {
                 const { key } = evt;
 
-                switch (key) {
-                    case 'w':
-                        this.keyboarddirection.fwd = 0;
-                        break;
-                    case 'a':
-                        this.keyboarddirection.left = 0;
-                        break;
-                    case 's':
-                        this.keyboarddirection.back = 0;
-                        break;
-                    case 'd':
-                        this.keyboarddirection.right = 0;
-                        break;
+                if (keys[key]) {
+                    keys[key](this, true);
                 }
             },
             {signal: ac.signal}
         );
     }
-
-    get keyMove() {
-        const {fwd, back, left, right} = this.keyboarddirection;
-        return fwd || back || left || right
-            ? [right - left, fwd - back]
-            : null;
+    keymove = (propname, newMovement, reverse) => {
+        if (newMovement) {
+            const base = this[propname] || baseMovement;
+            const vec = {...base};
+            const mv = reverse ? 0 : 1;
+            switch(newMovement) {
+                case 'up':
+                    vec.y = mv;
+                    break;
+                case 'left':
+                    vec.x = -mv;
+                    break;
+                case 'down':
+                    vec.y = -mv;
+                    break;
+                case 'right':
+                    vec.x = mv;
+                    break;
+    
+            }
+            if (!vec.x && !vec.y && !vec.z) {
+                this[propname] = null;
+            } else {
+                this[propname] = vec;
+            }
+        } else {
+            this[propname] = null;
+        }
     }
 }
