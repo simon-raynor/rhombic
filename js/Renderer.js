@@ -32,12 +32,6 @@ camera.add(spotlight);
 spotlight.position.set(0, 0, 1);
 spotlight.target = camera;
 
-/* const ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
-scene.add(ambientLight); */
-
-const pointlight = new THREE.PointLight(0xff0088, 1, 5, 2);
-scene.add(pointlight);
-
 
 const texture = new THREE.TextureLoader().load('/noise1.jpg');
 
@@ -53,15 +47,31 @@ export default class Renderer {
     constructor(lattice) {
         this.lattice = lattice;
         scene.add(this.lattice.blockMesh);
-
-        //const edges = new THREE.EdgesGeometry(this.lattice.blockMesh);
     }
 
     registerCameraControls(latticeCell, controls) {
         camera.position.set(latticeCell.x, latticeCell.y, latticeCell.z);
-        pointlight.position.set(latticeCell.x, latticeCell.y, latticeCell.z);
 
         this.controls = controls;
+
+
+        const ends = this.lattice.cells.filter(
+            cell => {
+                if (!cell.filled) {
+                    const count = cell.neighbours.reduce((m, n) => n.filled ? m : m + 1, 0);
+                    
+                    return count === 1;
+                }
+            }
+        );
+
+        ends.forEach(
+            cell => {
+                const pointlight = new THREE.PointLight(0xff0088, 1, 5, 2);
+                pointlight.position.set(cell.x, cell.y, cell.z);
+                scene.add(pointlight);
+            }
+        )
     }
 
     render(dt) {

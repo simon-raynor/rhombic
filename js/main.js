@@ -17,11 +17,10 @@ while (firstInside.isOutside) {
 }
 
 
-renderer.registerCameraControls(firstInside, controls);
-
 let cursor = firstInside;
 
 cursor = advanceCursor();
+
 
 
 function advanceCursor() {
@@ -52,6 +51,9 @@ while (cursor) {
     cursor = advanceCursor();
 }
 lattice.buildMesh();
+
+
+renderer.registerCameraControls(firstInside, controls);
 
 
 let t = Date.now();
