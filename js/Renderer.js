@@ -36,9 +36,11 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
 scene.add(ambientLight);
 
 
-//const texture = new THREE.TextureLoader().load('/img/textures/noise_greyscale_3.png');
+const texture = new THREE.TextureLoader().load('/asteroid_texture.png');
+texture.colorSpace = THREE.SRGBColorSpace;
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
+    map: texture,
     //bumpMap: texture,
     //bumpScale: 1
 });

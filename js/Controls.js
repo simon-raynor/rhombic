@@ -46,7 +46,6 @@ export default class Controls {
         this.leftstick.on(
             'move',
             (evt, data) => {
-                console.log(evt, data);
                 const {vector, force} = data;
                 if (vector && force) {
                     this.moving = { ...vector, force };
@@ -67,7 +66,6 @@ export default class Controls {
         this.rightstick.on(
             'move',
             (evt, data) => {
-                console.log(evt, data);
                 const {vector, force} = data;
                 if (vector && force) {
                     this.looking = { ...vector, force };
