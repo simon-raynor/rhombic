@@ -162,19 +162,44 @@ function createRhombic() {
         2,6,12, 6,2,10, 3,7,13, 7,3,12
     ];
 
+    const uvs = [
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+        
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+    ];
+
     indexedgeometry.setIndex(faces);
     indexedgeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
     const geometry = indexedgeometry.toNonIndexed();
     geometry.computeVertexNormals();
-
-    
-    // --- uv for textures --- //
-    const uvs = new Float32Array([
-        0,0, 1,0, 0,1
-    ]);
-    indexedgeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    // --- end uv --- //
+    geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
     
 
     return geometry;

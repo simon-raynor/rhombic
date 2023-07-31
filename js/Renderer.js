@@ -27,22 +27,24 @@ window.onresize = function () {
 };
 
 
-const spotlight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 7, 0.5, 5);
+const spotlight = new THREE.SpotLight(0xffffff, 1, 25, Math.PI / 7, 0.5, 10);
 camera.add(spotlight);
 spotlight.position.set(0, 0, 1);
 spotlight.target = camera;
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
-scene.add(ambientLight);
+/* const ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
+scene.add(ambientLight); */
+
+const pointlight = new THREE.PointLight(0xff0088, 1, 5, 2);
+scene.add(pointlight);
 
 
-const texture = new THREE.TextureLoader().load('/asteroid_texture.png');
-texture.colorSpace = THREE.SRGBColorSpace;
+const texture = new THREE.TextureLoader().load('/noise1.jpg');
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
-    map: texture,
-    //bumpMap: texture,
-    //bumpScale: 1
+    //map: texture,
+    bumpMap: texture,
+    bumpScale: 0.05
 });
 
 
@@ -51,10 +53,13 @@ export default class Renderer {
     constructor(lattice) {
         this.lattice = lattice;
         scene.add(this.lattice.blockMesh);
+
+        //const edges = new THREE.EdgesGeometry(this.lattice.blockMesh);
     }
 
     registerCameraControls(latticeCell, controls) {
         camera.position.set(latticeCell.x, latticeCell.y, latticeCell.z);
+        pointlight.position.set(latticeCell.x, latticeCell.y, latticeCell.z);
 
         this.controls = controls;
     }

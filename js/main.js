@@ -5,7 +5,7 @@ import Renderer from './Renderer.js';
 
 
 
-const lattice = new Lattice(6, 12, 12);
+const lattice = new Lattice(5, 10, 10);
 const renderer = new Renderer(lattice);
 const controls = new Controls();
 
