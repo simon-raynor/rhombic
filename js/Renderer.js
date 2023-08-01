@@ -33,11 +33,12 @@ spotlight.position.set(0, 0, 1);
 spotlight.target = camera;
 
 
-const texture = new THREE.TextureLoader().load('/noise1.jpg');
+const texture1 = new THREE.TextureLoader().load('/img/wall-text.png');
+const texture2 = new THREE.TextureLoader().load('/img/wall-bump.png');
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
-    //map: texture,
-    bumpMap: texture,
+    map: texture1,
+    bumpMap: texture2,
     bumpScale: 0.05
 });
 
