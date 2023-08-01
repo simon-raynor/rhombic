@@ -55,7 +55,7 @@ export default class Lattice {
 
                 if (cell.filled) {
                     this.blockMesh.setMatrixAt(blockCount, dummy.matrix);
-                    //this.blockMesh.setColorAt(blockCount, new THREE.Color(cell.x / 10, cell.y / 10, cell.z / 10));
+                    this.blockMesh.setColorAt(blockCount, new THREE.Color(0xffffff));
                     blockCount++;
                 }
 
@@ -73,7 +73,7 @@ export default class Lattice {
         }
 
         this.blockMesh.instanceMatrix.needsUpdate = true;
-        //this.blockMesh.instanceColor.needsUpdate = true;
+        this.blockMesh.instanceColor.needsUpdate = true;
         this.blockMesh.computeBoundingSphere();
     }
 }
@@ -200,7 +200,7 @@ function createRhombic() {
     const geometry = indexedgeometry.toNonIndexed();
     geometry.computeVertexNormals();
     geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
-    
+    geometry.computeBoundsTree();
 
     return geometry;
 }

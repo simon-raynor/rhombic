@@ -1,7 +1,9 @@
+// add the bvh collision methods to the THREE classes
+import './three-extended.js';
+
 import Controls from './Controls.js';
 import Lattice from './Lattice.js';
 import Renderer from './Renderer.js';
-
 
 
 
