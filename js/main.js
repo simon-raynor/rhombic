@@ -1,29 +1,43 @@
 // add the bvh collision methods to the THREE classes
 import './three-extended.js';
+import * as THREE from 'three';
 
 import Controls from './Controls.js';
 import Lattice from './Lattice.js';
-import Renderer from './Renderer.js';
+import Player from './Player.js';
 
+
+
+const scene = new THREE.Scene();
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.pixelRatio = window.devicePixelRatio;
+document.body.appendChild(renderer.domElement);
+
+const testbox = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: 0xff0088}));
+testbox.position.set(0, 0, -1)
+scene.add(
+    testbox
+);
+
+//scene.add(new THREE.AmbientLight(0xffffff, 0.5))
+const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper );
 
 
 const lattice = new Lattice(5, 10, 10);
-const renderer = new Renderer(lattice);
+const { firstInside } = lattice;
+
 const controls = new Controls();
 
-let firstInside = lattice.cells[0];
-const visited = [];
-
-while (firstInside.isOutside) {
-    firstInside = lattice.cells[firstInside.idx + 1];
-}
+const player = new Player(new THREE.Vector3(firstInside.x, firstInside.y, firstInside.z));
+player.registerControls(controls);
+player.addToScene(scene);
 
 
 let cursor = firstInside;
-
-cursor = advanceCursor();
-
-
+const visited = [];
 
 function advanceCursor() {
     cursor.filled = false;
@@ -52,10 +66,7 @@ function advanceCursor() {
 while (cursor) {
     cursor = advanceCursor();
 }
-lattice.buildMesh();
-
-
-renderer.registerCameraControls(firstInside, controls);
+lattice.addToScene(scene);
 
 
 let t = Date.now();
@@ -66,13 +77,22 @@ function tick() {
     const now = Date.now();
     const dt = now - t;
     t = now;
-    
-    if (cursor) {
-        cursor = advanceCursor();
-        lattice.buildMesh();
-    }
 
-    renderer.render(dt);
+    /* raycaster.set(
+        (new THREE.Vector3()).copy(camera.position),
+        new THREE.Vector3(0,0,-1).applyEuler(camera.rotation)
+    );
+    
+    const intersects = raycaster.intersectObjects(scene.children);
+    
+    if (intersects.length) {
+        const { object, instanceId } = intersects[0];
+        object.setColorAt(instanceId, color);
+        object.instanceColor.needsUpdate = true;
+    } */
+    player.tick(dt);
+
+    renderer.render(scene, player.camera);
 }
 tick();
 

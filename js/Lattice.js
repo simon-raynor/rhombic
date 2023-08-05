@@ -1,8 +1,21 @@
 import * as THREE from 'three';
-import { blockMaterial } from "./Renderer.js";
+import GameObject from './GameObject.js';
 
-export default class Lattice {
+
+const texture1 = new THREE.TextureLoader().load('/img/wall-text.png');
+const texture2 = new THREE.TextureLoader().load('/img/wall-bump.png');
+
+export const blockMaterial = new THREE.MeshLambertMaterial({
+    map: texture1,
+    bumpMap: texture2,
+    bumpScale: 0.05
+});
+
+
+export default class Lattice extends GameObject {
     constructor(height, width, depth) {
+        super(new THREE.Vector3(0, 0, 0));
+
         this.height = height;
         this.width = width;
         this.depth = depth;
@@ -16,18 +29,6 @@ export default class Lattice {
         }
 
         this.cells.forEach(cell => cell.setNeigbours());
-
-        // create the mesh for THREE.js
-        const rhombic = createRhombic();
-
-        this.blockMesh = new THREE.InstancedMesh(
-            rhombic,
-            blockMaterial,
-            this.total
-        );
-        this.blockMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-
-        this.buildMesh();
     }
 
     idxToXYZ(idx) {
@@ -44,7 +45,15 @@ export default class Lattice {
         ];
     }
 
-    buildMesh() {
+    createMesh() {
+        this.mesh = new THREE.InstancedMesh(
+            createRhombic(),
+            blockMaterial,
+            this.total
+        );
+        this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+
         const dummy = new THREE.Object3D();
 
         let blockCount = 0;
@@ -54,8 +63,8 @@ export default class Lattice {
                 dummy.updateMatrix();
 
                 if (cell.filled) {
-                    this.blockMesh.setMatrixAt(blockCount, dummy.matrix);
-                    this.blockMesh.setColorAt(blockCount, new THREE.Color(0xffffff));
+                    this.mesh.setMatrixAt(blockCount, dummy.matrix);
+                    //this.mesh.setColorAt(blockCount, new THREE.Color(0xffffff));
                     blockCount++;
                 }
 
@@ -69,12 +78,50 @@ export default class Lattice {
         let i = blockCount;
 
         while (i < this.total) {
-            this.blockMesh.setMatrixAt(i++, dummy.matrix);
+            this.mesh.setMatrixAt(i++, dummy.matrix);
         }
 
-        this.blockMesh.instanceMatrix.needsUpdate = true;
-        this.blockMesh.instanceColor.needsUpdate = true;
-        this.blockMesh.computeBoundingSphere();
+        this.mesh.instanceMatrix.needsUpdate = true;
+        //this.mesh.instanceColor.needsUpdate = true;
+        this.mesh.computeBoundingSphere();
+    }
+
+    addToScene(scene) {
+        GameObject.prototype.addToScene.call(this, scene);
+
+        this.addLighting(scene);
+    }
+
+
+    #_firstInside
+    get firstInside() {
+        let firstInside = this.cells[0];
+
+        while (firstInside.isOutside) {
+            firstInside = this.cells[firstInside.idx + 1];
+        }
+
+        return firstInside;
+    }
+
+    addLighting(scene) {
+        const ends = this.cells.filter(
+            cell => {
+                if (!cell.filled) {
+                    const count = cell.neighbours.reduce((m, n) => n.filled ? m : m + 1, 0);
+                    
+                    return count === 1;
+                }
+            }
+        );
+
+        ends.forEach(
+            cell => {
+                const pointlight = new THREE.PointLight(0xff0088, 1, 5, 2);
+                pointlight.position.set(cell.x, cell.y - 0.25, cell.z - 0.5);
+                scene.add(pointlight);
+            }
+        )
     }
 }
 
