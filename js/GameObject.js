@@ -31,6 +31,43 @@ export default class GameObject {
     createMesh(material = defaultMaterial) {
         this.mesh = new THREE.Mesh(this.model, material);
         this.mesh.position.copy(this.position);
+
+        this.generateCollisionVectors();
+    }
+
+    generateCollisionVectors() {
+        const positions = this.mesh.geometry.attributes.position.array;
+        
+        const vectors = [];
+        const distances = [];
+        const done = [];
+
+        for (let i = 0; i < positions.length; i += 3) {
+            const x = positions[i],
+                y = positions[i + 1],
+                z = positions[i + 2];
+            
+            // used to avoid dupicates
+            const str = `${x},${y},${z}`;
+
+            if (!done.includes(str)) {
+                vectors.push(
+                    new THREE.Vector3(
+                        x,
+                        y,
+                        z
+                    ).normalize()
+                );
+                distances.push(
+                    Math.sqrt((x * x) + (y * y) + (z * z))
+                );
+
+                done.push(str);
+            }
+        }
+
+        this.collisionVectors = vectors;
+        this.collisionDistances = distances;
     }
 
     addToScene(scene) {
@@ -41,31 +78,35 @@ export default class GameObject {
     }
 
     detectCollisions(gameobjects) {
-        const {radius} = this.model.boundingSphere;
-
         const intersects = [];
 
-        for (let i = 0; i < directions.length; i++) {
-            raycaster.set(
-                this.mesh.position,
-                directions[i]
-            );
+        this.collisionVectors.forEach(
+            (vec, idx) => {
+                raycaster.set(
+                    this.mesh.position,
+                    vec
+                );
 
-            intersects.push(...raycaster.intersectObjects(gameobjects));
-        }
+                const radius = this.collisionDistances[idx];
+
+                const vecIntersects = raycaster
+                                .intersectObjects(gameobjects)
+                                .filter(({distance}) => distance < radius);
+
+                intersects.push(...vecIntersects);
+            }
+        )
 
         if (intersects.length) {
-            this.collide(intersects.filter(({distance}) => distance < radius));
+            this.collide(intersects);
         }
     }
 
     collide(intersects) {
-        if (intersects.length) {
-            const first = intersects[0];
+        const first = intersects[0];
 
-            this.velocity.reflect(first.normal);
-            this.applyVelocity(30);
-        }
+        this.velocity.reflect(first.normal);
+        this.applyVelocity(30);
     }
 
     tick(dt, gameobjects) {

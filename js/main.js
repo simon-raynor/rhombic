@@ -22,11 +22,11 @@ window.addEventListener(
     }
 )
 
-const testbox = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: 0xff0088}));
+/* const testbox = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: 0xff0088}));
 testbox.position.set(0, 0, -1)
 scene.add(
     testbox
-);
+); */
 
 //scene.add(new THREE.AmbientLight(0xffffff, 0.5))
 const axesHelper = new THREE.AxesHelper( 5 );
@@ -92,4 +92,4 @@ function tick() {
 tick();
 
 
-console.log(lattice);
+console.log(lattice, player);
