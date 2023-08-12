@@ -24,6 +24,8 @@ export default class GameObject {
 
         this.position = position;
         this.velocity = new THREE.Vector3();
+
+        this.spin = new THREE.Vector3();
     }
 
     createMesh(material = defaultMaterial) {
@@ -43,9 +45,9 @@ export default class GameObject {
 
         const intersects = [];
 
-        for (let i = 0; i < directions; i++) {
+        for (let i = 0; i < directions.length; i++) {
             raycaster.set(
-                this.model.position,
+                this.mesh.position,
                 directions[i]
             );
 
@@ -58,12 +60,40 @@ export default class GameObject {
     }
 
     collide(intersects) {
-        console.log(intersects);
+        if (intersects.length) {
+            const first = intersects[0];
+
+            this.velocity.reflect(first.normal);
+            this.applyVelocity(30);
+        }
     }
 
-    tick(dt) {
-        this.mesh.translateX(this.velocity.x * dt);
-        this.mesh.translateY(this.velocity.y * dt);
-        this.mesh.translateZ(this.velocity.z * dt);
+    tick(dt, gameobjects) {
+        this.detectCollisions(gameobjects);
+
+        this.applyVelocity(dt);
+        this.applyRotation(dt);
+
+        this.decayVelocity();
+        this.decaySpin();
+    }
+
+    applyVelocity(dt) {
+        const vStep = this.velocity.clone().multiplyScalar(dt);
+        this.mesh.position.add(vStep);
+    }
+
+    applyRotation(dt) {
+        this.mesh.rotateX(this.spin.y * dt);
+        this.mesh.rotateY(-this.spin.x * dt);
+        this.mesh.rotateZ(this.spin.z * dt);
+    }
+
+    decayVelocity() {
+        this.velocity.multiplyScalar(0.99);
+    }
+    decaySpin() {
+        this.spin.multiplyScalar(0.95);
+        //this.spin.set(0, 0, 0);
     }
 }

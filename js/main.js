@@ -15,6 +15,13 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.pixelRatio = window.devicePixelRatio;
 document.body.appendChild(renderer.domElement);
 
+window.addEventListener(
+    'resize',
+    () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+)
+
 const testbox = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: 0xff0088}));
 testbox.position.set(0, 0, -1)
 scene.add(
@@ -78,19 +85,7 @@ function tick() {
     const dt = now - t;
     t = now;
 
-    /* raycaster.set(
-        (new THREE.Vector3()).copy(camera.position),
-        new THREE.Vector3(0,0,-1).applyEuler(camera.rotation)
-    );
-    
-    const intersects = raycaster.intersectObjects(scene.children);
-    
-    if (intersects.length) {
-        const { object, instanceId } = intersects[0];
-        object.setColorAt(instanceId, color);
-        object.instanceColor.needsUpdate = true;
-    } */
-    player.tick(dt);
+    player.tick(dt, scene.children);
 
     renderer.render(scene, player.camera);
 }

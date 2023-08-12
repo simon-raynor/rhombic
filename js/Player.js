@@ -3,7 +3,7 @@ import GameObject from "./GameObject.js";
 
 export default class Player extends GameObject {
     constructor(position) {
-        const model = new THREE.BoxGeometry(1, 1, 1);
+        const model = new THREE.BoxGeometry(0.2, 0.2, 0.2);
         super(position, model);
 
         this.createMesh();
@@ -40,8 +40,6 @@ export default class Player extends GameObject {
             function () {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
-
-                renderer.setSize( window.innerWidth, window.innerHeight );
             },
             {
                 signal: this.resizeAborter.signal
@@ -52,26 +50,29 @@ export default class Player extends GameObject {
     }
 
 
-    tick(dt) {
+    tick(dt, gameobjects) {
         if (this.controls.moving) {
             const { x, y, force } = this.controls.moving;
-            this.velocity.set(x, 0, -y).multiplyScalar(Math.min(force, 1) / 750);
-        } else {
-            this.velocity.set(0, 0, 0);
-        }
+            this.velocity
+                .set(x, 0, -y)
+                .applyEuler(this.mesh.rotation)
+                .multiplyScalar(Math.min(force, 1) / 750);
+        }/*  else {
+            this.decayVelocity();
+        } */
 
         if (this.controls.looking) {
             const { x, y, force } = this.controls.looking;
-            const vec = new THREE.Vector3(x, y, 0).multiplyScalar(dt * Math.min(force, 1) / 750);
-            this.mesh.rotateX(vec.y);
--           this.mesh.rotateY(-vec.x);
-        }
+            this.spin.set(x, y, 0).multiplyScalar(Math.min(force, 1) / 750);
+        }/*  else {
+            this.decaySpin();
+        } */
 
         this.camera.position.copy(this.mesh.position);
         this.camera.rotation.copy(this.mesh.rotation);
 
         this.mesh.updateMatrix();
 
-        GameObject.prototype.tick.call(this, dt);
+        GameObject.prototype.tick.call(this, dt, gameobjects);
     }
 }
