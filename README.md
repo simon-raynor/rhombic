@@ -11,8 +11,10 @@ The maze generated inside the honeycomb is incredibly disorienting, as such it m
 Thing TODO to bring this from demo to game:
 
 - engine improvements: better collisions and general physics
+- optimisation: improve rendering/physics performance, for example combining the "wall" geometries into a single mesh (this should also fix certain lighting glitches)
 - puzzles/contents: stuff to go inside previously mentioned rooms, as well as randomly dispersed around the maze, bare minimum is some kind of simple win condition
 - UI: needs menus and screens, bare minimum would be a "click to start" screen and a "you win/lose" screen
+- dev tooling/wizard mode: need some way to easily build and debug stuff like maze generation and content items
 
 ## Roadmap
 
