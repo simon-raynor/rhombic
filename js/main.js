@@ -2,10 +2,15 @@
 import './three-extended.js';
 import * as THREE from 'three';
 
+import Stats from 'three/addons/libs/stats.module.js';
+
 import Controls from './Controls.js';
 import Lattice from './Lattice.js';
 import Player from './Player.js';
 
+
+const stats = new Stats();
+document.body.appendChild( stats.dom )
 
 
 const scene = new THREE.Scene();
@@ -20,7 +25,7 @@ window.addEventListener(
     () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
-)
+);
 
 /* const testbox = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color: 0xff0088}));
 testbox.position.set(0, 0, -1)
@@ -88,6 +93,8 @@ function tick() {
     player.tick(dt, scene.children);
 
     renderer.render(scene, player.camera);
+
+    stats.update();
 }
 tick();
 
