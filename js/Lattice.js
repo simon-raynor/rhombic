@@ -2,10 +2,17 @@ import * as THREE from 'three';
 import GameObject from './GameObject.js';
 
 
-const texture1 = new THREE.TextureLoader().load('/img/wall-text.png');
+const texture = new THREE.TextureLoader().load('/img/wall-text.png');
+const texture1 = new THREE.TextureLoader().load('/img/wall-text-1.png');
 const texture2 = new THREE.TextureLoader().load('/img/wall-bump.png');
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
+    map: texture,
+    bumpMap: texture2,
+    bumpScale: 0.05
+});
+
+export const blockMaterialOne = new THREE.MeshLambertMaterial({
     map: texture1,
     bumpMap: texture2,
     bumpScale: 0.05
@@ -48,7 +55,7 @@ export default class Lattice extends GameObject {
     createMesh() {
         this.mesh = new THREE.InstancedMesh(
             createRhombic(),
-            blockMaterial,
+            /* [ */blockMaterial, /* blockMaterialOne], */
             this.total
         );
         this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -189,7 +196,7 @@ class LatticeCell {
 
 
 
-function createRhombic() {
+export function createRhombic() {
     const indexedgeometry = new THREE.BufferGeometry();
 
     const vertices = new Float32Array([
@@ -199,46 +206,88 @@ function createRhombic() {
         -2,0,0, 0,-2,0, 0,0,-2
     ]);
     const faces = [
-        0,8,1, 2,8,0, 3,8,2, 1,8,3,
-        0,1,9, 2,0,10, 3,2,12, 1,3,13,
+        0,8,1, 0,1,9,
+        2,8,0, 2,0,10,
+        3,8,2, 3,2,12,
+        1,8,3, 1,3,13,
 
-        7,6,11, 6,4,11, 4,5,11, 5,7,11,
-        7,12,6, 6,10,4, 4,9,5, 5,13,7,
+        7,6,11, 7,12,6,
+        6,4,11, 6,10,4,
+        4,5,11, 4,9,5,
+        5,7,11, 5,13,7,
 
         0,4,10, 4,0,9, 1,5,9, 5,1,13,
         2,6,12, 6,2,10, 3,7,13, 7,3,12
     ];
 
+    /* const uvs = [
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        1,0, 0,1, 1,1,
+        1,0, 0,1, 0,0,
+        
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        1,0, 0,0, 0,1,
+        1,0, 1,1, 0,1,
+        
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+        
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+        1,1, 0,0, 1,0,
+        0,0, 1,1, 0,1,
+    ]; */
+
     const uvs = [
-        1,0, 0,0, 0,1,
-        1,0, 1,1, 0,1,
-        1,0, 0,0, 0,1,
-        1,0, 1,1, 0,1,
+        0.25,1, 0.25,0.75, 0.5,0.75,
+        0.25,1, 0.5,0.75, 0.5,1,
+
+        0.5,1, 0.5,0.75, 0.75,0.75,
+        0.5,1, 0.75,0.75, 0.75,1,
+
+        0.75,1, 0.75,0.75, 1,0.75,
+        0.75,1, 1,0.75, 1,1,
+
+        0,0.75, 0,0.5, 0.25,0.5,
+        0,0.75, 0.25,0.5, 0.25,0.75,
         
-        1,0, 0,1, 1,1,
-        1,0, 0,1, 0,0,
-        1,0, 0,1, 1,1,
-        1,0, 0,1, 0,0,
+
+        0.5,0.5, 0.25,0.75, 0.25,0.5,
+        0.5,0.5, 0.5,0.75, 0.25,0.75,
+
+        0.75,0.5, 0.5,0.75, 0.5,0.5,
+        0.75,0.5, 0.75,0.75, 0.5,0.75,
+
+        1,0.5, 0.75,0.75, 0.75,0.5,
+        1,0.5, 1,0.75, 0.75,0.75,
+
+        0.25,0.25, 0,0.5, 0,0.25,
+        0.25,0.25, 0.25,0.5, 0,0.5,
         
-        1,0, 0,1, 1,1,
-        1,0, 0,1, 0,0,
-        1,0, 0,1, 1,1,
-        1,0, 0,1, 0,0,
         
-        1,0, 0,0, 0,1,
-        1,0, 1,1, 0,1,
-        1,0, 0,0, 0,1,
-        1,0, 1,1, 0,1,
+        0.5,0.25, 0.25,0.5, 0.25,0.25,
+        0.25,0.5, 0.5,0.25, 0.5,0.5,
+        0.75,0.25, 0.5,0.5, 0.5,0.25,
+        0.5,0.5, 0.75,0.25, 0.75,0.5,
         
-        1,1, 0,0, 1,0,
-        0,0, 1,1, 0,1,
-        1,1, 0,0, 1,0,
-        0,0, 1,1, 0,1,
-        
-        1,1, 0,0, 1,0,
-        0,0, 1,1, 0,1,
-        1,1, 0,0, 1,0,
-        0,0, 1,1, 0,1,
+        1,0.25, 0.75,0.5, 0.75,0.25,
+        0.75,0.5, 1,0.25, 1,0.5,
+        0.25,0.25, 0,0, 0.25,0,
+        0,0, 0.25,0.25, 0,0.25,
     ];
 
     indexedgeometry.setIndex(faces);
