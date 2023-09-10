@@ -27,7 +27,7 @@ camera.position.set(0, 0, -5);
 
 
 const controls = new OrbitControls( camera, renderer.domElement );
-controls.autoRotate = true;
+//controls.autoRotate = true;
 controls.update();
 
 
@@ -42,12 +42,12 @@ const rhombic = createRhombic();
 console.log(rhombic);
 
 const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
-const texturebump = new THREE.TextureLoader().load('/img/wall-bump.png');
+const texturebump = new THREE.TextureLoader().load('/img/wall-atlas-bumps.png');
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
-    /* bumpMap: texturebump,
-    bumpScale: 0.05 */
+    bumpMap: texturebump,
+    bumpScale: 0.05
 });
 
 /* const materials = [1,2,3,4,5,6,7,8,9,10,11,12].map(
