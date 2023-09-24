@@ -2,19 +2,12 @@ import * as THREE from 'three';
 import GameObject from './GameObject.js';
 
 
-const texture = new THREE.TextureLoader().load('/img/wall-text.png');
-const texture1 = new THREE.TextureLoader().load('/img/wall-text-1.png');
-const texture2 = new THREE.TextureLoader().load('/img/wall-bump.png');
+const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
+const texturebump = new THREE.TextureLoader().load('/img/wall-atlas-bumps.png');
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
-    bumpMap: texture2,
-    bumpScale: 0.05
-});
-
-export const blockMaterialOne = new THREE.MeshLambertMaterial({
-    map: texture1,
-    bumpMap: texture2,
+    bumpMap: texturebump,
     bumpScale: 0.05
 });
 
@@ -55,7 +48,7 @@ export default class Lattice extends GameObject {
     createMesh() {
         this.mesh = new THREE.InstancedMesh(
             createRhombic(),
-            /* [ */blockMaterial, /* blockMaterialOne], */
+            blockMaterial,
             this.total
         );
         this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
