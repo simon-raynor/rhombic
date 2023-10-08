@@ -1,16 +1,43 @@
 import * as THREE from 'three';
 
-export const TRIGONAL_VERTICES = new Float32Array([
-    0, 0, 0,
-    2, 0, 0,
-    0, 2, 0,
-    0, 0, 2,
+const A = new THREE.Vector3(1,-1,1),
+    B = new THREE.Vector3(0,2,0);
 
-    1, 1, 1,
-    1, 1, -1,
-    1, -1, 1,
-    -1, 1, 1,
-]);
+const theta = Math.acos(A.dot(B) / (A.length() * B.length()));
+
+export const TRIGONAL_ROTATER = (
+    (new THREE.Quaternion()).setFromAxisAngle(
+        new THREE.Vector3(0,1,0).normalize(),
+        Math.PI / 4
+    )
+).multiply(
+    (new THREE.Quaternion()).setFromAxisAngle(
+        new THREE.Vector3(-1,0,1).normalize(),
+        (Math.PI - theta)
+    )
+);
+
+const tmpVec3 = new THREE.Vector3();
+const vertices = [
+    [0, 0, 0],
+    [2, 0, 0],
+    [0, 2, 0],
+    [0, 0, 2],
+
+    [1, 1, 1],
+    [1, 1, -1],
+    [1, -1, 1],
+    [-1, 1, 1],
+].map(
+    arr => tmpVec3
+            .fromArray(arr)
+            .applyQuaternion(TRIGONAL_ROTATER)
+            .toArray()
+);
+
+export const TRIGONAL_VERTICES = new Float32Array(
+    vertices.flat()
+);
 
 export const TRIGONAL_FACES = [
     4,1,5, 4,5,2,
@@ -53,7 +80,12 @@ export function createTrigonal() {
     const uvs = TRIGONAL_UVS;
 
     indexedgeometry.setIndex(faces);
-    indexedgeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    indexedgeometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+            vertices, 3
+        )
+    );
 
     const geometry = indexedgeometry.toNonIndexed();
     geometry.computeVertexNormals();

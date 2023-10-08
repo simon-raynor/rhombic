@@ -3,11 +3,11 @@ import './three-extended.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 
 import Stats from 'three/addons/libs/stats.module.js';
 import { createRhombic } from './geometries/rhombicdodecahedron.js';
 import { createTrigonal } from './geometries/trigonaltrapezahedron.js';
+import trigonalmesh, { geometry } from './entities/trider/index.js';
 
 
 const stats = new Stats();
@@ -56,9 +56,8 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
 });
 export const redMaterial = new THREE.MeshLambertMaterial({
     color: 0xff0000,
-    /* map: texture,
-    bumpMap: texturebump,
-    bumpScale: 0.05, */
+    opacity: 0.5,
+    transparent: true,
     side: THREE.DoubleSide
 });
 
@@ -120,91 +119,6 @@ scene.add(rhombicmesh); */
 
 
 
-const trigonal = createTrigonal();
-
-console.log(trigonal);
-
-
-
-const bones = [
-    new THREE.Bone(),
-    new THREE.Bone(),
-    new THREE.Bone(),
-    new THREE.Bone(),
-];
-
-bones[1].position.set(0, 0, 2);
-bones[2].position.set(0, 2, 0);
-bones[3].position.set(2, 0, 0);
-
-bones[0].add(bones[1], bones[2], bones[3]);
-
-
-const leg1 = createTrigonal();
-leg1.translate(-1, -1, 3);
-leg1.rotateZ(Math.PI);
-const leg1bone = new THREE.Bone();
-leg1bone.position.set(1, 1, 3);
-bones[1].add(leg1bone);
-bones.push(leg1bone);
-
-const leg2 = createTrigonal();
-leg2.translate(-1, 3, -1);
-leg2.rotateY(Math.PI);
-const leg2bone = new THREE.Bone();
-leg2bone.position.set(1, 3, 1);
-bones[2].add(leg2bone);
-bones.push(leg2bone);
-
-const leg3 = createTrigonal();
-leg3.translate(3, -1, -1);
-leg3.rotateX(Math.PI);
-const leg3bone = new THREE.Bone();
-leg3bone.position.set(3, 1, 1);
-bones[3].add(leg3bone);
-bones.push(leg3bone);
-
-
-const geometry = BufferGeometryUtils.mergeGeometries([trigonal, leg1, leg2, leg3]);
-const skeleton = new THREE.Skeleton(bones);
-
-
-const position = geometry.attributes.position;
-const vertex = new THREE.Vector3();
-
-const skinIndices = [];
-const skinWeights = [];
-
-for (let i = 0; i < position.count; i++) {
-    vertex.fromBufferAttribute(position, i);
-
-    const leg = Math.floor(i / 36);
-    console.log(leg);
-
-    if (leg) {
-        skinIndices.push(leg, leg + 3, 0, 0);
-    } else {
-        skinIndices.push(0, 0, 0, 0);
-    }
-    skinWeights.push(0.5, 0.5, 0, 0);
-}
-geometry.setAttribute( 'skinIndex', new THREE.Uint16BufferAttribute( skinIndices, 4 ) );
-geometry.setAttribute( 'skinWeight', new THREE.Float32BufferAttribute( skinWeights, 4 ) );
-
-
-
-const trigonalmesh = new THREE.SkinnedMesh(
-    geometry,
-    blockMaterial
-);
-
-trigonalmesh.add(bones[0]); // root bone
-trigonalmesh.bind(skeleton);
-
-trigonalmesh.position.set(0, 2, 0);
-
-trigonalmesh.rotateX(-Math.PI / 5);
-trigonalmesh.rotateZ(Math.PI / 4);
 
 scene.add( trigonalmesh );
 
@@ -212,6 +126,9 @@ const helper = new THREE.SkeletonHelper( trigonalmesh );
 scene.add( helper );
 
 
+/* const trig = geometry;
+const tmesh = new THREE.Mesh(trig, blockMaterial);
+scene.add(tmesh); */
 
 
 
@@ -222,6 +139,11 @@ floor.rotateZ(Math.PI);
 scene.add( floor );
 
 
+
+
+//const mixer = new THREE.AnimationMixer(trigonalmesh);
+//const clipaction = mixer.clipAction(clip);
+//clipaction.play();
 
 
 let t = Date.now();
@@ -238,21 +160,7 @@ function tick() {
 
     renderer.render(scene, camera);
 
+    //mixer.update(dt / 1000);
 
-    const fortyfive = Math.PI / 4,
-        angle = (3 * fortyfive) + (fortyfive * Math.sin(t / 1000));
-    
-    bones[1].setRotationFromAxisAngle(
-        (new THREE.Vector3(1, -1, 0)).normalize(),
-        angle
-    );
-    bones[2].setRotationFromAxisAngle(
-        (new THREE.Vector3(-1, 0, 1)).normalize(),
-        angle
-    );
-    bones[3].setRotationFromAxisAngle(
-        (new THREE.Vector3(0, 1, -1)).normalize(),
-        angle
-    );
 }
 tick();
