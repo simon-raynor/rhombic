@@ -41,40 +41,43 @@ const A = new THREE.Vector3(knee1.x, 0, knee1.z);
 
 const theta = Math.acos(A.dot(knee1) / (A.length() * knee1.length()));
 
-const arm2 = trigonal.clone();
-arm2.applyQuaternion(
-    (new THREE.Quaternion()).setFromAxisAngle(
-        new THREE.Vector3(0, -1, 0).normalize(),
-        Math.PI
-    ).multiply(
-        (new THREE.Quaternion()).setFromAxisAngle(
-            new THREE.Vector3(0, 0, -1).normalize(),
-            Math.PI - (2 * theta)
-        )
-    )
-);
-
 const arm1 = trigonal.clone();
+const arm1rotAxis = new THREE.Vector3(1.73205080757, 0, 1).normalize();
 arm1.applyQuaternion(
     (new THREE.Quaternion()).setFromAxisAngle(
         new THREE.Vector3(0, -1, 0).normalize(),
         Math.PI
     ).multiply(
         (new THREE.Quaternion()).setFromAxisAngle(
-            new THREE.Vector3(1.73205080757, 0, 1).normalize(),
+            arm1rotAxis,
+            Math.PI - (2 * theta)
+        )
+    )
+);
+
+const arm2 = trigonal.clone();
+const arm2rotAxis = new THREE.Vector3(0, 0, -1).normalize();
+arm2.applyQuaternion(
+    (new THREE.Quaternion()).setFromAxisAngle(
+        new THREE.Vector3(0, -1, 0).normalize(),
+        Math.PI
+    ).multiply(
+        (new THREE.Quaternion()).setFromAxisAngle(
+            arm2rotAxis,
             Math.PI - (2 * theta)
         )
     )
 );
 
 const arm3 = trigonal.clone();
+const arm3rotAxis = new THREE.Vector3(-1.73205080757, 0, 1).normalize();
 arm3.applyQuaternion(
     (new THREE.Quaternion()).setFromAxisAngle(
         new THREE.Vector3(0, -1, 0).normalize(),
         Math.PI
     ).multiply(
         (new THREE.Quaternion()).setFromAxisAngle(
-            new THREE.Vector3(-1.73205080757, 0, 1).normalize(),
+            arm3rotAxis,
             Math.PI - (2 * theta)
         )
     )
@@ -88,31 +91,83 @@ geometry.translate(0, SQRT3, 0);
 
 
 const bones = [
+    // root
     new THREE.Bone(),
-    new THREE.Bone(),
-    new THREE.Bone(),
-    new THREE.Bone(),
-    new THREE.Bone(),
-    new THREE.Bone(),
+    // spine
     new THREE.Bone(),
 ];
 
 bones[0].position.set(0, SQRT3, 0);
 
-bones[1].position.set(...knee1.toArray());
-bones[2].position.set(...knee2.toArray());
-bones[3].position.set(...knee3.toArray());
+bones[1].position.set(0, SQRT3 * 2, 0);
+bones[0].add(bones[1]);
 
-bones[4].position.set(-knee1.x, -knee1.y - SQRT3, -knee1.z);
-bones[5].position.set(-knee2.x, -knee2.y - SQRT3, -knee2.z);
-bones[6].position.set(-knee3.x, -knee3.y - SQRT3, -knee3.z);
+export const iks = [];
 
+let idx = 2;
 
+[knee1, knee2, knee3].forEach(
+    kneeposn => {
+        const hip1 = new THREE.Bone();
+        const hip2 = new THREE.Bone();
+        const hip3 = new THREE.Bone();
+        const knee = new THREE.Bone();
+        const foot = new THREE.Bone();
+        const footprint = new THREE.Bone();
 
-bones[0].add(bones[1], bones[2], bones[3]);
-bones[1].add(bones[4]);
-bones[2].add(bones[5]);
-bones[3].add(bones[6]);
+        hip1.position.set(...kneeposn.toArray());
+        hip2.position.set(0, 0.4, 0);
+        hip3.position.set(kneeposn.x/3, -0.4, kneeposn.z/3);
+        knee.position.set(-kneeposn.x/3, 0, -kneeposn.z/3);
+        foot.position.set(-kneeposn.x, -kneeposn.y - SQRT3, -kneeposn.z);
+        footprint.position.set(0, -SQRT3, 0);
+
+        bones[0].add(hip1, footprint);
+        hip1.add(hip2);
+        hip2.add(hip3);
+        hip3.add(knee);
+        knee.add(foot);
+
+        bones.push(
+            hip1,
+            hip2,
+            hip3,
+            knee,
+            foot,
+            footprint
+        );
+
+        iks.push(
+            {
+                target: idx + 5,
+                effector: idx + 4,
+                links: [
+                    {
+                        index: idx + 3,
+                        /* rotationMin: new THREE.Vector3(-0.5,-0.5,-0.5),
+                        rotationMax: new THREE.Vector3(0.5,0.5,0.5) */
+                    },
+                    {
+                        index: idx + 2,
+                    },
+                    {
+                        index: idx + 1,
+                        limitation: new THREE.Vector3(-kneeposn.x,0,-kneeposn.z).normalize(),
+                    },
+                    {
+                        index: idx,
+                        limitation: new THREE.Vector3(kneeposn.x,0,kneeposn.z).normalize(),
+                    }
+                ],
+                iteration: 2
+                //maxAngle: 2 * Math.PI / 3,
+                //minAngle: 0
+            }
+        );
+
+        idx += 6;
+    }
+);
 
 
 const skeleton = new THREE.Skeleton(bones);
@@ -132,12 +187,12 @@ for (let i = 0; i < position.count; i++) {
     vertex.fromBufferAttribute(position, i);
 
     const leg = Math.floor(i / 36);
-    console.log(leg);
+    const idx = (leg * 6) - 1;
 
     if (leg) {
-        skinIndices.push(leg, leg + 3, 0, 0);
+        skinIndices.push(idx, idx + 1, 0, 0);
     } else {
-        skinIndices.push(0, 0, 0, 0);
+        skinIndices.push(0, 1, 0, 0);
     }
     skinWeights.push(0.5, 0.5, 0, 0);
 }
@@ -179,156 +234,98 @@ export default trigonalmesh;
 console.log(trigonalmesh)
 
 
-/* 
-const fortyfive = Math.PI / 4,
-angle = (3 * fortyfive) - 0.05;
 
-function leg2Track() {
+
+
+const tmpQuat = new THREE.Quaternion();
+
+function legOpenTrack(axis, boneIdx) {
     const quats = [];
-
-    const quat = new THREE.Quaternion();
-    const axis = (new THREE.Vector3(-1, 0, 1)).normalize();
     
-    quat.setFromAxisAngle(axis, angle);
-    quats.push(...quat.toArray());
+    tmpQuat.setFromAxisAngle(axis, 0);
+    quats.push(...tmpQuat.toArray());
     
-    quat.setFromAxisAngle(axis, angle - Math.PI / 4);
-    quats.push(...quat.toArray());
-    
-    quat.setFromAxisAngle(axis, angle);
-    quats.push(...quat.toArray());
+    tmpQuat.setFromAxisAngle(axis, 13 * Math.PI / 40);
+    quats.push(...tmpQuat.toArray());
     
     return new THREE.QuaternionKeyframeTrack(
-        `${skeleton.bones[2].uuid}.quaternion`,
-        [0.25, 0.45, 0.7],
+        `${skeleton.bones[boneIdx].uuid}.quaternion`,
+        [0, 1],
         quats
     );
 }
 
-function leg3Track() {
-    const quats = [];
-
-    const quat = new THREE.Quaternion();
-    const axis = (new THREE.Vector3(0, 1, -1)).normalize();
-    
-    quat.setFromAxisAngle(axis, angle);
-    quats.push(quat.clone());
-    
-    quat.setFromAxisAngle(axis, angle - Math.PI / 4);
-    quats.push(quat.clone());
-    
-    quat.setFromAxisAngle(axis, angle);
-    quats.push(quat.clone());
-    
-    return new THREE.QuaternionKeyframeTrack(
-        `${skeleton.bones[3].uuid}.quaternion`,
-        [0.5, 0.7, 0.9],
-        quats.reduce(
-            (memo, quat) => {
-                memo.push(...quat.toArray());
-                return memo;
-            },
-            []
-        )
-    );
-}
 
 
-
-function leg1WalkTracks() {
-    const tracks = [];
-
-    const quats = [];
-
-    const quat = new THREE.Quaternion();
-    const axis = (new THREE.Vector3(1, -1, 0)).normalize();
-
-    const startAngle = 2 * Math.PI / 3 - 0.09;
-    const backAngle = 7 * Math.PI / 8;
-    const fwdAngle = 2 * Math.PI / 3 - 0.3;
-    
-    quat.setFromAxisAngle(axis, startAngle);
-    quats.push(quat.clone());
-    
-    quat.setFromAxisAngle(axis, backAngle);
-    quats.push(quat.clone());
-    
-    quat.setFromAxisAngle(axis, fwdAngle);
-    quats.push(quat.clone());
-    
-    quat.setFromAxisAngle(axis, startAngle);
-    quats.push(quat.clone());
-    
-    tracks.push(
-        new THREE.QuaternionKeyframeTrack(
-            `${skeleton.bones[1].uuid}.quaternion`,
-            [0, 2, 2.5, 3],
-            quats.reduce(
-                (memo, quat) => {
-                    memo.push(...quat.toArray());
-                    return memo;
-                },
-                []
-            )
-        )
-    );
-
-    tracks.push(
-        new THREE.VectorKeyframeTrack(
-            `${skeleton.bones[1].uuid}.position`,
-            [0, 1, 2.25, 3],
-            [
-                -0.5, -0.5, 1.5,
-                -0.3, -0.3, 2.15,
-                -0.3, -0.3, 2.20,
-                -0.5, -0.5, 1.5,
-            ]
-        )
-    )
-
-    return tracks;
-} */
-
-/* bones[1].setRotationFromAxisAngle(
-    (new THREE.Vector3(1, -1, 0)).normalize(),
-    2 * Math.PI / 3 - 0.09
-);
-
-bones[2].setRotationFromAxisAngle(
-    (new THREE.Vector3(-1, 0, 1)).normalize(),
-    2 * Math.PI / 3 - 0.09
-);
-
-bones[3].setRotationFromAxisAngle(
-    (new THREE.Vector3(0, 1, -1)).normalize(),
-    2 * Math.PI / 3 - 0.09
-); */
-
-export const clip = new THREE.AnimationClip(
-    'walk',
+export const openClip = new THREE.AnimationClip(
+    'open',
     1,
     [
-        //...leg1WalkTracks()
-        /*leg1Track(), 
-        leg2Track(),
-        new THREE.VectorKeyframeTrack(
-            `${skeleton.bones[2].uuid}.position`,
-            [0.25, 0.5, 0.75],
-            [
-                0, 2, 0,
-                0, 2.25, 0,
-                0, 2, 0,
-            ]
-        ),
-        leg3Track(), */
-        /* new THREE.VectorKeyframeTrack(
-            `${skeleton.bones[0].uuid}.position`,
-            [0, 0.5, 1],
-            [
-                2, 0, 0,
-                4, 0, 0,
-                2, 0, 0,
-            ]
-        ) */
+        legOpenTrack(arm1rotAxis, 1),
+        legOpenTrack(arm2rotAxis, 2),
+        legOpenTrack(arm3rotAxis, 3),
     ]
 );
+
+
+
+function stepBodyTrack() {
+    const quats = [];
+    
+    tmpQuat.setFromAxisAngle(arm2rotAxis, -0.4);
+    quats.push(...tmpQuat.toArray());
+    tmpQuat.setFromAxisAngle(arm1rotAxis, -0.25);
+    quats.push(...tmpQuat.toArray());
+    tmpQuat.setFromAxisAngle(arm3rotAxis, -0.4);
+    quats.push(...tmpQuat.toArray());
+    tmpQuat.setFromAxisAngle(arm2rotAxis, -0.4);
+    quats.push(...tmpQuat.toArray());
+
+    return new THREE.QuaternionKeyframeTrack(
+        `${skeleton.bones[1].uuid}.quaternion`,
+        [0,1,2,3],
+        quats
+    )
+}
+
+export const stepClip = new THREE.AnimationClip(
+    'step',
+    3,
+    [
+        new THREE.VectorKeyframeTrack(
+            `${skeleton.bones[7].uuid}.position`,
+            [0,1,1.3,2,3],
+            [
+                0.5,-SQRT3,-3.5,
+                -0.5,-SQRT3,-3.5,
+                0.5,-SQRT3/2,-3.5,
+                1.5,-SQRT3,-3.5,
+                0.5,-SQRT3,-3.5,
+            ]
+        ),
+        new THREE.VectorKeyframeTrack(
+            `${skeleton.bones[13].uuid}.position`,
+            [0,0.3,1,2,3],
+            [
+                -4.5,-SQRT3,0,
+                -3.5,-SQRT3/2,0,
+                -2.5,-SQRT3,0,
+                -3.5,-SQRT3,0,
+                -4.5,-SQRT3,0
+            ]
+        ),
+        new THREE.VectorKeyframeTrack(
+            `${skeleton.bones[19].uuid}.position`,
+            [0,1,2,2.3,3],
+            [
+                2,-SQRT3,3.5,
+                1,-SQRT3,3.5,
+                0,-SQRT3,3.5,
+                1,-SQRT3/2,3.5,
+                2,-SQRT3,3.5,
+            ]
+        ),
+        stepBodyTrack()
+    ]
+)
+

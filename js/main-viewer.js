@@ -3,11 +3,12 @@ import './three-extended.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import { CCDIKSolver } from 'three/addons/animation/CCDIKSolver.js';
 
 import Stats from 'three/addons/libs/stats.module.js';
 import { createRhombic } from './geometries/rhombicdodecahedron.js';
 import { createTrigonal } from './geometries/trigonaltrapezahedron.js';
-import trigonalmesh, { geometry } from './entities/trider/index.js';
+import trigonalmesh, { geometry, iks, openClip, stepClip } from './entities/trider/index.js';
 
 
 const stats = new Stats();
@@ -21,8 +22,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.pixelRatio = window.devicePixelRatio;
 document.body.appendChild(renderer.domElement);
 
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
+/* const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper ); */
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -122,8 +123,8 @@ scene.add(rhombicmesh); */
 
 scene.add( trigonalmesh );
 
-const helper = new THREE.SkeletonHelper( trigonalmesh );
-scene.add( helper );
+/* const helper = new THREE.SkeletonHelper( trigonalmesh );
+scene.add( helper ); */
 
 
 /* const trig = geometry;
@@ -132,8 +133,8 @@ scene.add(tmesh); */
 
 
 
-const floorgeometry = new THREE.PlaneGeometry(10, 10);
-const floor = new THREE.Mesh( floorgeometry, redMaterial );
+const floorgeometry = new THREE.PlaneGeometry(1000, 1000);
+const floor = new THREE.Mesh( floorgeometry, blockMaterial );
 floor.rotateX(-Math.PI / 2);
 floor.rotateZ(Math.PI);
 scene.add( floor );
@@ -141,9 +142,21 @@ scene.add( floor );
 
 
 
-//const mixer = new THREE.AnimationMixer(trigonalmesh);
-//const clipaction = mixer.clipAction(clip);
-//clipaction.play();
+const mixer = new THREE.AnimationMixer(trigonalmesh);
+const clipaction = mixer.clipAction(stepClip);
+//clipaction.repetitions = 1;
+//clipaction.clampWhenFinished = true;
+clipaction.play();
+
+
+
+const ikSolver = new CCDIKSolver( trigonalmesh, iks );
+
+
+const helper = new THREE.SkeletonHelper( trigonalmesh );
+scene.add( helper );
+/* const helper = ikSolver.createHelper();
+scene.add( helper ); */
 
 
 let t = Date.now();
@@ -160,7 +173,11 @@ function tick() {
 
     renderer.render(scene, camera);
 
-    //mixer.update(dt / 1000);
+    mixer.update(dt / 1000);
+
+    trigonalmesh.position.x += dt / 1000;
+
+    ikSolver?.update();
 
 }
 tick();
