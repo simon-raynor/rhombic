@@ -9,7 +9,7 @@ const SQRT3 = Math.sqrt(3);
 
 
 
-
+export const OPEN_FACTOR = 3;
 
 
 
@@ -20,13 +20,14 @@ function legOpenTrack(idx, boneId, length = 1) {
     for (let i = 0; i <= 10; i++) {
         const t = i / 10;
 
-        const x = 1 - Math.cos(t * Math.PI)
+        const x = OPEN_FACTOR * (1 - Math.cos(t * Math.PI)) / 2
         const y = Math.sin(t * Math.PI);
-
+        
         times.push(t * length);
         posns.push(knees[idx].x * x, -SQRT3 - y, knees[idx].z * x);
+        //posns.push(0, -SQRT3 - y, 0);
     }
-    
+    console.log(knees[idx], posns);
     return new THREE.VectorKeyframeTrack(
         `${boneId}.position`,
         times,
@@ -56,7 +57,36 @@ function bodyOpenTrack(meshId, length = 1) {
 
 
 
+function legTurnTrack(idx, boneId, length = 1) {
+    const posns = [];
+    const times = [];
 
+    const x = knees[idx].x * OPEN_FACTOR,
+        z = knees[idx].z * OPEN_FACTOR;
+
+    for (let i = 0; i < 30; i++) {
+        const iAdj = i - (10 * idx);
+
+        const angle = Math.PI * i / 30,
+            cos = Math.cos(angle),
+            sin = Math.sin(angle);
+
+        let xi = (x * cos) - (z * sin),
+            zi = (z * cos) + (x * sin);
+        
+        posns.push(
+            xi, -SQRT3, zi
+        );
+
+        times.push(i / 10);
+    }
+    
+    return new THREE.VectorKeyframeTrack(
+        `${boneId}.position`,
+        times,
+        posns
+    );
+}
 
 
 
@@ -92,37 +122,50 @@ export default function createMixer(mesh) {
                 `${mesh.skeleton.bones[7].uuid}.position`,
                 [0,1,1.3,2,3],
                 [
-                    0.5,-SQRT3,-4,
-                    -0.5,-SQRT3,-4,
-                    0.5,-SQRT3/2,-4,
-                    1.5,-SQRT3,-4,
-                    0.5,-SQRT3,-4,
+                    4,-SQRT3,0.5,
+                    4,-SQRT3,-0.5,
+                    4,-SQRT3/2,0.5,
+                    4,-SQRT3,1.5,
+                    4,-SQRT3,0.5,
                 ]
             ),
             new THREE.VectorKeyframeTrack(
                 `${mesh.skeleton.bones[13].uuid}.position`,
                 [0,0.3,1,2,3],
                 [
-                    -6,-SQRT3,0,
-                    -5,-SQRT3/2,0,
-                    -4,-SQRT3,0,
-                    -5,-SQRT3,0,
-                    -6,-SQRT3,0
+                    0,-SQRT3,-5,
+                    0,-SQRT3/2,-4,
+                    0,-SQRT3,-3,
+                    0,-SQRT3,-4,
+                    0,-SQRT3,-5
                 ]
             ),
             new THREE.VectorKeyframeTrack(
                 `${mesh.skeleton.bones[19].uuid}.position`,
                 [0,1,2,2.3,3],
                 [
-                    2,-SQRT3,4,
-                    1,-SQRT3,4,
-                    0,-SQRT3,4,
-                    1,-SQRT3/2,4,
-                    2,-SQRT3,4,
+                    -4,-SQRT3,2,
+                    -4,-SQRT3,1,
+                    -4,-SQRT3,0,
+                    -4,-SQRT3/2,1,
+                    -4,-SQRT3,2,
                 ]
             ),
         ]
     );
+
+
+
+    const turnClip = new THREE.AnimationClip(
+        'turn',
+        3,
+        [
+            legTurnTrack(0, mesh.skeleton.bones[7].uuid),
+            legTurnTrack(1, mesh.skeleton.bones[13].uuid),
+            legTurnTrack(2, mesh.skeleton.bones[19].uuid),
+        ]
+    );
+
 
 
     const openAction = mixer.clipAction(openClip);
@@ -132,10 +175,16 @@ export default function createMixer(mesh) {
 
     const stepAction = mixer.clipAction(stepClip);
     stepAction.setDuration(1);
+
+
+    const turnAction = mixer.clipAction(turnClip);
+    turnAction.setDuration(1);
+
     
     return {
         mixer,
         openAction,
-        stepAction
+        stepAction,
+        turnAction
     };
 }

@@ -33,9 +33,9 @@ camera.position.set(-20, 6, 0);
 camera.lookAt({x: 0, y: 0, z: 0});
 
 
-const controls = new OrbitControls( camera, renderer.domElement );
+/* const controls = new OrbitControls( camera, renderer.domElement );
 //controls.autoRotate = true;
-controls.update();
+controls.update(); */
 
 
 const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
@@ -134,13 +134,6 @@ scene.add( floor );
 
 
 
-//const mixer = new THREE.AnimationMixer(trigonalmesh);
-//const clipaction = mixer.clipAction(stepClip);
-//clipaction.repetitions = 1;
-//clipaction.clampWhenFinished = true;
-//clipaction.play();
-
-
 
 
 
@@ -148,7 +141,7 @@ scene.add( floor );
 scene.add( skelehelper ); */
 
 
-const moveDirection = new THREE.Vector3(3, 0, 1);
+const moveDirection = new THREE.Vector3(0, 0, 1);
 const moveOrigin = new THREE.Vector3(0, 4, 0);
 
 const arrow = new THREE.ArrowHelper(moveDirection, moveOrigin, 5, 0xffffff);
@@ -159,12 +152,16 @@ scene.add(arrow);
 trider.moveDirection = moveDirection;
 
 
+const ZERO = new THREE.Vector3(0, 0, 1);
+
 
 let t = Date.now();
 
-let dirT = 0;
+let dirT = 5;
 
 let slowfactor = 1;
+
+let cameraAngle = 0;
 
 function tick() {
     requestAnimationFrame(tick);
@@ -179,18 +176,29 @@ function tick() {
 
     trider.tick(dt);
 
-    /* dirT += dt;
+    
+    
+    dirT -= dt;
 
-    if (dirT >= 5) {
+    if (dirT <= 0) {
         moveDirection.set(1 - Math.random() * 2, 0, 1 - Math.random() * 2).normalize();
+        arrow.setDirection(moveDirection);
 
-        dirT = 0;
+        dirT = Math.random() * 10;
     }
-    arrow.setDirection(moveDirection); */
 
+    cameraAngle = THREE.MathUtils.lerp(
+        cameraAngle,
+        -moveDirection.angleTo(ZERO),
+        dt
+    );
 
+    camera.position.setFromSphericalCoords(25, 5.25, cameraAngle)
+    camera.position.add(trider.mesh.position);
 
-    controls.update();
+    camera.lookAt(trider.mesh.position);
+
+    //controls.update();
 
     renderer.render(scene, camera);
 

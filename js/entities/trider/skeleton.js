@@ -82,8 +82,8 @@ knees.forEach(
                         // hip 2
                         index: idx + 1,
                         limitation: kneevector.clone().negate(),
-                        rotationMin: new THREE.Vector3(0, 0, 0),
-                        rotationMax: new THREE.Vector3(Math.PI / 3,Math.PI / 3,Math.PI / 3)
+                        rotationMin: new THREE.Vector3(-Math.PI / 6, 0, -Math.PI / 6),
+                        rotationMax: new THREE.Vector3(Math.PI / 3, 0, Math.PI / 3)
                     },
                     {
                         // hip 1
@@ -93,7 +93,7 @@ knees.forEach(
                         rotationMax: new THREE.Vector3(0, Math.PI / 2, 0)
                     }
                 ],
-                iteration: 3,
+                iteration: 1,
                 /* maxAngle: Math.PI / 8,
                 minAngle: 0 */
             }

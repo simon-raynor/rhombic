@@ -8,7 +8,7 @@ const theta = Math.acos(A.dot(B) / (A.length() * B.length()));
 export const TRIGONAL_ROTATER = (
     (new THREE.Quaternion()).setFromAxisAngle(
         new THREE.Vector3(0,1,0).normalize(),
-        Math.PI / 4
+        7 * Math.PI / 4
     )
 ).multiply(
     (new THREE.Quaternion()).setFromAxisAngle(

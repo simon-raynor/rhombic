@@ -26,7 +26,10 @@ export const knees = [
     [0, 2, 0],
     [0, 0, 2]
 ].map(
-    arr => tmpVec3.fromArray(arr).applyQuaternion(TRIGONAL_ROTATER).clone()
+    arr => tmpVec3
+        .fromArray(arr)
+        .applyQuaternion(TRIGONAL_ROTATER)
+        .clone()
 );
 
 
@@ -37,8 +40,11 @@ const A = new THREE.Vector3(knee1.x, 0, knee1.z);
 
 const theta = Math.acos(A.dot(knee1) / (A.length() * knee1.length()));
 
-const flipAxis = new THREE.Vector3(0, -1, 0);
 
+
+
+const flipAxis = new THREE.Vector3(0, -1, 0);
+/* 
 const arm1 = trigonal.clone();
 const arm1rotAxis = new THREE.Vector3(1.73205080757, 0, 1).normalize();
 arm1.applyQuaternion(
@@ -52,9 +58,22 @@ arm1.applyQuaternion(
         )
     )
 );
+ */
+const arm1 = trigonal.clone();
+arm1.applyQuaternion(
+    (new THREE.Quaternion()).setFromAxisAngle(
+        flipAxis,
+        Math.PI
+    ).multiply(
+        (new THREE.Quaternion()).setFromAxisAngle(
+            new THREE.Vector3(-1, 0, 1.73205080757).normalize(),
+            Math.PI - (2 * theta)
+        )
+    )
+);
 
 const arm2 = trigonal.clone();
-const arm2rotAxis = new THREE.Vector3(0, 0, -1).normalize();
+const arm2rotAxis = new THREE.Vector3(1, 0, 0).normalize();
 arm2.applyQuaternion(
     (new THREE.Quaternion()).setFromAxisAngle(
         flipAxis,
@@ -68,7 +87,7 @@ arm2.applyQuaternion(
 );
 
 const arm3 = trigonal.clone();
-const arm3rotAxis = new THREE.Vector3(-1.73205080757, 0, 1).normalize();
+const arm3rotAxis = new THREE.Vector3(-1, 0, -1.73205080757).normalize();
 arm3.applyQuaternion(
     (new THREE.Quaternion()).setFromAxisAngle(
         flipAxis,
@@ -80,7 +99,6 @@ arm3.applyQuaternion(
         )
     )
 );
-
 
 export const geometry = BufferGeometryUtils.mergeGeometries([body, arm1, arm2, arm3])
 
