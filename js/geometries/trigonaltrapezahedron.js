@@ -41,6 +41,7 @@ export const TRIGONAL_VERTICES = new Float32Array(
 
 export const TRIGONAL_FACES = [
     4,1,5, 4,5,2,
+    //4,5,2, 4,1,5,
     6,1,4, 6,4,3,
 
     0,5,1, 0,1,6,

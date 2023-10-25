@@ -33,9 +33,9 @@ camera.position.set(-20, 6, 0);
 camera.lookAt({x: 0, y: 0, z: 0});
 
 
-/* const controls = new OrbitControls( camera, renderer.domElement );
+const controls = new OrbitControls( camera, renderer.domElement );
 //controls.autoRotate = true;
-controls.update(); */
+controls.update();
 
 
 const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
@@ -125,11 +125,11 @@ scene.add( trider.mesh );
 
 
 
-const floorgeometry = new THREE.PlaneGeometry(1000, 1000);
+/* const floorgeometry = new THREE.PlaneGeometry(1000, 1000);
 const floor = new THREE.Mesh( floorgeometry, blockMaterial );
 floor.rotateX(-Math.PI / 2);
 floor.rotateZ(Math.PI);
-scene.add( floor );
+scene.add( floor ); */
 
 
 
@@ -144,8 +144,8 @@ scene.add( skelehelper ); */
 const moveDirection = new THREE.Vector3(0, 0, 1);
 const moveOrigin = new THREE.Vector3(0, 4, 0);
 
-const arrow = new THREE.ArrowHelper(moveDirection, moveOrigin, 5, 0xffffff);
-scene.add(arrow);
+/* const arrow = new THREE.ArrowHelper(moveDirection, moveOrigin, 5, 0xffffff);
+scene.add(arrow); */
 
 
 
@@ -177,28 +177,24 @@ function tick() {
     trider.tick(dt);
 
     
+
+
     
-    dirT -= dt;
+    /* dirT -= dt;
 
     if (dirT <= 0) {
         moveDirection.set(1 - Math.random() * 2, 0, 1 - Math.random() * 2).normalize();
         arrow.setDirection(moveDirection);
 
         dirT = Math.random() * 10;
-    }
+    } */
 
-    cameraAngle = THREE.MathUtils.lerp(
-        cameraAngle,
-        -moveDirection.angleTo(ZERO),
-        dt
-    );
-
-    camera.position.setFromSphericalCoords(25, 5.25, cameraAngle)
+    /* camera.position.setFromSphericalCoords(25, 5.25, moveDirection.angleTo(ZERO))
     camera.position.add(trider.mesh.position);
 
-    camera.lookAt(trider.mesh.position);
+    camera.lookAt(trider.mesh.position); */
 
-    //controls.update();
+    controls.update();
 
     renderer.render(scene, camera);
 

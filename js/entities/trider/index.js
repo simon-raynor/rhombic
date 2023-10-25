@@ -12,8 +12,11 @@ const SQRT3 = Math.sqrt(3);
 
 
 
-const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
-const texturebump = new THREE.TextureLoader().load('/img/wall-atlas-bumps.png');
+const texture = new THREE.TextureLoader().load('/img/trider-atlas.png');
+const texturebump = new THREE.TextureLoader().load('/img/trider-atlas-bumps.png');
+
+//texture.magFilter = THREE.NearestFilter;
+//texturebump.magFilter = THREE.NearestFilter;
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
@@ -106,7 +109,7 @@ class Trider {
         } */
         const moveAmount = this.moveDirection.clone().multiplyScalar(dt * this.#moveSpeed);
 
-        this.mesh.position.add(moveAmount)
+        //this.mesh.position.add(moveAmount)
 
         const facing = this.mesh.position.clone().add(this.facing);
 

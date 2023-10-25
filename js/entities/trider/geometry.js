@@ -6,6 +6,33 @@ import { TRIGONAL_ROTATER, createTrigonal } from "../../geometries/trigonaltrape
 
 
 
+const OUTER1_UVS = [
+    0,1, 0,0.5, 0.5,0.5,
+    0,1, 0.5,0.5, 0.5,1
+];
+const OUTER2_UVS = [
+    0.5,0.5, 0.5,0, 1,0,
+    0.5,0.5, 1,0, 1,0.5
+];
+const FACE_UVS = [
+    0.5,1, 0.5,0.5, 1,0.5,
+    0.5,1, 1,0.5, 1,1
+];
+const INNER_UVS = [
+    0,0.5, 0,0, 0.5,0,
+    0,0.5, 0.5,0, 0.5,0.5
+];
+
+const ARM_UVS = new Float32Array([
+    ...OUTER2_UVS,
+    ...OUTER1_UVS,
+    ...INNER_UVS,
+    ...INNER_UVS,
+    ...INNER_UVS,
+    ...OUTER1_UVS
+])
+
+
 const SQRT3 = Math.sqrt(3);
 
 
@@ -16,7 +43,14 @@ trigonal.computeBoundingBox();
 
 const body = trigonal.clone();
 
-
+body.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([
+    ...OUTER2_UVS,
+    ...FACE_UVS,
+    ...INNER_UVS,
+    ...INNER_UVS,
+    ...INNER_UVS,
+    ...OUTER1_UVS
+]), 2));
 
 
 const tmpVec3 = new THREE.Vector3();
@@ -60,6 +94,7 @@ arm1.applyQuaternion(
 );
  */
 const arm1 = trigonal.clone();
+arm1.setAttribute('uv', new THREE.BufferAttribute(ARM_UVS, 2));
 arm1.applyQuaternion(
     (new THREE.Quaternion()).setFromAxisAngle(
         flipAxis,
@@ -73,6 +108,7 @@ arm1.applyQuaternion(
 );
 
 const arm2 = trigonal.clone();
+arm2.setAttribute('uv', new THREE.BufferAttribute(ARM_UVS, 2));
 const arm2rotAxis = new THREE.Vector3(1, 0, 0).normalize();
 arm2.applyQuaternion(
     (new THREE.Quaternion()).setFromAxisAngle(
@@ -87,6 +123,7 @@ arm2.applyQuaternion(
 );
 
 const arm3 = trigonal.clone();
+arm3.setAttribute('uv', new THREE.BufferAttribute(ARM_UVS, 2));
 const arm3rotAxis = new THREE.Vector3(-1, 0, -1.73205080757).normalize();
 arm3.applyQuaternion(
     (new THREE.Quaternion()).setFromAxisAngle(
