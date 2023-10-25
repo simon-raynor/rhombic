@@ -15,7 +15,7 @@ document.body.appendChild( stats.dom )
 
 const scene = new THREE.Scene();
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.pixelRatio = window.devicePixelRatio;
 document.body.appendChild(renderer.domElement);
