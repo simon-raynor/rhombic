@@ -27,7 +27,7 @@ function legOpenTrack(idx, boneId, length = 1) {
         posns.push(knees[idx].x * x, -SQRT3 - y, knees[idx].z * x);
         //posns.push(0, -SQRT3 - y, 0);
     }
-    console.log(knees[idx], posns);
+    
     return new THREE.VectorKeyframeTrack(
         `${boneId}.position`,
         times,

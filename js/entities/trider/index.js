@@ -21,8 +21,7 @@ texture.magFilter = THREE.NearestFilter;
 export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
     bumpMap: texturebump,
-    bumpScale: 0.05,
-    side: THREE.DoubleSide
+    bumpScale: 0.5
 });
 
 
