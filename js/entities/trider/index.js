@@ -15,7 +15,7 @@ const SQRT3 = Math.sqrt(3);
 const texture = new THREE.TextureLoader().load('/img/trider-atlas.png');
 const texturebump = new THREE.TextureLoader().load('/img/trider-atlas-bumps.png');
 
-//texture.magFilter = THREE.NearestFilter;
+texture.magFilter = THREE.NearestFilter;
 //texturebump.magFilter = THREE.NearestFilter;
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
@@ -37,17 +37,6 @@ const trigonalmesh = new THREE.SkinnedMesh(
 trigonalmesh.add(skeleton.bones[0]); // root bone
 trigonalmesh.bind(skeleton);
 
-
-
-const FOOT_SWEETSPOTS = knees.map(
-    knee => {
-        const foot = knee.clone().multiplyScalar(OPEN_FACTOR * 2 / 3);
-        foot.y = -SQRT3;
-        return foot;
-    }
-);
-const SWEETSPOT_DISTANCE = 3;
-const SWEETSPOT_DISTANCE_2 = SWEETSPOT_DISTANCE * SWEETSPOT_DISTANCE;
 
 
 
@@ -109,7 +98,7 @@ class Trider {
         } */
         const moveAmount = this.moveDirection.clone().multiplyScalar(dt * this.#moveSpeed);
 
-        //this.mesh.position.add(moveAmount)
+        this.mesh.position.add(moveAmount)
 
         const facing = this.mesh.position.clone().add(this.facing);
 
@@ -128,34 +117,6 @@ class Trider {
                 this.facing.copy(this.moveDirection);
             }
         }
-
-
-        /* if (this.steppingIdx === null) {
-            this.steppingIdx = Math.round(Math.random() * 2);
-        }
-
-        const moveAmount = this.moveDirection.clone().multiplyScalar(dt);
-
-        this.footPositions.forEach(
-            (posn, idx) => {
-                const newPosn = this.steppingIdx === idx
-                                ? posn.clone().add(moveAmount).add(moveAmount)
-                                : posn.clone().sub(moveAmount);
-
-                const posnDistance = posn.distanceToSquared(FOOT_SWEETSPOTS[idx]),
-                    newPosnDistance = newPosn.distanceToSquared(FOOT_SWEETSPOTS[idx])
-
-                if (posnDistance > SWEETSPOT_DISTANCE_2 && newPosnDistance > posnDistance) {
-                    if (this.steppingIdx === idx) {
-                        this.steppingIdx = null;
-                    }
-                } else  if (newPosnDistance > SWEETSPOT_DISTANCE_2 && newPosnDistance > posnDistance) {
-                    this.steppingIdx = idx;
-                } else {
-                    posn.copy(newPosn);
-                }
-            }
-        ) */
 
     }
 }

@@ -124,7 +124,7 @@ export default function createMixer(mesh) {
                 [
                     4,-SQRT3,0.5,
                     4,-SQRT3,-0.5,
-                    4,-SQRT3/2,0.5,
+                    4,-SQRT3/3,0.5,
                     4,-SQRT3,1.5,
                     4,-SQRT3,0.5,
                 ]
@@ -134,7 +134,7 @@ export default function createMixer(mesh) {
                 [0,0.3,1,2,3],
                 [
                     0,-SQRT3,-5,
-                    0,-SQRT3/2,-4,
+                    0,-SQRT3/3,-4,
                     0,-SQRT3,-3,
                     0,-SQRT3,-4,
                     0,-SQRT3,-5
@@ -147,7 +147,7 @@ export default function createMixer(mesh) {
                     -4,-SQRT3,2,
                     -4,-SQRT3,1,
                     -4,-SQRT3,0,
-                    -4,-SQRT3/2,1,
+                    -4,-SQRT3/3,1,
                     -4,-SQRT3,2,
                 ]
             ),

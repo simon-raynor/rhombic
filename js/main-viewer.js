@@ -4,6 +4,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+
 import Stats from 'three/addons/libs/stats.module.js';
 import { createRhombic } from './geometries/rhombicdodecahedron.js';
 import trider from './entities/trider/index.js';
@@ -15,10 +20,11 @@ document.body.appendChild( stats.dom )
 
 const scene = new THREE.Scene();
 
-const renderer = new THREE.WebGLRenderer({antialias: true});
+const renderer = new THREE.WebGLRenderer(/* {antialias: true} */);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.pixelRatio = window.devicePixelRatio;
 document.body.appendChild(renderer.domElement);
+
 
 const axesHelper = new THREE.AxesHelper( 5 );
 scene.add( axesHelper );
@@ -33,9 +39,25 @@ camera.position.set(-20, 6, 0);
 camera.lookAt({x: 0, y: 0, z: 0});
 
 
-const controls = new OrbitControls( camera, renderer.domElement );
+
+
+
+const composer = new EffectComposer( renderer );
+composer.addPass(
+    new RenderPixelatedPass(2, scene, camera)
+);
+
+composer.addPass(
+    new OutputPass()
+);
+
+
+
+
+
+/* const controls = new OrbitControls( camera, renderer.domElement );
 //controls.autoRotate = true;
-controls.update();
+controls.update(); */
 
 
 const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
@@ -125,11 +147,11 @@ scene.add( trider.mesh );
 
 
 
-/* const floorgeometry = new THREE.PlaneGeometry(1000, 1000);
+const floorgeometry = new THREE.PlaneGeometry(1000, 1000);
 const floor = new THREE.Mesh( floorgeometry, blockMaterial );
 floor.rotateX(-Math.PI / 2);
 floor.rotateZ(Math.PI);
-scene.add( floor ); */
+scene.add( floor );
 
 
 
@@ -189,14 +211,15 @@ function tick() {
         dirT = Math.random() * 10;
     } */
 
-    /* camera.position.setFromSphericalCoords(25, 5.25, moveDirection.angleTo(ZERO))
+    camera.position.setFromSphericalCoords(25, 5.25, trider.facing.angleTo(ZERO))
     camera.position.add(trider.mesh.position);
 
-    camera.lookAt(trider.mesh.position); */
+    camera.lookAt(trider.mesh.position);
 
-    controls.update();
+    //controls.update();
 
-    renderer.render(scene, camera);
+    //renderer.render(scene, camera);
+    composer.render();
 
 }
 
