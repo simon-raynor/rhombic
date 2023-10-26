@@ -9,7 +9,7 @@ const SQRT3 = Math.sqrt(3);
 
 
 
-export const OPEN_FACTOR = 3;
+export const OPEN_FACTOR = 2.5;
 
 
 
@@ -24,7 +24,7 @@ function legOpenTrack(idx, boneId, length = 1) {
         const y = Math.sin(t * Math.PI);
         
         times.push(t * length);
-        posns.push(knees[idx].x * x, -SQRT3 - y, knees[idx].z * x);
+        posns.push(knees[idx].x * x, -SQRT3, knees[idx].z * x);
         //posns.push(0, -SQRT3 - y, 0);
     }
     
@@ -44,7 +44,7 @@ function bodyOpenTrack(meshId, length = 1) {
         const y = Math.sin(t * Math.PI);
 
         times.push(t * length);
-        posns.push(0, y, 0);
+        posns.push(0, (SQRT3 + y) * 2, 0);
     }
 
     return new THREE.VectorKeyframeTrack(
@@ -108,7 +108,7 @@ export default function createMixer(mesh) {
             legOpenTrack(0, mesh.skeleton.bones[7].uuid),
             legOpenTrack(1, mesh.skeleton.bones[13].uuid),
             legOpenTrack(2, mesh.skeleton.bones[19].uuid),
-            bodyOpenTrack(mesh.uuid)
+            bodyOpenTrack(mesh.skeleton.bones[1].uuid)
         ]
     );
 

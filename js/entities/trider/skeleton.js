@@ -9,6 +9,7 @@ const SQRT3 = Math.sqrt(3);
 
 export const BONES_PER_LEG = 6;
 
+const KNEE_LENGTH = 1.25;
 
 const bones = [
     // root
@@ -17,9 +18,9 @@ const bones = [
     new THREE.Bone(),
 ];
 
-bones[0].position.set(0, SQRT3, 0);
+bones[0].position.set(0, 0, 0);
 
-bones[1].position.set(0, SQRT3 * 2, 0);
+bones[1].position.set(0, SQRT3 * 3, 0);
 bones[0].add(bones[1]);
 
 export const iks = [];
@@ -35,10 +36,10 @@ knees.forEach(
         const foot = new THREE.Bone();
         const footprint = new THREE.Bone();
 
-        hip1.position.set(...kneeposn.toArray());
+        hip1.position.set(kneeposn.x, kneeposn.y + SQRT3, kneeposn.z);
         hip2.position.set(0, 0, 0);
-        hip3.position.set(2*kneeposn.x/3, 1, 2*kneeposn.z/3);
-        knee.position.set(-2*kneeposn.x/3, -1, -2*kneeposn.z/3);
+        hip3.position.set(kneeposn.x*KNEE_LENGTH/2, KNEE_LENGTH, kneeposn.z*KNEE_LENGTH/2);
+        knee.position.set(-kneeposn.x*KNEE_LENGTH/2, -KNEE_LENGTH, -kneeposn.z*KNEE_LENGTH/2);
         foot.position.set(-kneeposn.x, -kneeposn.y - SQRT3, -kneeposn.z);
         footprint.position.set(0, -SQRT3, 0);
 
@@ -93,7 +94,7 @@ knees.forEach(
                         rotationMax: new THREE.Vector3(0, Math.PI / 2, 0)
                     }
                 ],
-                iteration: 1,
+                iteration: 2,
                 /* maxAngle: Math.PI / 8,
                 minAngle: 0 */
             }

@@ -171,7 +171,7 @@ function generateGeometry(grid) {
 
                 faces.forEach(
                     face => {
-                        const uvNum = Math.floor(Math.random() * RHOMBIC_UVS_2D.length);
+                        const uvNum = 2;//Math.floor(Math.random() * RHOMBIC_UVS_2D.length);
 
                         uvs.push(
                             ...RHOMBIC_UVS_2D[uvNum]
