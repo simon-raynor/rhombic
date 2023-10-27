@@ -37,7 +37,7 @@ document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
-    3,
+    0.5,
     1000
 );
 
@@ -108,7 +108,7 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
     bumpMap: texturebump,
     bumpScale: 0.05,
-    side: THREE.BackSide,
+    side: THREE.DoubleSide, // double side for collisions
     transparent: false
 });
 export const redMaterial = new THREE.MeshLambertMaterial({
@@ -121,7 +121,7 @@ export const redMaterial = new THREE.MeshLambertMaterial({
 
 
 
-const cave = generateCave();
+const cave = generateCave(2);
 
 
 
@@ -148,24 +148,21 @@ raycaster.set(trider.mesh.position, new THREE.Vector3(0, -1, -1).normalize());
 const intersects = raycaster.intersectObject(cavemesh);
 
 if (intersects.length) {
-    trider.mesh.lookAt(intersects[0].normal);
-    trider.mesh.rotateX(Math.PI / 2);
-    trider.mesh.position.add(intersects[0].point);
-    //camera.position.set(intersects[0].point).add(intersects[0].normal);
+    trider.init(
+        intersects[0].point,
+        intersects[0].normal,
+        cavemesh
+    );
+
+    camera.position.copy(trider.mesh.position)
+        .sub(trider.moveDirection.clone().multiplyScalar(10))
+        .add(intersects[0].normal.clone().multiplyScalar(5));
+    camera.lookAt(trider.mesh.position);
+    camera.position.add(intersects[0].normal.clone().multiplyScalar(5));
 }
 
-const normal = intersects[0].normal;
-const moveDirection = (new THREE.Vector3(0, 0, 1))
-                    .applyEuler(trider.mesh.rotation);
 
 
-
-
-camera.position.copy(trider.mesh.position)
-    .sub(moveDirection.clone().multiplyScalar(10))
-    .add(intersects[0].normal.clone().multiplyScalar(5));
-camera.lookAt(trider.mesh.position);
-camera.position.add(intersects[0].normal.clone().multiplyScalar(5));
 
 
 const controls = new OrbitControls( camera, renderer.domElement );
@@ -180,10 +177,6 @@ scene.add( axesHelper ); */
 /* const skelehelper = new THREE.SkeletonHelper( trider.mesh );
 scene.add( skelehelper ); */
 
-
-
-trider.up = normal;
-trider.moveDirection = moveDirection;
 
 
 
