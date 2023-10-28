@@ -108,7 +108,8 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
     bumpMap: texturebump,
     bumpScale: 0.05,
-    side: THREE.DoubleSide, // double side for collisions
+    //side: THREE.DoubleSide, // double side for collisions
+    side: THREE.BackSide,
     transparent: false
 });
 export const redMaterial = new THREE.MeshLambertMaterial({
@@ -124,9 +125,8 @@ export const redMaterial = new THREE.MeshLambertMaterial({
 const cave = generateCave(2);
 
 
-
 const cavemesh = new THREE.Mesh(cave, blockMaterial);
-//rhombicmesh.position.add(new THREE.Vector3(0,0,4));
+//const cavemesh = new THREE.Mesh(new THREE.SphereGeometry(100, 25, 25), blockMaterial);
 scene.add(cavemesh);
 
 console.log(cavemesh);
@@ -165,9 +165,9 @@ if (intersects.length) {
 
 
 
-const controls = new OrbitControls( camera, renderer.domElement );
+/* const controls = new OrbitControls( camera, renderer.domElement );
 controls.target.copy(trider.mesh.position);
-controls.update();
+controls.update(); */
 
 
 
@@ -198,30 +198,23 @@ function tick() {
 
     trider.tick(dt, cavemesh);
 
-    /* if (trider.absoluteFootPositions && !feetadded) {
-        trider.absoluteFootPositions.forEach(
-            posn => {
-                const mesh = new THREE.Mesh(
-                    new THREE.SphereGeometry(1),
-                    redMaterial
-                );
+    const up = trider.up.clone().multiplyScalar(10);
+    const back = trider.forwards.clone().multiplyScalar(15);
 
-                mesh.position.copy(posn);
-
-                scene.add(mesh);
-            }
-        );
-        feetadded = true;
-    } */
-    
+    camera.position.copy(trider.position)
+        .add(up)
+        .sub(back)
+    camera.up.copy(trider.up);
+    camera.lookAt(trider.position);
+    camera.position.add(up);
     /* camera.position.setFromSphericalCoords(25, 5.25, trider.facing.angleTo(ZERO))
     camera.position.add(trider.mesh.position);
 
     camera.lookAt(trider.mesh.position); */
 
 
-    controls.target.copy(trider.mesh.position);
-    controls.update(dt);
+    /* controls.target.copy(trider.mesh.position);
+    controls.update(dt); */
 
     //renderer.render(scene, camera);
     composer.render();
@@ -233,7 +226,10 @@ function tick() {
 renderer.render(scene, camera);
 
 setTimeout(
-    tick,
+    () => {
+        t = Date.now();
+        tick();
+    },
     1000
 );
 
