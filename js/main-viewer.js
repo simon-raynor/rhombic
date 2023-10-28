@@ -154,11 +154,11 @@ if (intersects.length) {
         cavemesh
     );
 
-    camera.position.copy(trider.mesh.position)
+    /* camera.position.copy(trider.mesh.position)
         .sub(trider.moveDirection.clone().multiplyScalar(10))
         .add(intersects[0].normal.clone().multiplyScalar(5));
     camera.lookAt(trider.mesh.position);
-    camera.position.add(intersects[0].normal.clone().multiplyScalar(5));
+    camera.position.add(intersects[0].normal.clone().multiplyScalar(5)); */
 }
 
 
@@ -198,7 +198,7 @@ function tick() {
 
     trider.tick(dt, cavemesh);
 
-    if (trider.absoluteFootPositions && !feetadded) {
+    /* if (trider.absoluteFootPositions && !feetadded) {
         trider.absoluteFootPositions.forEach(
             posn => {
                 const mesh = new THREE.Mesh(
@@ -212,7 +212,7 @@ function tick() {
             }
         );
         feetadded = true;
-    }
+    } */
     
     /* camera.position.setFromSphericalCoords(25, 5.25, trider.facing.angleTo(ZERO))
     camera.position.add(trider.mesh.position);

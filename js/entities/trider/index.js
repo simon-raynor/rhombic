@@ -68,11 +68,19 @@ const raycaster = new THREE.Raycaster();
 const tmpVec3 = new THREE.Vector3(),
     tmpQuat = new THREE.Quaternion();
 
+const forwardQuat = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(0, 0, 1)
+);
+
 
 
 class Trider {
     moveDirection = null
+
     up = null
+    forwards = null
+
     #moveSpeed = 1
     facing = new THREE.Vector3(0, 0, 1)
 
@@ -83,7 +91,7 @@ class Trider {
     #footFaceIdxs = [];
 
     #footOldPosns = [tmpVec3.clone(), tmpVec3.clone(), tmpVec3.clone()];
-    #footNewPosns = null; // set by open animation
+    #footNewPosns = [tmpVec3.clone(), tmpVec3.clone(), tmpVec3.clone()];
 
     #stepTs = [0, 0, 0];
 
@@ -112,13 +120,14 @@ class Trider {
     ) {
         this.up = normal;
         const down = this.up.clone().negate();
-        
-        this.mesh.lookAt(normal);
-        this.mesh.rotateX(Math.PI / 2);
+
+        this.forwards = this.up.clone().applyQuaternion(forwardQuat);
+        this.mesh.lookAt(this.forwards);
+
+        this.moveDirection = this.forwards;
+
 
         this.position.copy(position);
-
-        this.moveDirection = (new THREE.Vector3(0, 0, 1)).applyEuler(this.mesh.rotation);
 
         // convert the normal old posns to
         // the trider's position etc.
@@ -150,7 +159,7 @@ class Trider {
 
             const intersects = raycaster.intersectObject(cavemesh);
 
-            if (intersects[0] && fuzzyequals(intersects[0].normal, this.up)) {
+            if (intersects[0] && fuzzyequals(intersects[0].normal, up)) {
                 this.position.copy(newPosn);
             } else {
                 this.moveDirection.negate();
@@ -272,29 +281,17 @@ class Trider {
                         //throw('this should never happen');
                     }
 
-                    if (closest && this.#footFaceIdxs[idx] != closest.faceIndex) {
+                    if (
+                        closest
+                        && this.#footFaceIdxs[idx] != closest.faceIndex
+                        //&& !fuzzyequals(closest.normal, up)
+                    ) {
                         // foot just collided with a face it wasn't walking on
                         console.log(closest);
                         this.#footFaceIdxs[idx] = closest.faceIndex;
                         this.#stepTs[idx] = 0;
                         this.#footOldPosns[idx] = closest.point;
                         this.#footNewPosns[idx] = null;
-
-                        // TODO make this affect main "up"
-                        // take a normal vector of the plane defined by the feet?
-
-                        /* const tri = new THREE.Triangle(
-                            this.#footOldPosns[0],
-                            this.#footOldPosns[1],
-                            this.#footOldPosns[2],
-                        );
-
-                        tri.getNormal(tmpVec3);
-
-                        console.log(
-                            up,
-                            tmpVec3,
-                        ) */
                     }
                 }
 
@@ -318,7 +315,10 @@ class Trider {
         );
 
         tri.getNormal(tmpVec3);
-
+        tmpQuat.setFromUnitVectors(tmpVec3, up);
+        /* this.up.applyQuaternion(tmpQuat);
+        this.forwards.applyQuaternion(tmpQuat); */
+        this.mesh.lookAt(tmpVec3.copy(this.position).add(this.forwards));
 
 
         this.ikSolver?.update();
