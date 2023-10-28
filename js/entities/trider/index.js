@@ -10,7 +10,7 @@ import createMixer, { OPEN_FACTOR } from './animations.js';
 const SQRT3 = Math.sqrt(3);
 
 
-const GLOW_COLOR = 0xff0000;
+const GLOW_COLOR = 0x00ff00;
 
 
 const texture = new THREE.TextureLoader().load('/img/trider-atlas.png');
@@ -73,9 +73,17 @@ trigonalmesh.bind(skeleton);
 
 const light = new THREE.PointLight( GLOW_COLOR, 1, 20 );
 trigonalmesh.add(light);
-light.position.add({x: 0, y: SQRT3 / 2, z: 0});
+light.position.add({x: 0, y: SQRT3, z: 0});
 
 
+const spotlight = new THREE.SpotLight(GLOW_COLOR, 1, 150, Math.PI / 4, 0.5, 10);
+const spottarget = new THREE.Object3D();
+
+trigonalmesh.add(spotlight);
+trigonalmesh.add(spottarget);
+spotlight.position.set(0, SQRT3 * 2, SQRT3);
+spottarget.position.set(0, SQRT3 * 2, 1 + SQRT3);
+spotlight.target = spottarget;
 
 
 
@@ -172,28 +180,30 @@ class Trider {
         this.#footFaceIdxs = [intersects[0].faceIndex, intersects[0].faceIndex, intersects[0].faceIndex];
     }
 
-    tick(dt, cavemesh) {
-        const speed = dt * this.#moveSpeed;
+    tick(
+        dt,
+        cavemesh,
+        movinginput
+    ) {
+        const speed = dt * this.#moveSpeed * Math.min(movinginput.force, 1);
+        const moveDirection = tmpVec3.set(
+            -movinginput.vector.x,
+            0,
+            movinginput.vector.y
+        ).applyQuaternion(this.quaternion);
+
+        
+
 
         const up = this.up,
             down = this.up.clone().negate();
-
-        const moveDirection = this.forwards;
         
         if (moveDirection) {
             const moveAmount = moveDirection.clone().multiplyScalar(speed);
 
             let newPosn = this.position.clone().add(moveAmount);
 
-            //raycaster.set(tmpVec3.copy(newPosn).add(up), down);
-
-            //const intersects = raycaster.intersectObject(cavemesh);
-
-            //if (intersects[0] && fuzzyequals(intersects[0].normal, up)) {
-                this.position.copy(newPosn);
-            //} else {
-            //    moveDirection.negate();
-            //}
+            this.position.copy(newPosn);
         }
 
 
@@ -319,32 +329,30 @@ class Trider {
 
 
                 let targetAbs = this.#localFootToAbsolute(target);
+                const targetdist = target.distanceTo/* Squared */(ideal);
 
-
-                if (target.distanceToSquared(ideal) > STRIDE2) {
-                    const absIdeal = this.#localFootToAbsolute(ideal);
-                    
-                    if (moveDirection) {
-                        absIdeal.add(
-                            moveDirection.clone().normalize().multiplyScalar(STRIDE)
-                        );
-                    }
-
+                // check if this foot needs to be moved
+                if (
+                    targetdist > 1
                     // stagger steps, don't start one while another is running
-                    if (
-                        !this.#footNewPosns.some(Boolean)
-                    ) {
-                        const weight = target.lengthSq();
-
-                        // if there are multiple options take the
-                        // furthest one
-                        if (weight > toStepWeight) {
-                            toStepWeight = weight;
-                            toStepFn = () => {
-                                this.#stepTs[idx] = 0;
-                                this.#footOldPosns[idx] = targetAbs;
-                                this.#footNewPosns[idx] = absIdeal;
-                            }
+                    &&!this.#footNewPosns.some(Boolean)
+                ) {
+                    // if there are multiple options take the
+                    // furthest one
+                    if (targetdist > toStepWeight) {
+                        const absIdeal = this.#localFootToAbsolute(ideal);
+                        
+                        if (moveDirection) {
+                            absIdeal.add(
+                                moveDirection.clone().normalize().multiplyScalar(targetdist / 2)
+                            );
+                        }
+                        
+                        toStepWeight = targetdist;
+                        toStepFn = () => {
+                            this.#stepTs[idx] = 0;
+                            this.#footOldPosns[idx] = targetAbs;
+                            this.#footNewPosns[idx] = absIdeal;
                         }
                     }
                 }

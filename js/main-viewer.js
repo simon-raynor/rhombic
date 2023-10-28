@@ -1,6 +1,7 @@
 // add the bvh collision methods to the THREE classes
 import './three-extended.js';
 import * as THREE from 'three';
+import nipplejs from 'nipplejs';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -153,13 +154,34 @@ if (intersects.length) {
         intersects[0].normal,
         cavemesh
     );
-
-    /* camera.position.copy(trider.mesh.position)
-        .sub(trider.moveDirection.clone().multiplyScalar(10))
-        .add(intersects[0].normal.clone().multiplyScalar(5));
-    camera.lookAt(trider.mesh.position);
-    camera.position.add(intersects[0].normal.clone().multiplyScalar(5)); */
 }
+
+
+const movinginput = {
+    vector: new THREE.Vector2(),
+    force: 0
+};
+
+const leftstick = nipplejs.create({
+    zone: document.querySelector('.controls'),
+    fadeTime: 0
+});
+leftstick.on(
+    'move',
+    (evt, data) => {
+        const {vector, force} = data;
+        if (vector && force) {
+            movinginput.vector.copy(vector)
+            movinginput.force = force;
+        }
+    }
+);
+leftstick.on(
+    'end',
+    () => {
+        movinginput.force = 0;
+    }
+);
 
 
 
@@ -184,8 +206,6 @@ let t = Date.now();
 
 let slowfactor = 1;
 
-let feetadded = 0;
-
 function tick() {
     requestAnimationFrame(tick);
 
@@ -196,8 +216,10 @@ function tick() {
     stats.update();
 
 
-    trider.tick(dt, cavemesh);
+    trider.tick(dt, cavemesh, movinginput);
 
+
+    // follow cam
     const up = trider.up.clone().multiplyScalar(10);
     const back = trider.forwards.clone().multiplyScalar(15);
 
@@ -207,12 +229,8 @@ function tick() {
     camera.up.copy(trider.up);
     camera.lookAt(trider.position);
     camera.position.add(up);
-    /* camera.position.setFromSphericalCoords(25, 5.25, trider.facing.angleTo(ZERO))
-    camera.position.add(trider.mesh.position);
 
-    camera.lookAt(trider.mesh.position); */
-
-
+    // default orbit cam
     /* controls.target.copy(trider.mesh.position);
     controls.update(dt); */
 
