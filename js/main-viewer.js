@@ -157,10 +157,16 @@ if (intersects.length) {
 }
 
 
+
 const movinginput = {
-    vector: new THREE.Vector2(),
-    force: 0
+    vector: new THREE.Vector2(0, 1),
+    force: 1
 };
+
+/* const leftstickelement = document.createElement('div');
+leftstickelement.className = 'controls';
+
+document.body.appendChild(leftstickelement);
 
 const leftstick = nipplejs.create({
     zone: document.querySelector('.controls'),
@@ -181,15 +187,15 @@ leftstick.on(
     () => {
         movinginput.force = 0;
     }
-);
+); */
 
 
 
 
 
-/* const controls = new OrbitControls( camera, renderer.domElement );
+const controls = new OrbitControls( camera, renderer.domElement );
 controls.target.copy(trider.mesh.position);
-controls.update(); */
+controls.update();
 
 
 
@@ -198,6 +204,19 @@ scene.add( axesHelper ); */
 
 /* const skelehelper = new THREE.SkeletonHelper( trider.mesh );
 scene.add( skelehelper ); */
+
+/* const ikhelper = trider.ikSolver.createHelper();
+scene.add( ikhelper ); */
+
+/* const fwdArr = new THREE.ArrowHelper(
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    5,
+    0xffffff,
+    1,
+    1
+);
+scene.add(fwdArr); */
 
 
 
@@ -218,9 +237,11 @@ function tick() {
 
     trider.tick(dt, cavemesh, movinginput);
 
+    /* fwdArr.position.copy(trider.position);
+    fwdArr.setDirection(trider.up); */
 
     // follow cam
-    const up = trider.up.clone().multiplyScalar(10);
+    /* const up = trider.up.clone().multiplyScalar(10);
     const back = trider.forwards.clone().multiplyScalar(15);
 
     camera.position.copy(trider.position)
@@ -228,11 +249,11 @@ function tick() {
         .sub(back)
     camera.up.copy(trider.up);
     camera.lookAt(trider.position);
-    camera.position.add(up);
+    camera.position.add(up); */
 
     // default orbit cam
-    /* controls.target.copy(trider.mesh.position);
-    controls.update(dt); */
+    controls.target.copy(trider.mesh.position);
+    controls.update(dt);
 
     //renderer.render(scene, camera);
     composer.render();

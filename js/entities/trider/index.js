@@ -10,7 +10,7 @@ import createMixer, { OPEN_FACTOR } from './animations.js';
 const SQRT3 = Math.sqrt(3);
 
 
-const GLOW_COLOR = 0x00ff00;
+const GLOW_COLOR = 0xff4400;
 
 
 const texture = new THREE.TextureLoader().load('/img/trider-atlas.png');
@@ -37,13 +37,11 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
 const BASE_STANCE = knees.map(
     ({x, z}) => new THREE.Vector3(
         x * OPEN_FACTOR,
-        0,//-SQRT3,
+        0,
         z * OPEN_FACTOR
     )
 );
 
-const STRIDE = 2;
-const STRIDE2 = STRIDE * STRIDE;
 
 
 const ORIENTATION_VECTORS = [];
@@ -86,7 +84,7 @@ spottarget.position.set(0, SQRT3 * 2, 1 + SQRT3);
 spotlight.target = spottarget;
 
 
-
+// orientation arrows
 /* ORIENTATION_VECTORS.forEach(
     dir => {
         const arr = new THREE.ArrowHelper(
@@ -98,12 +96,42 @@ spotlight.target = spottarget;
     }
 ); */
 
+// foot position dots
+const olddots = [];
+const newdots = [];
+BASE_STANCE.forEach(
+    foot => {
+        const olddot = new THREE.Mesh(
+            new THREE.SphereGeometry(0.1),
+            new THREE.MeshLambertMaterial({
+                color: 0xff0000,
+                emissive: 0xff0000
+            })
+        );
+        olddot.position.copy(foot);
+        trigonalmesh.add(olddot);
+        olddots.push(olddot);
+
+        const newdot = new THREE.Mesh(
+            new THREE.SphereGeometry(0.1),
+            new THREE.MeshLambertMaterial({
+                color: 0x0000ff,
+                emissive: 0x0000ff
+            })
+        );
+        newdot.position.copy(foot);
+        trigonalmesh.add(newdot);
+        newdots.push(newdot);
+    }
+)
+
 
 
 const raycaster = new THREE.Raycaster();
 
 const tmpVec3 = new THREE.Vector3(),
-    tmpQuat = new THREE.Quaternion();
+    tmpQuat = new THREE.Quaternion(),
+    anotherTmpQuat = new THREE.Quaternion();
 
 const forwardQuat = new THREE.Quaternion().setFromUnitVectors(
     new THREE.Vector3(0, 1, 0),
@@ -136,9 +164,6 @@ class Trider {
         ];
 
         this.ikSolver = new CCDIKSolver( this.mesh, iks );
-
-        /* const helper = this.ikSolver.createHelper();
-        this.mesh.add( helper ); */
     }
 
     get position() {
@@ -173,11 +198,6 @@ class Trider {
         this.#footNewPosns = BASE_STANCE.map(
             foot => this.#localFootToAbsolute(foot)
         );
-
-        // find out which face we're on and set it for each foot
-        raycaster.set(tmpVec3.copy(this.position).add(this.up), down);
-        const intersects = raycaster.intersectObject(cavemesh);
-        this.#footFaceIdxs = [intersects[0].faceIndex, intersects[0].faceIndex, intersects[0].faceIndex];
     }
 
     tick(
@@ -190,9 +210,8 @@ class Trider {
             -movinginput.vector.x,
             0,
             movinginput.vector.y
-        ).applyQuaternion(this.quaternion);
+        ).applyQuaternion(this.quaternion).clone();
 
-        
 
 
         const up = this.up,
@@ -207,6 +226,7 @@ class Trider {
         }
 
 
+        
         // place foot bones on their abs positions,
         // checking they've not gone through the
         // floor
@@ -232,8 +252,14 @@ class Trider {
             }
         );
 
-        floornormal.normalize();
-        tmpQuat.setFromUnitVectors(up, floornormal);
+        /* floornormal.normalize();
+        tmpQuat.copy(this.quaternion).rotateTowards(floornormal, Math.PI / 16);
+        this.up.set(0, 1, 0).applyQuaternion(this.quaternion);
+        this.forwards.copy(this.up).applyQuaternion(forwardQuat); */
+        tmpQuat.identity().slerp(
+            anotherTmpQuat.setFromUnitVectors(up, floornormal),
+            0.1
+        );
         this.up.applyQuaternion(tmpQuat);
         this.forwards.applyQuaternion(tmpQuat);
         this.mesh.applyQuaternion(tmpQuat);
@@ -246,7 +272,7 @@ class Trider {
 
         if (
             /* floorintersect[0].distance > ORIENTATION_ORIGIN_HEIGHT * 1.01
-            ||  */floorintersect[0].distance < ORIENTATION_ORIGIN_HEIGHT * 0.99
+            ||  */floorintersect[0].distance < ORIENTATION_ORIGIN_HEIGHT * 0.99999
         ) {
             tmpVec3.copy(this.up).multiplyScalar(ORIENTATION_ORIGIN_HEIGHT - floorintersect[0].distance);
             this.mesh.position.add(tmpVec3);
@@ -304,6 +330,15 @@ class Trider {
                 // if there is a newPosn we'll need to lerp
                 const newPosn = this.#footNewPosns[idx];
 
+
+                olddots[idx].position.copy(this.#absoluteFootToLocal(oldPosn, tmpQuat));
+                newdots[idx].position.copy(
+                    newPosn
+                    ? this.#absoluteFootToLocal(newPosn, tmpQuat)
+                    : olddots[idx].position
+                );
+
+
                 if (newPosn) {
                     this.#stepTs[idx] += speed;
     
@@ -320,62 +355,50 @@ class Trider {
                         z: 0
                     });
 
-                    if (stepT >= 1) {
-                        this.#stepTs[idx] = 0;
-                        this.#footOldPosns[idx] = this.#footNewPosns[idx];
-                        this.#footNewPosns[idx] = null;
-                    }
-                }
-
-
-                let targetAbs = this.#localFootToAbsolute(target);
-                const targetdist = target.distanceTo/* Squared */(ideal);
-
-                // check if this foot needs to be moved
-                if (
-                    targetdist > 1
-                    // stagger steps, don't start one while another is running
-                    &&!this.#footNewPosns.some(Boolean)
-                ) {
-                    // if there are multiple options take the
-                    // furthest one
-                    if (targetdist > toStepWeight) {
-                        const absIdeal = this.#localFootToAbsolute(ideal);
-                        
-                        if (moveDirection) {
-                            absIdeal.add(
-                                moveDirection.clone().normalize().multiplyScalar(targetdist / 2)
-                            );
-                        }
-                        
-                        toStepWeight = targetdist;
-                        toStepFn = () => {
-                            this.#stepTs[idx] = 0;
-                            this.#footOldPosns[idx] = targetAbs;
-                            this.#footNewPosns[idx] = absIdeal;
-                        }
-                    }
-                }
-
-                // check foot for collision w/ terrain
-                if (this.#stepTs[idx]) {
-                    raycaster.set(tmpVec3.copy(targetAbs).add(up), down);
+                    // check foot for collision w/ terrain
+                    raycaster.set(this.#localFootToAbsolute(target).add(up), down);
 
                     const downintersects = raycaster.intersectObject(cavemesh);
 
-                    if (downintersects[0]) {
-                        if (downintersects[0].distance < 0.99) {
-                            console.log(downintersects[0]);
-                            this.#footFaceIdxs[idx] = downintersects[0].faceIndex;
-                            this.#stepTs[idx] = 0;
-                            this.#footOldPosns[idx] = downintersects[0].point;
-                            this.#footNewPosns[idx] = null;
+                    if (downintersects[0] && downintersects[0].distance < 0.99) {
+                        this.#stepTs[idx] = 0;
+                        this.#footOldPosns[idx] = downintersects[0].point;
+                        this.#footNewPosns[idx] = null;
+                    } else if (stepT >= 1) {
+                        this.#stepTs[idx] = 0;
+                        this.#footOldPosns[idx].copy(this.#footNewPosns[idx]);
+                        this.#footNewPosns[idx] = null;
+                    }
+                } else {
+                    const targetdist = target.distanceToSquared(ideal);
+
+                    // check if this foot needs to be moved
+                    if (
+                        targetdist > 1
+                        // stagger steps, don't start one while another is running
+                        &&!this.#footNewPosns.some(Boolean)
+                    ) {
+                        // if there are multiple options take the
+                        // furthest one
+                        if (targetdist > toStepWeight) {
+                            const absIdeal = this.#localFootToAbsolute(ideal);
+
+                            if (moveDirection) {
+                                tmpVec3.copy(moveDirection).normalize().multiplyScalar(
+                                    2
+                                );
+
+                                absIdeal.add(tmpVec3);
+                            }
+                            
+                            toStepWeight = targetdist;
+                            toStepFn = () => {
+                                this.#stepTs[idx] = 0;
+                                this.#footNewPosns[idx] = absIdeal;
+                            }
                         }
-                    } else {
-                        //throw('this should never happen');
                     }
                 }
-
                 
 
                 // set bone position to target
