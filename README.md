@@ -4,7 +4,11 @@ A 3d maze inside a rhombic dodecahedral honeycomb - one day it'll be a full game
 
 ## Concept
 
-The maze generated inside the honeycomb is incredibly disorienting, as such it makes a perfect starting point for 
+The maze generated inside the honeycomb is incredibly disorienting, as such it makes a perfect starting point for some kind of exploration/mining/stealth(?) game.
+
+### Note
+
+This document was likely out of date when it was written and most definitely is now, take everything below with a pinch of salt.
 
 ## TODOs
 
