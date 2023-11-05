@@ -160,10 +160,10 @@ if (intersects.length) {
 
 const movinginput = {
     vector: new THREE.Vector2(0, 1),
-    force: 1
+    force: 0
 };
 
-/* const leftstickelement = document.createElement('div');
+const leftstickelement = document.createElement('div');
 leftstickelement.className = 'controls';
 
 document.body.appendChild(leftstickelement);
@@ -187,15 +187,15 @@ leftstick.on(
     () => {
         movinginput.force = 0;
     }
-); */
+);
 
 
 
 
 
-const controls = new OrbitControls( camera, renderer.domElement );
+/* const controls = new OrbitControls( camera, renderer.domElement );
 controls.target.copy(trider.mesh.position);
-controls.update();
+controls.update(); */
 
 
 
@@ -241,7 +241,7 @@ function tick() {
     fwdArr.setDirection(trider.up); */
 
     // follow cam
-    /* const up = trider.up.clone().multiplyScalar(10);
+    const up = trider.up.clone().multiplyScalar(10);
     const back = trider.forwards.clone().multiplyScalar(15);
 
     camera.position.copy(trider.position)
@@ -249,11 +249,11 @@ function tick() {
         .sub(back)
     camera.up.copy(trider.up);
     camera.lookAt(trider.position);
-    camera.position.add(up); */
+    camera.position.add(up);
 
     // default orbit cam
-    controls.target.copy(trider.mesh.position);
-    controls.update(dt);
+    /* controls.target.copy(trider.mesh.position);
+    controls.update(dt); */
 
     //renderer.render(scene, camera);
     composer.render();

@@ -14,7 +14,7 @@ const KNEE_LENGTH = 1.25;
 const bones = [
     // root
     new THREE.Bone(),
-    // spine
+    // spine/neck
     new THREE.Bone(),
 ];
 
@@ -76,8 +76,8 @@ knees.forEach(
                     {
                         // hip 3
                         index: idx + 2,
-                        rotationMin: new THREE.Vector3(-Math.PI / 3, 0, -Math.PI / 3),
-                        rotationMax: new THREE.Vector3(Math.PI / 3, 0, Math.PI / 3)
+                        rotationMin: new THREE.Vector3(-Math.PI / 6, 0, -Math.PI / 6),
+                        rotationMax: new THREE.Vector3(Math.PI / 6, 0, Math.PI / 6)
                     },
                     {
                         // hip 2
@@ -90,8 +90,8 @@ knees.forEach(
                         // hip 1
                         index: idx,
                         limitation: new THREE.Vector3(0, -1, 0),
-                        rotationMin: new THREE.Vector3(0, -Math.PI / 2, 0),
-                        rotationMax: new THREE.Vector3(0, Math.PI / 2, 0)
+                        rotationMin: new THREE.Vector3(0, -Math.PI / 8, 0),
+                        rotationMax: new THREE.Vector3(0, Math.PI / 8, 0)
                     }
                 ],
                 iteration: 2,
