@@ -303,14 +303,15 @@ class Trider {
         raycaster.set(posn, tmpVec3.copy(this.up).negate());
         const floorintersect = raycaster.intersectObject(cavemesh);
 
-        if (
-            floorintersect[0].distance > ORIENTATION_ORIGIN_HEIGHT * 1.0001
-            ||  floorintersect[0].distance < ORIENTATION_ORIGIN_HEIGHT * 0.9999
-        ) {
-            tmpVec3.copy(this.up).multiplyScalar(ORIENTATION_ORIGIN_HEIGHT - floorintersect[0].distance);
-            this.mesh.position.add(tmpVec3);
+        if (floorintersect[0]) {
+            if (
+                floorintersect[0].distance > ORIENTATION_ORIGIN_HEIGHT * 1.0001
+                ||  floorintersect[0].distance < ORIENTATION_ORIGIN_HEIGHT * 0.9999
+            ) {
+                tmpVec3.copy(this.up).multiplyScalar(ORIENTATION_ORIGIN_HEIGHT - floorintersect[0].distance);
+                this.mesh.position.add(tmpVec3);
+            }
         }
-        
 
         this.ikSolver?.update();
     }

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
-export const RHOMBIC_VERTICES = new Float32Array([
+export const RHOMBIC_VERTICES = [
     1,1,1, 1,1,-1, 1,-1,1, 1,-1,-1,
     -1,1,1, -1,1,-1, -1,-1,1, -1,-1,-1,
     2,0,0, 0,2,0, 0,0,2,
     -2,0,0, 0,-2,0, 0,0,-2
-]);
+];
 
 export const RHOMBIC_FACES_2D = [
     [0,8,1, 0,1,9],
@@ -80,7 +80,7 @@ export function createRhombic() {
     const uvs = RHOMBIC_UVS;
 
     indexedgeometry.setIndex(faces);
-    indexedgeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    indexedgeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
 
     const geometry = indexedgeometry.toNonIndexed();
     geometry.computeVertexNormals();

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import { LoopSubdivision } from 'three-subdivide';
 
 import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
 
@@ -62,8 +63,6 @@ export default function generateCave(
 ) {
     const grid = generateGrid(size);
 
-    console.log(grid);
-
     generateTunnel(grid);
 
     const geometry = generateGeometry(grid);
@@ -71,6 +70,7 @@ export default function generateCave(
     geometry.scale(CAVESCALE, CAVESCALE, CAVESCALE);
 
     return geometry;
+    //return smoothGeometry(geometry);
 }
 
 
@@ -115,7 +115,7 @@ function generateTunnel(grid) {
         
         const valid = cursor.neighbours.filter(
             // check each direct neighbour
-            neighbour => neighbour.filled/*  && !neighbour.isOutside  */
+            neighbour => neighbour.filled
                 && neighbour.neighbours.every(
                     // then each of their neighbours
                     neighbour2 => neighbour2 === cursor || neighbour2.filled
@@ -139,15 +139,29 @@ function generateTunnel(grid) {
 }
 
 
+// used to inset vertices for smoothing (prevents
+// nastiness when cells are corner-to-corner)
+//const INSET_FACTOR = 0.75;
+const INSET_FACTOR = 1;
+
 function generateGeometry(grid) {
     const geometries = [];
 
     grid.forEach(
         cell => {
             if (!cell.filled) {
-                const vertices = RHOMBIC_VERTICES;
+                const vertices = RHOMBIC_VERTICES.slice();
                 const faces = RHOMBIC_FACES_2D.slice();
 
+                // used to indicate which vertices are
+                // around the openings, so that we don't
+                // move them away from the adjoining cell
+                const holeVertices = new Set();
+
+                // check each neighbour, if it's open we
+                // need to flag that face for removal
+                // N.B. this works because the directions
+                //      are in the same order as the faces
                 const openDirections = [];
                 
                 cell.neighbours.forEach(
@@ -158,15 +172,39 @@ function generateGeometry(grid) {
                     }
                 );
 
+                // remove the open faces while logging their
+                // vertices so that we can leave portals to
+                // match up between cells
                 openDirections.sort().reverse().forEach(
-                    fidx => faces.splice(fidx, 1)
+                    fidx => {
+                        const toRemove = RHOMBIC_FACES_2D[fidx];
+                        toRemove.forEach(vidx => holeVertices.add(vidx))
+                        faces.splice(fidx, 1);
+                    }
                 );
 
+                if (INSET_FACTOR !== 1) {
+                    for (let i = 0, l = 14; i < l; i++) {
+                        if (!holeVertices.has(i)) {
+                            const n = i * 3;
+                            vertices[n] = vertices[n] * INSET_FACTOR;
+                            vertices[n + 1] = vertices[n + 1] * INSET_FACTOR;
+                            vertices[n + 2] = vertices[n + 2] * INSET_FACTOR;
+                        }
+                    }
+                }
+
+
+                // start creating the THREE geometry
                 const indexedgeometry = new THREE.BufferGeometry();
-                indexedgeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                indexedgeometry.setAttribute(
+                    'position',
+                    new THREE.BufferAttribute(new Float32Array(vertices), 3)
+                );
                 indexedgeometry.setIndex(faces.flat());
 
 
+                // apply (different) uvs for the faces
                 const uvs = [];
 
                 faces.forEach(
@@ -184,6 +222,8 @@ function generateGeometry(grid) {
                 geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
                 geometry.computeBoundsTree();
 
+
+                // move cell into position
                 geometry.translate(...cell.position.toArray());
 
                 geometries.push(geometry);
@@ -191,5 +231,27 @@ function generateGeometry(grid) {
         }
     );
 
+    // return all of them merged together, should be nice
+    // and neat with no overlapping anything, no interior
+    // walls just a nice clean "cave"
     return BufferGeometryUtils.mergeGeometries(geometries);
+}
+
+
+function smoothGeometry(geometry) {
+
+    // TODO: detect vertices that are common without a
+    //      shared edge and separate them slightly?
+    //      INSET_FACTOR can do that but ideally can
+    //      find a way to just fix the ones that go all
+    //      pointy
+
+    return LoopSubdivision.modify(
+        geometry,
+        0,
+        {
+            split: false,
+            preserveEdges: true
+        }
+    );
 }

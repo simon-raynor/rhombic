@@ -62,7 +62,7 @@ const composer = new EffectComposer( renderer/* , renderTarget */ );
 ); */
 
 
-const PIXEL_SIZE = 2;
+const PIXEL_SIZE = 1;
 const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
 pixelPass.normalEdgeStrength = 0.05;
 pixelPass.depthEdgeStrength = 0.1;
@@ -92,6 +92,7 @@ composer.addPass(
 directionalLight.position.set(3, 2, 1);
 scene.add( directionalLight ); */
 const light = new THREE.AmbientLight( 0x202020 ); // soft white light
+//const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
 
 
@@ -113,6 +114,12 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
     side: THREE.BackSide,
     transparent: false
 });
+export const greyMaterial = new THREE.MeshLambertMaterial({
+    color: 0x998877,
+    /* opacity: 0.5,
+    transparent: true, */
+    side: THREE.BackSide
+});
 export const redMaterial = new THREE.MeshLambertMaterial({
     color: 0xff0000,
     /* opacity: 0.5,
@@ -123,15 +130,15 @@ export const redMaterial = new THREE.MeshLambertMaterial({
 
 
 
-const cave = generateCave(2);
+const cave = generateCave(3);
 
 
 const cavemesh = new THREE.Mesh(cave, blockMaterial);
 //const cavemesh = new THREE.Mesh(new THREE.SphereGeometry(100, 25, 25), blockMaterial);
 scene.add(cavemesh);
 
-console.log(cavemesh);
-console.log(trider);
+//console.log(cavemesh);
+//console.log(trider);
 
 
 scene.add( trider.mesh );
@@ -163,7 +170,7 @@ const movinginput = {
     force: 0
 };
 
-const leftstickelement = document.createElement('div');
+/* const leftstickelement = document.createElement('div');
 leftstickelement.className = 'controls';
 
 document.body.appendChild(leftstickelement);
@@ -187,15 +194,15 @@ leftstick.on(
     () => {
         movinginput.force = 0;
     }
-);
+); */
 
 
 
 
 
-/* const controls = new OrbitControls( camera, renderer.domElement );
+const controls = new OrbitControls( camera, renderer.domElement );
 controls.target.copy(trider.mesh.position);
-controls.update(); */
+controls.update();
 
 
 
@@ -241,7 +248,7 @@ function tick() {
     fwdArr.setDirection(trider.up); */
 
     // follow cam
-    const up = trider.up.clone().multiplyScalar(10);
+    /* const up = trider.up.clone().multiplyScalar(10);
     const back = trider.forwards.clone().multiplyScalar(15);
 
     camera.position.copy(trider.position)
@@ -249,11 +256,11 @@ function tick() {
         .sub(back)
     camera.up.copy(trider.up);
     camera.lookAt(trider.position);
-    camera.position.add(up);
+    camera.position.add(up); */
 
     // default orbit cam
-    /* controls.target.copy(trider.mesh.position);
-    controls.update(dt); */
+    controls.target.copy(trider.mesh.position);
+    controls.update(dt);
 
     //renderer.render(scene, camera);
     composer.render();
