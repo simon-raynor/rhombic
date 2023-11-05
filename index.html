@@ -10,6 +10,7 @@
             "three": "https://unpkg.com/three@0.154.0/build/three.module.js",
             "three/addons/": "https://unpkg.com/three@0.154.0/examples/jsm/",
             "three-mesh-bvh": "https://unpkg.com/three-mesh-bvh@0.6.3/build/index.module.js",
+            "three-subdivide": "https://unpkg.com/three-subdivide/build/index.module.js",
             "nipplejs": "https://unpkg.com/nipplejs@0.10.1/src/index.js"
         }
     }
@@ -22,15 +23,10 @@
         .controls {
             position: absolute;
             top: 0;
+            left: 0;
 
             height: 100vh;
-            width: 50vw;
-        }
-        .controls.left {
-            left: 0;
-        }
-        .controls.right {
-            right: 0;
+            width: 100vw;
         }
         .btn {
             position: absolute;
@@ -42,10 +38,6 @@
     </style>
 </head>
 <body>
-    <div class="controls left"></div>
-    <div class="controls right"></div>
-    <button class="btn btn-fullscreen">Fullscreen</button>
-    
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/main-viewer.js"></script>
 </body>
 </html>

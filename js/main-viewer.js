@@ -62,7 +62,7 @@ const composer = new EffectComposer( renderer/* , renderTarget */ );
 ); */
 
 
-const PIXEL_SIZE = 1;
+const PIXEL_SIZE = 3;
 const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
 pixelPass.normalEdgeStrength = 0.05;
 pixelPass.depthEdgeStrength = 0.1;
@@ -170,14 +170,15 @@ const movinginput = {
     force: 0
 };
 
-/* const leftstickelement = document.createElement('div');
+const leftstickelement = document.createElement('div');
 leftstickelement.className = 'controls';
 
 document.body.appendChild(leftstickelement);
 
 const leftstick = nipplejs.create({
     zone: document.querySelector('.controls'),
-    fadeTime: 0
+    fadeTime: 0,
+    color: '#ffffff00'
 });
 leftstick.on(
     'move',
@@ -194,15 +195,15 @@ leftstick.on(
     () => {
         movinginput.force = 0;
     }
-); */
+);
 
 
 
 
 
-const controls = new OrbitControls( camera, renderer.domElement );
+/* const controls = new OrbitControls( camera, renderer.domElement );
 controls.target.copy(trider.mesh.position);
-controls.update();
+controls.update(); */
 
 
 
@@ -248,7 +249,7 @@ function tick() {
     fwdArr.setDirection(trider.up); */
 
     // follow cam
-    /* const up = trider.up.clone().multiplyScalar(10);
+    const up = trider.up.clone().multiplyScalar(10);
     const back = trider.forwards.clone().multiplyScalar(15);
 
     camera.position.copy(trider.position)
@@ -256,11 +257,11 @@ function tick() {
         .sub(back)
     camera.up.copy(trider.up);
     camera.lookAt(trider.position);
-    camera.position.add(up); */
+    camera.position.add(up);
 
     // default orbit cam
-    controls.target.copy(trider.mesh.position);
-    controls.update(dt);
+    /* controls.target.copy(trider.mesh.position);
+    controls.update(dt); */
 
     //renderer.render(scene, camera);
     composer.render();
