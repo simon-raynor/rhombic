@@ -245,7 +245,7 @@ function tick() {
     fwdArr.setDirection(trider.up); */
 
     // follow cam
-    const up = trider.up.clone().multiplyScalar(10);
+    const up = trider.up.clone().multiplyScalar(5);
     const back = trider.forwards.clone().multiplyScalar(15);
 
     camera.position.copy(trider.position)
