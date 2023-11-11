@@ -29,7 +29,7 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
 
 export const redMaterial = new THREE.MeshLambertMaterial({
     color: 0xff0000,
-    //emissive: 0xff0000,
+    emissive: 0x880000,
     /* opacity: 0.5,
     transparent: true, */
     side: THREE.DoubleSide
@@ -82,6 +82,16 @@ class GridCell {
             }
         )
     }
+
+    #openings = [];
+
+    set openings(indexes) {
+        this.#openings = [...indexes];
+    }
+
+    get openings() {
+        return this.#openings.map(idx => this.neighbours[idx]);
+    }
 }
 
 
@@ -93,15 +103,49 @@ export default function generateCave(
 ) {
     const grid = generateGrid(size);
 
-    generateTunnel(grid);
+    const tunnel = generateTunnel(grid);
 
-    const geometry = generateGeometry(grid);
+    const geometry = generateGeometry(tunnel);
     geometry.scale(CAVESCALE, CAVESCALE, CAVESCALE);
-
-    //const path = generatePath(grid);
-
-
     const cavemesh = new THREE.Mesh(geometry, blockMaterial);
+
+    
+    const deadends = [];
+    tunnel.forEach(
+        cell => {
+            const openDirections = [];
+            
+            cell.neighbours.forEach(
+                neighbour => {
+                    if (
+                        neighbour
+                        && !neighbour.filled
+                    ) {
+                        openDirections.push(neighbour);
+                    }
+                }
+            );
+
+            if (openDirections.length === 1) {
+                const light = new THREE.PointLight( 0x00ff00, 1, CAVESCALE * 3, 4 );
+                light.position.copy(cell.position).multiplyScalar(CAVESCALE);
+
+                cavemesh.add(light);
+
+                deadends.push(cell);
+            }
+        }
+    );
+
+    for (let i = 0; i < deadends.length; i++) {
+        const path = generatePath(
+            tunnel,
+            deadends[i],
+            deadends[(i + 1) % deadends.length]
+        );
+        cavemesh.add(path);
+    }
+
     
     return cavemesh;
 }
@@ -169,6 +213,13 @@ function generateTunnel(grid) {
     while (cursor) {
         cursor = advanceCursor();
     }
+
+    const tunnel = grid.filter(({filled}) => !filled);
+
+    // give em an ID so easier to debug
+    tunnel.forEach((cell, idx) => cell.id = idx);
+
+    return tunnel;
 }
 
 
@@ -177,90 +228,90 @@ function generateTunnel(grid) {
 //const INSET_FACTOR = 0.75;
 const INSET_FACTOR = 1;
 
-function generateGeometry(grid) {
+function generateGeometry(tunnel) {
     const geometries = [];
 
-    grid.forEach(
+    tunnel.forEach(
         cell => {
-            if (!cell.filled) {
-                const vertices = RHOMBIC_VERTICES.slice();
-                const faces = RHOMBIC_FACES_2D.slice();
+            const vertices = RHOMBIC_VERTICES.slice();
+            const faces = RHOMBIC_FACES_2D.slice();
 
-                // used to indicate which vertices are
-                // around the openings, so that we don't
-                // move them away from the adjoining cell
-                const holeVertices = new Set();
+            // used to indicate which vertices are
+            // around the openings, so that we don't
+            // move them away from the adjoining cell
+            const holeVertices = new Set();
 
-                // check each neighbour, if it's open we
-                // need to flag that face for removal
-                // N.B. this works because the directions
-                //      are in the same order as the faces
-                const openDirections = [];
-                
-                cell.neighbours.forEach(
-                    (neighbour, nidx) => {
-                        if (neighbour && !neighbour.filled) {
-                            openDirections.push(nidx);
-                        }
-                    }
-                );
-
-                // remove the open faces while logging their
-                // vertices so that we can leave portals to
-                // match up between cells
-                openDirections.forEach(
-                    fidx => {
-                        const toRemove = RHOMBIC_FACES_2D[fidx];
-                        toRemove.forEach(vidx => holeVertices.add(vidx))
-                        faces[fidx] = null;
-                    }
-                );
-
-                if (INSET_FACTOR !== 1) {
-                    for (let i = 0, l = 14; i < l; i++) {
-                        if (!holeVertices.has(i)) {
-                            const n = i * 3;
-                            vertices[n] = vertices[n] * INSET_FACTOR;
-                            vertices[n + 1] = vertices[n + 1] * INSET_FACTOR;
-                            vertices[n + 2] = vertices[n + 2] * INSET_FACTOR;
-                        }
+            // check each neighbour, if it's open we
+            // need to flag that face for removal
+            // N.B. this works because the directions
+            //      are in the same order as the faces
+            const openDirections = [];
+            
+            cell.neighbours.forEach(
+                (neighbour, nidx) => {
+                    if (neighbour && !neighbour.filled) {
+                        openDirections.push(nidx);
                     }
                 }
+            );
 
+            cell.openings = openDirections;
 
-                // start creating the THREE geometry
-                const indexedgeometry = new THREE.BufferGeometry();
-                indexedgeometry.setAttribute(
-                    'position',
-                    new THREE.BufferAttribute(new Float32Array(vertices), 3)
-                );
-                indexedgeometry.setIndex(faces.filter(Boolean).flat());
+            // remove the open faces while logging their
+            // vertices so that we can leave portals to
+            // match up between cells
+            openDirections.forEach(
+                fidx => {
+                    const toRemove = RHOMBIC_FACES_2D[fidx];
+                    toRemove.forEach(vidx => holeVertices.add(vidx));
+                    faces[fidx] = null;
+                }
+            );
 
-
-                // apply (different) uvs for the faces
-                const uvs = [];
-
-                faces.forEach(
-                    face => {
-                        const uvNum = 2;//Math.floor(Math.random() * RHOMBIC_UVS_2D.length);
-
-                        uvs.push(
-                            ...RHOMBIC_UVS_2D[uvNum]
-                        );
+            if (INSET_FACTOR !== 1) {
+                for (let i = 0, l = 14; i < l; i++) {
+                    if (!holeVertices.has(i)) {
+                        const n = i * 3;
+                        vertices[n] = vertices[n] * INSET_FACTOR;
+                        vertices[n + 1] = vertices[n + 1] * INSET_FACTOR;
+                        vertices[n + 2] = vertices[n + 2] * INSET_FACTOR;
                     }
-                );
-
-                const geometry = indexedgeometry.toNonIndexed();
-                geometry.computeVertexNormals();
-                geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
-                geometry.computeBoundsTree();
-
-
-                // move cell into position
-                geometry.translate(...cell.position.toArray());
-
-                geometries.push(geometry);
+                }
             }
+
+
+            // start creating the THREE geometry
+            const indexedgeometry = new THREE.BufferGeometry();
+            indexedgeometry.setAttribute(
+                'position',
+                new THREE.BufferAttribute(new Float32Array(vertices), 3)
+            );
+            indexedgeometry.setIndex(faces.filter(Boolean).flat());
+
+
+            // apply (different) uvs for the faces
+            const uvs = [];
+
+            faces.forEach(
+                face => {
+                    const uvNum = 2;//Math.floor(Math.random() * RHOMBIC_UVS_2D.length);
+
+                    uvs.push(
+                        ...RHOMBIC_UVS_2D[uvNum]
+                    );
+                }
+            );
+
+            const geometry = indexedgeometry.toNonIndexed();
+            geometry.computeVertexNormals();
+            geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
+            geometry.computeBoundsTree();
+
+
+            // move cell into position
+            geometry.translate(...cell.position.toArray());
+
+            geometries.push(geometry);
         }
     );
 
@@ -271,39 +322,67 @@ function generateGeometry(grid) {
 }
 
 
-function generatePath(grid) {
-    const path = new THREE.CurvePath();
-    path.autoClose = false;
-
-    const openCells = grid.filter(({filled}) => !filled);
+function generatePath(tunnel, start, end) {
+    const visited = [];
+    const blocked = [];
     const pathCells = [];
-
-    let next = openCells[0];
+    
+    let current = start;
+    const junctions = [];
 
     do {
-        pathCells.push(next);
+        visited.unshift(current);
 
-        const openDirections = [];
-        
-        next.neighbours.forEach(
-            (neighbour, nidx) => {
-                if (
-                    neighbour
-                    && !neighbour.filled
-                    && !pathCells.includes(neighbour)
-                ) {
-                    openDirections.push(neighbour);
-                }
+        if (current === end) {
+            pathCells.push(...visited);
+            break;
+        } else if (current.openings.length === 2) {
+            current = current.openings.find(next => !visited.includes(next));
+            continue;
+        } else if (current.openings.length === 1) {
+            if (!visited.includes(current.openings[0])){
+                current = current.openings[0];
+                continue;
+            } else {
+                // WARNING: this assumes the maze is solvable!
+                // skip back to the last junction
+                do {
+                    blocked.push(visited.shift());
+                } while (visited.length && visited[0] !== junctions[0]);
+                current = visited[0];
+                continue;
             }
-        );
-
-        if (openDirections.length) {
-            next = openDirections[Math.floor(openDirections.length * Math.random() * 0.99999)];
         } else {
-            next = null;
-        }
-    } while (next);
+            if (!junctions.includes(current)) {
+                junctions.unshift(current);
+            }
+            const available = current.openings.filter(
+                next => !blocked.includes(next) && !visited.includes(next)
+            );
 
+            if (!available.length) {
+                junctions.shift();
+                // WARNING: this assumes the maze is solvable!
+                // skip back to the last junction
+                do {
+                    blocked.push(visited.shift());
+                } while (visited.length && visited[0] !== junctions[0]);
+                current = visited[0];
+                continue;
+            } else {
+                current = available[0];
+                continue;
+            }
+        }
+
+        if (!visited.length) {
+            break;
+        }
+    } while (current);
+
+
+    const path = new THREE.CurvePath();
+    
     let prev = new THREE.Vector3();
 
     pathCells.forEach(
@@ -335,6 +414,8 @@ function generatePath(grid) {
 
     return pathMesh;
 }
+
+
 
 
 function smoothGeometry(geometry) {

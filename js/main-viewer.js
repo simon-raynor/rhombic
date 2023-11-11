@@ -88,11 +88,11 @@ composer.addPass(
 
 
 
-const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+/* const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
 directionalLight.position.set(3, 2, 1);
-scene.add( directionalLight );
-//const light = new THREE.AmbientLight( 0x202020 ); // soft white light
-const light = new THREE.AmbientLight( 0x808080 ); // bright white light
+scene.add( directionalLight ); */
+const light = new THREE.AmbientLight( 0x202020 ); // soft white light
+//const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
 
 
