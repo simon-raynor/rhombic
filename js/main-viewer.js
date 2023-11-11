@@ -13,7 +13,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 
 import Stats from 'three/addons/libs/stats.module.js';
-import { createRhombic } from './geometries/rhombicdodecahedron.js';
+import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES, createRhombic } from './geometries/rhombicdodecahedron.js';
 import trider from './entities/trider/index.js';
 import generateCave from './entities/cave/index.js';
 
@@ -62,7 +62,7 @@ const composer = new EffectComposer( renderer/* , renderTarget */ );
 ); */
 
 
-const PIXEL_SIZE = 3;
+const PIXEL_SIZE = 1;
 const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
 pixelPass.normalEdgeStrength = 0.05;
 pixelPass.depthEdgeStrength = 0.1;
@@ -88,11 +88,11 @@ composer.addPass(
 
 
 
-/* const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
 directionalLight.position.set(3, 2, 1);
-scene.add( directionalLight ); */
-const light = new THREE.AmbientLight( 0x202020 ); // soft white light
-//const light = new THREE.AmbientLight( 0x808080 ); // bright white light
+scene.add( directionalLight );
+//const light = new THREE.AmbientLight( 0x202020 ); // soft white light
+const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
 
 
@@ -122,6 +122,14 @@ export const greyMaterial = new THREE.MeshLambertMaterial({
 });
 export const redMaterial = new THREE.MeshLambertMaterial({
     color: 0xff0000,
+    //emissive: 0xff0000,
+    /* opacity: 0.5,
+    transparent: true, */
+    side: THREE.DoubleSide
+});
+export const greenMaterial = new THREE.MeshLambertMaterial({
+    color: 0x00ff00,
+    //emissive: 0xff0000,
     /* opacity: 0.5,
     transparent: true, */
     side: THREE.DoubleSide
@@ -130,80 +138,28 @@ export const redMaterial = new THREE.MeshLambertMaterial({
 
 
 
-const cave = generateCave(3);
-
+const [cave, path] = generateCave(3);
 
 const cavemesh = new THREE.Mesh(cave, blockMaterial);
 //const cavemesh = new THREE.Mesh(new THREE.SphereGeometry(100, 25, 25), blockMaterial);
 scene.add(cavemesh);
 
-//console.log(cavemesh);
-//console.log(trider);
-
-
-scene.add( trider.mesh );
-
-
-
-
-// find the point "below" 0,0 and translate/orient the trider
-// so that it sits there
-
-const raycaster = new THREE.Raycaster();
-
-raycaster.set(trider.mesh.position, new THREE.Vector3(0, -1, -1).normalize());
-
-const intersects = raycaster.intersectObject(cavemesh);
-
-if (intersects.length) {
-    trider.init(
-        intersects[0].point,
-        intersects[0].normal,
-        cavemesh
-    );
-}
-
-
-
-const movinginput = {
-    vector: new THREE.Vector2(0, 1),
-    force: 0
-};
-
-const leftstickelement = document.createElement('div');
-leftstickelement.className = 'controls';
-
-document.body.appendChild(leftstickelement);
-
-const leftstick = nipplejs.create({
-    zone: document.querySelector('.controls'),
-    fadeTime: 0,
-    color: '#ffffff00'
-});
-leftstick.on(
-    'move',
-    (evt, data) => {
-        const {vector, force} = data;
-        if (vector && force) {
-            movinginput.vector.copy(vector)
-            movinginput.force = force;
-        }
-    }
+/* const pathMesh = new THREE.Mesh(
+    new THREE.TubeGeometry(
+        path,
+        100,
+        1,
+        5
+    ),
+    redMaterial
 );
-leftstick.on(
-    'end',
-    () => {
-        movinginput.force = 0;
-    }
-);
+scene.add(pathMesh); */
 
 
 
-
-
-/* const controls = new OrbitControls( camera, renderer.domElement );
-controls.target.copy(trider.mesh.position);
-controls.update(); */
+const controls = new OrbitControls( camera, renderer.domElement );
+camera.position.set(0, 10, -20);
+controls.update();
 
 
 
@@ -243,25 +199,7 @@ function tick() {
     stats.update();
 
 
-    trider.tick(dt, cavemesh, movinginput);
-
-    /* fwdArr.position.copy(trider.position);
-    fwdArr.setDirection(trider.up); */
-
-    // follow cam
-    const up = trider.up.clone().multiplyScalar(10);
-    const back = trider.forwards.clone().multiplyScalar(15);
-
-    camera.position.copy(trider.position)
-        .add(up)
-        .sub(back)
-    camera.up.copy(trider.up);
-    camera.lookAt(trider.position);
-    camera.position.add(up);
-
-    // default orbit cam
-    /* controls.target.copy(trider.mesh.position);
-    controls.update(dt); */
+    controls.update();
 
     //renderer.render(scene, camera);
     composer.render();

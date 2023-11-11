@@ -130,7 +130,7 @@ export const redMaterial = new THREE.MeshLambertMaterial({
 
 
 
-const cave = generateCave(3);
+const [cave] = generateCave(3);
 
 
 const cavemesh = new THREE.Mesh(cave, blockMaterial);

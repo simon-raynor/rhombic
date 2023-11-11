@@ -66,10 +66,12 @@ export default function generateCave(
     generateTunnel(grid);
 
     const geometry = generateGeometry(grid);
-
     geometry.scale(CAVESCALE, CAVESCALE, CAVESCALE);
 
-    return geometry;
+    //const path = generatePath(grid);
+
+
+    return [geometry/* , path */];
     //return smoothGeometry(geometry);
 }
 
@@ -175,11 +177,11 @@ function generateGeometry(grid) {
                 // remove the open faces while logging their
                 // vertices so that we can leave portals to
                 // match up between cells
-                openDirections.sort().reverse().forEach(
+                openDirections.forEach(
                     fidx => {
                         const toRemove = RHOMBIC_FACES_2D[fidx];
                         toRemove.forEach(vidx => holeVertices.add(vidx))
-                        faces.splice(fidx, 1);
+                        faces[fidx] = null;
                     }
                 );
 
@@ -201,7 +203,7 @@ function generateGeometry(grid) {
                     'position',
                     new THREE.BufferAttribute(new Float32Array(vertices), 3)
                 );
-                indexedgeometry.setIndex(faces.flat());
+                indexedgeometry.setIndex(faces.filter(Boolean).flat());
 
 
                 // apply (different) uvs for the faces
@@ -235,6 +237,62 @@ function generateGeometry(grid) {
     // and neat with no overlapping anything, no interior
     // walls just a nice clean "cave"
     return BufferGeometryUtils.mergeGeometries(geometries);
+}
+
+
+function generatePath(grid) {
+    const path = new THREE.CurvePath();
+    path.autoClose = false;
+
+    const openCells = grid.filter(({filled}) => !filled);
+    const pathCells = [];
+
+    let next = openCells[0];
+
+    do {
+        pathCells.push(next);
+
+        const openDirections = [];
+        
+        next.neighbours.forEach(
+            (neighbour, nidx) => {
+                if (
+                    neighbour
+                    && !neighbour.filled
+                    && !pathCells.includes(neighbour)
+                ) {
+                    openDirections.push(neighbour);
+                }
+            }
+        );
+
+        if (openDirections.length) {
+            next = openDirections[Math.floor(openDirections.length * Math.random() * 0.99999)];
+        } else {
+            next = null;
+        }
+    } while (next);
+
+    let prev = new THREE.Vector3();
+
+    pathCells.forEach(
+        (cell, idx) => {
+            tmpVec3.copy(cell.position).multiplyScalar(CAVESCALE);
+
+            if (idx) {
+                path.add(
+                    new THREE.LineCurve3(
+                        prev.clone(),
+                        tmpVec3.clone()
+                    )
+                );
+            }
+
+            prev.copy(tmpVec3);
+        }
+    );
+
+    return path;
 }
 
 
