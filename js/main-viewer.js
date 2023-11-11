@@ -96,64 +96,11 @@ const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
 
 
-const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
-const texturebump = new THREE.TextureLoader().load('/img/wall-atlas-bumps.png');
-
-texture.wrapS = THREE.RepeatWrapping;
-texture.repeat.x = -1;
-texturebump.wrapS = THREE.RepeatWrapping;
-texturebump.repeat.x = -1;
-/* texture.wrapT = THREE.RepeatWrapping;
-texture.repeat.y = -1; */
-
-export const blockMaterial = new THREE.MeshLambertMaterial({
-    map: texture,
-    bumpMap: texturebump,
-    bumpScale: 0.05,
-    //side: THREE.DoubleSide, // double side for collisions
-    side: THREE.BackSide,
-    transparent: false
-});
-export const greyMaterial = new THREE.MeshLambertMaterial({
-    color: 0x998877,
-    /* opacity: 0.5,
-    transparent: true, */
-    side: THREE.BackSide
-});
-export const redMaterial = new THREE.MeshLambertMaterial({
-    color: 0xff0000,
-    //emissive: 0xff0000,
-    /* opacity: 0.5,
-    transparent: true, */
-    side: THREE.DoubleSide
-});
-export const greenMaterial = new THREE.MeshLambertMaterial({
-    color: 0x00ff00,
-    //emissive: 0xff0000,
-    /* opacity: 0.5,
-    transparent: true, */
-    side: THREE.DoubleSide
-});
 
 
 
-
-const [cave, path] = generateCave(3);
-
-const cavemesh = new THREE.Mesh(cave, blockMaterial);
-//const cavemesh = new THREE.Mesh(new THREE.SphereGeometry(100, 25, 25), blockMaterial);
+const cavemesh = generateCave(3);
 scene.add(cavemesh);
-
-/* const pathMesh = new THREE.Mesh(
-    new THREE.TubeGeometry(
-        path,
-        100,
-        1,
-        5
-    ),
-    redMaterial
-);
-scene.add(pathMesh); */
 
 
 

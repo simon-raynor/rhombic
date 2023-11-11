@@ -7,6 +7,36 @@ import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES } from '../../geomet
 const tmpVec3 = new THREE.Vector3();
 
 
+
+
+
+const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
+const texturebump = new THREE.TextureLoader().load('/img/wall-atlas-bumps.png');
+
+texture.wrapS = THREE.RepeatWrapping;
+texture.repeat.x = -1;
+texturebump.wrapS = THREE.RepeatWrapping;
+texturebump.repeat.x = -1;
+
+export const blockMaterial = new THREE.MeshLambertMaterial({
+    map: texture,
+    bumpMap: texturebump,
+    bumpScale: 0.05,
+    //side: THREE.DoubleSide, // double side for collisions
+    side: THREE.BackSide,
+    transparent: false
+});
+
+export const redMaterial = new THREE.MeshLambertMaterial({
+    color: 0xff0000,
+    //emissive: 0xff0000,
+    /* opacity: 0.5,
+    transparent: true, */
+    side: THREE.DoubleSide
+});
+
+
+
 const GRID_DIRECTIONS = [
     [1, 1, 0],
     [1, 0, 1],
@@ -71,8 +101,9 @@ export default function generateCave(
     //const path = generatePath(grid);
 
 
-    return [geometry/* , path */];
-    //return smoothGeometry(geometry);
+    const cavemesh = new THREE.Mesh(geometry, blockMaterial);
+    
+    return cavemesh;
 }
 
 
@@ -292,7 +323,17 @@ function generatePath(grid) {
         }
     );
 
-    return path;
+    const pathMesh = new THREE.Mesh(
+        new THREE.TubeGeometry(
+            path,
+            100,
+            1,
+            5
+        ),
+        redMaterial
+    );
+
+    return pathMesh;
 }
 
 
