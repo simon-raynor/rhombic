@@ -131,7 +131,6 @@ export default function generateCave(
 
     for (let i = 0; i < deadends.length; i++) {
         const path = generatePath(
-            tunnel,
             deadends[i],
             deadends[(i + 1) % deadends.length]
         );
@@ -315,64 +314,9 @@ function generateGeometry(tunnel) {
 }
 
 
-function generatePath(tunnel, start, end) {
-    const visited = [];
-    const blocked = [];
-    const pathCells = [];
-    
-    let current = start;
-    const junctions = [];
+function generatePath(start, end) {
 
-    do {
-        visited.unshift(current);
-
-        if (current === end) {
-            pathCells.push(...visited);
-            break;
-        } else if (current.openings.length === 2) {
-            current = current.openings.find(next => !visited.includes(next));
-            continue;
-        } else if (current.openings.length === 1) {
-            if (!visited.includes(current.openings[0])){
-                current = current.openings[0];
-                continue;
-            } else {
-                // WARNING: this assumes the maze is solvable!
-                // skip back to the last junction
-                do {
-                    blocked.push(visited.shift());
-                } while (visited.length && visited[0] !== junctions[0]);
-                current = visited[0];
-                continue;
-            }
-        } else {
-            if (!junctions.includes(current)) {
-                junctions.unshift(current);
-            }
-            const available = current.openings.filter(
-                next => !blocked.includes(next) && !visited.includes(next)
-            );
-
-            if (!available.length) {
-                junctions.shift();
-                // WARNING: this assumes the maze is solvable!
-                // skip back to the last junction
-                do {
-                    blocked.push(visited.shift());
-                } while (visited.length && visited[0] !== junctions[0]);
-                current = visited[0];
-                continue;
-            } else {
-                current = available[0];
-                continue;
-            }
-        }
-
-        if (!visited.length) {
-            break;
-        }
-    } while (current);
-
+    const pathCells = findPath(start, end);
 
     const path = new THREE.CurvePath();
     
@@ -407,6 +351,85 @@ function generatePath(tunnel, start, end) {
 
     return pathMesh;
 }
+
+// TODO: somehow detect if they are unable to reach each other?
+function findPath(from, to) {
+    const visited = [];
+    const blocked = [];
+    const junctions = [];
+    
+    let current = from;
+
+    // WARNING: this assumes the maze is solveable!
+    // removes cells from @visited, adding them to @blocked,
+    // until we reach the most recent junction
+    // if the junction is also now blocked that will be handled
+    // by the next loop and this will be called again
+    const backtrack = () => {
+        do {
+            blocked.push(visited.shift());
+        } while (visited.length && visited[0] !== junctions[0]);
+        current = visited[0];
+        // see the TODO at the top, I believe this to be the failure
+        // condition we'd get if @from was not connected to @to, as
+        // it would exhaust all of its junctions
+        if (!current) {
+            throw new Error('backtracked too far!');
+        }
+    }
+
+    do {
+        visited.unshift(current);
+
+        // we've reached the end, visited will contain
+        // our path from...to
+        if (current === to) {
+            //
+            // return here! (it's not obvious at a glance)
+            //
+            return visited;
+        } else if (current.openings.length === 2) {
+            current = current.openings.find(next => !visited.includes(next));
+            continue;
+        // dead-end
+        } else if (current.openings.length === 1) {
+            // this handles the edge case of starting in
+            // a dead end
+            if (!visited.includes(current.openings[0])){
+                current = current.openings[0];
+                continue;
+            // otherwise we backtrack to the last junction
+            } else {
+                backtrack();
+                continue;
+            }
+        // more than 2 openings means it's a junction
+        } else {
+            // add this junction to the stack
+            if (!junctions.includes(current)) {
+                junctions.unshift(current);
+            }
+
+            // find any unchecked paths
+            const available = current.openings.filter(
+                next => !blocked.includes(next) && !visited.includes(next)
+            );
+
+            // just take the first path
+            if (available.length) {
+                current = available[0];
+                continue;
+            // remove this junction from the stack
+            // then backtrack to the previous one
+            } else {
+                junctions.shift();
+                backtrack();
+                continue;
+            }
+        }
+    } while (current);
+}
+
 
 
 
