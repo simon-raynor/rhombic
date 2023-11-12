@@ -20,8 +20,8 @@ texturebump.repeat.x = -1;
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
-    bumpMap: texturebump,
-    bumpScale: 0.05,
+    /* bumpMap: texturebump,
+    bumpScale: 0.05, */
     //side: THREE.DoubleSide, // double side for collisions
     side: THREE.BackSide,
     transparent: false
@@ -107,27 +107,17 @@ export default function generateCave(
 
     const geometry = generateGeometry(tunnel);
     geometry.scale(CAVESCALE, CAVESCALE, CAVESCALE);
-    const cavemesh = new THREE.Mesh(geometry, blockMaterial);
+    const cavemesh = new THREE.Mesh(
+        smoothGeometry(geometry),
+        blockMaterial
+    );
 
     
     const deadends = [];
     tunnel.forEach(
         cell => {
-            const openDirections = [];
-            
-            cell.neighbours.forEach(
-                neighbour => {
-                    if (
-                        neighbour
-                        && !neighbour.filled
-                    ) {
-                        openDirections.push(neighbour);
-                    }
-                }
-            );
-
-            if (openDirections.length === 1) {
-                const light = new THREE.PointLight( 0x00ff00, 1, CAVESCALE * 3, 4 );
+            if (cell.openings.length === 1) {
+                const light = new THREE.PointLight( 0xff0000, 1, CAVESCALE * 3, 4 );
                 light.position.copy(cell.position).multiplyScalar(CAVESCALE);
 
                 cavemesh.add(light);
@@ -137,17 +127,19 @@ export default function generateCave(
         }
     );
 
+    const paths = [];
+
     for (let i = 0; i < deadends.length; i++) {
         const path = generatePath(
             tunnel,
             deadends[i],
             deadends[(i + 1) % deadends.length]
         );
-        cavemesh.add(path);
+        paths.push(path);
     }
 
     
-    return cavemesh;
+    return [cavemesh, paths];
 }
 
 
@@ -226,7 +218,7 @@ function generateTunnel(grid) {
 // used to inset vertices for smoothing (prevents
 // nastiness when cells are corner-to-corner)
 //const INSET_FACTOR = 0.75;
-const INSET_FACTOR = 1;
+const INSET_FACTOR = 0.75;
 
 function generateGeometry(tunnel) {
     const geometries = [];
@@ -255,6 +247,7 @@ function generateGeometry(tunnel) {
                 }
             );
 
+            // assign this now that it's been calculated
             cell.openings = openDirections;
 
             // remove the open faces while logging their
@@ -426,12 +419,16 @@ function smoothGeometry(geometry) {
     //      find a way to just fix the ones that go all
     //      pointy
 
-    return LoopSubdivision.modify(
+    const smoothed = LoopSubdivision.modify(
         geometry,
-        0,
+        1,
         {
-            split: false,
-            preserveEdges: true
+            split: false
         }
     );
+
+    smoothed.computeVertexNormals();
+    smoothed.computeBoundsTree();
+
+    return smoothed;
 }

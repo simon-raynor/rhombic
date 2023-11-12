@@ -99,8 +99,9 @@ scene.add( light );
 
 
 
-const cavemesh = generateCave(3);
+const [cavemesh, paths] = generateCave(4);
 scene.add(cavemesh);
+scene.add(...paths);
 
 
 
