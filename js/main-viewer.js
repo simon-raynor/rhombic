@@ -15,7 +15,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES, createRhombic } from './geometries/rhombicdodecahedron.js';
 import trider from './entities/trider/index.js';
-import generateCave from './entities/cave/index.js';
+import generateCave, { redMaterial } from './entities/cave/index.js';
+import ParticlePath from './entities/particlepath.js';
 
 
 const stats = new Stats();
@@ -99,12 +100,12 @@ scene.add( light );
 
 
 
-const [cavemesh, paths] = generateCave(4);
+const [cavemesh, paths] = generateCave(3);
 scene.add(cavemesh);
 
 
 /* paths.forEach(
-    path => { */
+    path => {
     const pathMesh = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(
             paths[0].getPoints(1000)
@@ -113,13 +114,11 @@ scene.add(cavemesh);
     )
 
     scene.add(pathMesh);
-/* }
-) */
+}) */
 
-
-const lineParticles = [];
-
-
+const ppath = new ParticlePath(paths[0])
+scene.add(ppath.mesh);
+ppath.tick(0);
 
 
 const controls = new OrbitControls( camera, renderer.domElement );
@@ -154,6 +153,8 @@ let t = Date.now();
 
 let slowfactor = 1;
 
+const moving = {vector: new THREE.Vector3()};
+
 function tick() {
     requestAnimationFrame(tick);
 
@@ -163,6 +164,7 @@ function tick() {
 
     stats.update();
 
+    ppath.tick(dt);
 
     controls.update();
 

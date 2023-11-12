@@ -3,19 +3,16 @@ import './three-extended.js';
 import * as THREE from 'three';
 import nipplejs from 'nipplejs';
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 
 import Stats from 'three/addons/libs/stats.module.js';
-import { createRhombic } from './geometries/rhombicdodecahedron.js';
 import trider from './entities/trider/index.js';
 import generateCave from './entities/cave/index.js';
+import ParticlePath from './entities/particlepath.js';
 
 
 const stats = new Stats();
@@ -62,7 +59,7 @@ const composer = new EffectComposer( renderer/* , renderTarget */ );
 ); */
 
 
-const PIXEL_SIZE = 2;
+const PIXEL_SIZE = 1;
 const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
 pixelPass.normalEdgeStrength = 0.05;
 pixelPass.depthEdgeStrength = 0.05;
@@ -88,11 +85,14 @@ scene.add( light );
 
 
 
-const [cavemesh, paths] = generateCave(4);
+const [cavemesh, paths] = generateCave(3);
 scene.add(cavemesh);
 
 scene.add( trider.mesh );
 
+const ppath = new ParticlePath(paths[0]);
+scene.add(ppath.mesh);
+ppath.tick(0);
 
 
 
@@ -167,8 +167,7 @@ function tick() {
 
     trider.tick(dt, cavemesh, movinginput);
 
-    /* fwdArr.position.copy(trider.position);
-    fwdArr.setDirection(trider.up); */
+    ppath.tick(dt);
 
     // follow cam
     const up = trider.up.clone().multiplyScalar(5);
@@ -181,9 +180,6 @@ function tick() {
     camera.lookAt(trider.position);
     camera.position.add(up);
 
-    // default orbit cam
-    /* controls.target.copy(trider.mesh.position);
-    controls.update(dt); */
 
     //renderer.render(scene, camera);
     composer.render();
