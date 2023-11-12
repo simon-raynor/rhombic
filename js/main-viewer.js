@@ -101,7 +101,20 @@ scene.add( light );
 
 const [cavemesh, paths] = generateCave(4);
 scene.add(cavemesh);
-scene.add(...paths);
+
+
+/* paths.forEach(
+    path => { */
+    const pathMesh = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(
+            paths[0].getPoints(1000)
+        ),
+        new THREE.LineDashedMaterial({ color: 0x00ff00, dashSize: 2, gapSize: 1 })
+    )
+
+    scene.add(pathMesh);
+/* }
+) */
 
 
 

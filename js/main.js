@@ -62,7 +62,7 @@ const composer = new EffectComposer( renderer/* , renderTarget */ );
 ); */
 
 
-const PIXEL_SIZE = 3;
+const PIXEL_SIZE = 2;
 const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
 pixelPass.normalEdgeStrength = 0.05;
 pixelPass.depthEdgeStrength = 0.05;
@@ -70,12 +70,6 @@ pixelPass.depthEdgeStrength = 0.05;
 composer.addPass(
     pixelPass
 );
-
-
-/* composer.addPass(
-    new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 2, 0.4, 0.85)
-) */
-
 
 composer.addPass(
     new OutputPass()
@@ -88,11 +82,7 @@ composer.addPass(
 
 
 
-/* const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-directionalLight.position.set(3, 2, 1);
-scene.add( directionalLight ); */
 const light = new THREE.AmbientLight( 0x202020 ); // soft white light
-//const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
 
 
@@ -100,11 +90,6 @@ scene.add( light );
 
 const [cavemesh, paths] = generateCave(4);
 scene.add(cavemesh);
-scene.add(...paths);
-
-//console.log(cavemesh);
-//console.log(trider);
-
 
 scene.add( trider.mesh );
 

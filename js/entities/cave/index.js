@@ -129,10 +129,17 @@ export default function generateCave(
 
     const paths = [];
 
-    for (let i = 0; i < deadends.length; i++) {
+    /* for (let i = 0; i < deadends.length; i++) {
         const path = generatePath(
             deadends[i],
             deadends[(i + 1) % deadends.length]
+        );
+        paths.push(path);
+    } */
+    for (let i = 0; i < deadends.length - 1; i++) {
+        const path = generatePath(
+            deadends[0],
+            deadends[i + 1]
         );
         paths.push(path);
     }
@@ -217,7 +224,7 @@ function generateTunnel(grid) {
 // used to inset vertices for smoothing (prevents
 // nastiness when cells are corner-to-corner)
 //const INSET_FACTOR = 0.75;
-const INSET_FACTOR = 0.75;
+const INSET_FACTOR = 2 / 3;
 
 function generateGeometry(tunnel) {
     const geometries = [];
@@ -320,36 +327,88 @@ function generatePath(start, end) {
 
     const path = new THREE.CurvePath();
     
-    let prev = new THREE.Vector3();
+    const prev = new THREE.Vector3();
+    const next = new THREE.Vector3();
+    const centre = new THREE.Vector3();
+
+    const curvePoints = [];
 
     pathCells.forEach(
         (cell, idx) => {
-            tmpVec3.copy(cell.position).multiplyScalar(CAVESCALE);
+            const prevCell = pathCells[idx - 1];
+            const nextCell = pathCells[idx + 1];
 
-            if (idx) {
-                path.add(
-                    new THREE.LineCurve3(
-                        prev.clone(),
-                        tmpVec3.clone()
-                    )
-                );
+            let prevFace = null;
+            let nextFace = null;
+
+            for (let i = 0; i < cell.neighbours.length; i++) {
+                if (prevCell && cell.neighbours[i] === prevCell) {
+                    prevFace = RHOMBIC_FACES_2D[i];
+                }
+                if (nextCell && cell.neighbours[i] === nextCell) {
+                    nextFace = RHOMBIC_FACES_2D[i];
+                }
             }
 
-            prev.copy(tmpVec3);
+            if (prevFace) {
+                let xsum = 0, ysum = 0, zsum = 0;
+                for (const vidx of prevFace) {
+                    xsum += RHOMBIC_VERTICES[vidx * 3]
+                    ysum += RHOMBIC_VERTICES[1 + vidx * 3]
+                    zsum += RHOMBIC_VERTICES[2 + vidx * 3]
+                }
+                prev.set(
+                    xsum / prevFace.length,
+                    ysum / prevFace.length,
+                    zsum / prevFace.length,
+                ).add(cell.position).multiplyScalar(CAVESCALE);
+
+                curvePoints.push(
+                    prev.clone()
+                );
+            }
+            
+            if (prevFace && nextFace) {
+                let xsum = 0, ysum = 0, zsum = 0;
+                for (const vidx of nextFace) {
+                    xsum += RHOMBIC_VERTICES[vidx * 3]
+                    ysum += RHOMBIC_VERTICES[1 + vidx * 3]
+                    zsum += RHOMBIC_VERTICES[2 + vidx * 3]
+                }
+                next.set(
+                    xsum / nextFace.length,
+                    ysum / nextFace.length,
+                    zsum / nextFace.length,
+                ).add(cell.position).multiplyScalar(CAVESCALE);
+
+                centre.copy(cell.position).multiplyScalar(CAVESCALE)
+                    .add(prev).add(next).multiplyScalar(1/3);
+
+                curvePoints.push(
+                    centre.clone(),
+                );
+            } else {
+                centre.copy(cell.position).multiplyScalar(CAVESCALE);
+
+                curvePoints.push(
+                    centre.clone()
+                );
+            }
         }
     );
 
-    const pathMesh = new THREE.Mesh(
+    /* const pathMesh = new THREE.Mesh(
         new THREE.TubeGeometry(
-            path,
-            100,
+            //path,
+            new THREE.CatmullRomCurve3(curvePoints, false, 'centripetal', 1),
+            curvePoints.length * 5,
             1,
             5
         ),
         redMaterial
-    );
+    ); */
 
-    return pathMesh;
+    return new THREE.CatmullRomCurve3(curvePoints);
 }
 
 // TODO: somehow detect if they are unable to reach each other?
