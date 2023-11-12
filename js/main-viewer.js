@@ -117,6 +117,10 @@ scene.add(cavemesh);
 ) */
 
 
+const lineParticles = [];
+
+
+
 
 const controls = new OrbitControls( camera, renderer.domElement );
 camera.position.set(0, 10, -20);

@@ -9,20 +9,20 @@ const tmpVec3 = new THREE.Vector3();
 
 
 
-
-const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
+const texture = new THREE.TextureLoader().load('/img/noise1.png');
+const texturebump = new THREE.TextureLoader().load('/img/noise2.png');
+/* const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
 const texturebump = new THREE.TextureLoader().load('/img/wall-atlas-bumps.png');
 
 texture.wrapS = THREE.RepeatWrapping;
 texture.repeat.x = -1;
 texturebump.wrapS = THREE.RepeatWrapping;
-texturebump.repeat.x = -1;
+texturebump.repeat.x = -1; */
 
 export const blockMaterial = new THREE.MeshLambertMaterial({
     map: texture,
-    /* bumpMap: texturebump,
-    bumpScale: 0.05, */
-    //side: THREE.DoubleSide, // double side for collisions
+    bumpMap: texturebump,
+    bumpScale: 1,
     side: THREE.BackSide,
     transparent: false
 });
@@ -119,7 +119,6 @@ export default function generateCave(
             if (cell.openings.length === 1) {
                 const light = new THREE.PointLight( 0xff0000, 1, CAVESCALE * 3, 4 );
                 light.position.copy(cell.position).multiplyScalar(CAVESCALE);
-
                 cavemesh.add(light);
 
                 deadends.push(cell);
@@ -296,7 +295,9 @@ function generateGeometry(tunnel) {
                     const uvNum = 2;//Math.floor(Math.random() * RHOMBIC_UVS_2D.length);
 
                     uvs.push(
-                        ...RHOMBIC_UVS_2D[uvNum]
+                        //...RHOMBIC_UVS_2D[uvNum]
+                        0,1, 0,0, 1,0,
+                        0,1, 1,0, 1,1
                     );
                 }
             );
