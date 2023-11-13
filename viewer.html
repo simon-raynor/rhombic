@@ -35,9 +35,23 @@
             top: 0;
             right: 0;
         }
+        .pause {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            padding: 0.25em;
+            transition: opacity 0.5s;
+            color: #fff;
+        }
+        .pause:disabled {
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
     <script type="module" src="js/main-viewer.js"></script>
+    <button class="pause" id="pause" disabled>&rArr;</button>
 </body>
 </html>

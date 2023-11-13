@@ -17,6 +17,7 @@ import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES, createRhombic } fro
 import trider from './entities/trider/index.js';
 import generateCave, { redMaterial } from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
+import generateVegetation from './entities/vegetation/index.js';
 
 
 const stats = new Stats();
@@ -100,8 +101,12 @@ scene.add( light );
 
 
 
-const [cavemesh, paths] = generateCave(3);
+const [cavemesh, paths] = generateCave(2);
 scene.add(cavemesh);
+
+
+const veg = generateVegetation(cavemesh, paths);
+scene.add(veg);
 
 
 /* paths.forEach(
@@ -119,6 +124,9 @@ scene.add(cavemesh);
 const ppath = new ParticlePath(paths[0])
 scene.add(ppath.mesh);
 ppath.tick(0);
+
+
+
 
 
 const controls = new OrbitControls( camera, renderer.domElement );
@@ -156,11 +164,15 @@ let slowfactor = 1;
 const moving = {vector: new THREE.Vector3()};
 
 function tick() {
-    requestAnimationFrame(tick);
+    const nextframe = requestAnimationFrame(tick);
 
     const now = Date.now();
     const dt = (now - t) / (1000 * slowfactor);
     t = now;
+
+    if (dt >= 1) {
+        pause(nextframe);
+    }
 
     stats.update();
 
@@ -171,6 +183,20 @@ function tick() {
     //renderer.render(scene, camera);
     composer.render();
 
+}
+
+
+const pausebutton = document.getElementById('pause');
+
+pausebutton.addEventListener('click', () => {
+    t = Date.now();
+    tick();
+    pausebutton.setAttribute('disabled', 'disabled');
+})
+
+function pause(nextframe) {
+    cancelAnimationFrame(nextframe);
+    pausebutton.removeAttribute('disabled');
 }
 
 

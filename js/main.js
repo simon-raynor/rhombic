@@ -13,6 +13,7 @@ import Stats from 'three/addons/libs/stats.module.js';
 import trider from './entities/trider/index.js';
 import generateCave from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
+import generateVegetation from './entities/vegetation/index.js';
 
 
 const stats = new Stats();
@@ -94,6 +95,9 @@ const ppath = new ParticlePath(paths[0]);
 scene.add(ppath.mesh);
 ppath.tick(0);
 
+
+const veg = generateVegetation(cavemesh, paths);
+scene.add(veg);
 
 
 // find the point "below" 0,0 and translate/orient the trider
