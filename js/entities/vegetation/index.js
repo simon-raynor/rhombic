@@ -6,22 +6,22 @@ const HEIGHT = 2;
 const cone = new THREE.ConeGeometry(HEIGHT / 10, HEIGHT, 5, 1, true);
 cone.translate(0, HEIGHT / 2, 0);
 const material = new THREE.MeshPhongMaterial({
-    color: 0x00ff88,
-    emissive: 0x002211
+    color: 0x44cc88
 })
 
 
 const raycaster = new THREE.Raycaster();
+const tmpVec3 = new THREE.Vector3();
 
 export default function generateVegetation(cavemesh, paths) {
     const positions = [],
         normals = [];
     
     {
-        for (let t = 0; t <= 1; t += 0.01) {
+        for (let t = 0; t <= 1; t += 0.001) {
             raycaster.set(
                 paths[0].getPointAt(t),
-                paths[0].getTangentAt(t)
+                tmpVec3.random().cross(paths[0].getTangentAt(t))
             );
 
             const intersects = raycaster.intersectObject(cavemesh);

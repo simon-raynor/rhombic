@@ -158,7 +158,7 @@ class Trider {
     up = null
     forwards = null
 
-    #moveSpeed = 6
+    #moveSpeed = 8
 
 
     #footIKBones = [];
