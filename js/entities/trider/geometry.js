@@ -23,14 +23,21 @@ const INNER_UVS = [
     0,0.5, 0.5,0, 0.5,0.5
 ];
 
+const UVS = [
+    0,1, 0,0, 1,0,
+    0,1, 1,0, 1,1
+];
+
 const ARM_UVS = new Float32Array([
-    ...OUTER2_UVS,
-    ...OUTER1_UVS,
-    ...INNER_UVS,
-    ...INNER_UVS,
-    ...INNER_UVS,
-    ...OUTER1_UVS
+    ...UVS,
+    ...UVS,
+    ...UVS,
+    ...UVS,
+    ...UVS,
+    ...UVS
 ])
+
+
 
 
 const SQRT3 = Math.sqrt(3);
@@ -44,12 +51,18 @@ trigonal.computeBoundingBox();
 const body = trigonal.clone();
 
 body.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([
-    ...OUTER2_UVS,
+    ...UVS,
+    ...UVS,
+    ...UVS,
+    ...UVS,
+    ...UVS,
+    ...UVS,
+    /*... OUTER2_UVS,
     ...FACE_UVS,
     ...INNER_UVS,
     ...INNER_UVS,
     ...INNER_UVS,
-    ...OUTER1_UVS
+    ...OUTER1_UVS */
 ]), 2));
 
 

@@ -4,7 +4,8 @@ const tmpVec3 = new THREE.Vector3();
 
 
 const material = new THREE.PointsMaterial({
-    color: 0xddccaa
+    color: 0xddccaa,
+    size: 0.25
 } );
 
 

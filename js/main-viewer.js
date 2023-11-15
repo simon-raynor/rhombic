@@ -59,19 +59,19 @@ const renderTarget = new THREE.WebGLRenderTarget(
 
 const composer = new EffectComposer( renderer/* , renderTarget */ );
 
-/* composer.addPass(
+composer.addPass(
     new RenderPass(scene, camera)
-); */
+);
 
 
-const PIXEL_SIZE = 1;
+/* const PIXEL_SIZE = 1;
 const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
 pixelPass.normalEdgeStrength = 0.05;
 pixelPass.depthEdgeStrength = 0.1;
 
 composer.addPass(
     pixelPass
-);
+); */
 
 
 /* composer.addPass(
@@ -105,9 +105,32 @@ const [cavemesh, paths] = generateCave(2);
 scene.add(cavemesh);
 
 
+const ppath = new ParticlePath(paths[0])
+scene.add(ppath.mesh);
+ppath.tick(0);
+
 const veg = generateVegetation(cavemesh, paths);
 scene.add(veg);
 
+
+scene.add(trider.mesh);
+
+// find the point "below" 0,0 and translate/orient the trider
+// so that it sits there
+
+const raycaster = new THREE.Raycaster();
+
+raycaster.set(trider.mesh.position, new THREE.Vector3(0, -1, -1).normalize());
+
+const intersects = raycaster.intersectObject(cavemesh);
+
+if (intersects.length) {
+    trider.init(
+        intersects[0].point,
+        intersects[0].normal,
+        cavemesh
+    );
+}
 
 /* paths.forEach(
     path => {
@@ -120,10 +143,6 @@ scene.add(veg);
 
     scene.add(pathMesh);
 }) */
-
-const ppath = new ParticlePath(paths[0])
-scene.add(ppath.mesh);
-ppath.tick(0);
 
 
 
@@ -161,7 +180,7 @@ let t = Date.now();
 
 let slowfactor = 1;
 
-const moving = {vector: new THREE.Vector3()};
+const moving = {vector: new THREE.Vector3(0, 1), force: 0};
 
 function tick() {
     const nextframe = requestAnimationFrame(tick);
@@ -177,6 +196,8 @@ function tick() {
     stats.update();
 
     ppath.tick(dt);
+
+    trider.tick(dt, cavemesh, moving);
 
     controls.update();
 

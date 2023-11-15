@@ -60,10 +60,10 @@ const composer = new EffectComposer( renderer/* , renderTarget */ );
 ); */
 
 
-const PIXEL_SIZE = 1;
+const PIXEL_SIZE = 2;
 const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
-pixelPass.normalEdgeStrength = 0.05;
-pixelPass.depthEdgeStrength = 0.05;
+pixelPass.normalEdgeStrength = 0;
+pixelPass.depthEdgeStrength = 0.01;
 
 composer.addPass(
     pixelPass

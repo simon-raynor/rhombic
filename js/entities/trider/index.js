@@ -13,9 +13,9 @@ const SQRT3 = Math.sqrt(3);
 const GLOW_COLOR = 0xff4400;
 
 
-const texture = new THREE.TextureLoader().load('/img/trider-atlas.png');
-const texturebump = new THREE.TextureLoader().load('/img/trider-atlas-bumps.png');
-const textureemissive = new THREE.TextureLoader().load('/img/trider-atlas-emissive.png');
+const texture = new THREE.TextureLoader().load('/img/trider.png');
+const texturebump = new THREE.TextureLoader().load('/img/trider.png');
+const textureemissive = new THREE.TextureLoader().load('/img/trider-emissive.png');
 
 texture.magFilter = THREE.NearestFilter;
 texture.minFilter = THREE.NearestMipmapNearestFilter;
