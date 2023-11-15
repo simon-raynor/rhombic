@@ -73,10 +73,11 @@ composer.addPass(
     pixelPass
 ); */
 
-
-/* composer.addPass(
-    new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 2, 0.4, 0.85)
-) */
+const bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
+bloomPass.threshold = 0.1;
+bloomPass.strength = 0.5;
+bloomPass.radius = 0;
+composer.addPass(bloomPass);
 
 
 composer.addPass(

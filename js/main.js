@@ -7,6 +7,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 
 import Stats from 'three/addons/libs/stats.module.js';
@@ -68,6 +69,12 @@ pixelPass.depthEdgeStrength = 0.01;
 composer.addPass(
     pixelPass
 );
+
+const bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
+bloomPass.threshold = 0.25;
+bloomPass.strength = 0.33;
+bloomPass.radius = 0;
+composer.addPass(bloomPass);
 
 composer.addPass(
     new OutputPass()
