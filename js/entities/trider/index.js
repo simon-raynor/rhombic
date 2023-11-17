@@ -74,7 +74,7 @@ trigonalmesh.add(light);
 light.position.add({x: 0, y: SQRT3, z: 0});
 
 
-const spotlight = new THREE.SpotLight(GLOW_COLOR, 1, 150, Math.PI / 4, 0.5, 10);
+const spotlight = new THREE.SpotLight(GLOW_COLOR, 1, 150, Math.PI / 6, 0.5, 4);
 const spottarget = new THREE.Object3D();
 
 trigonalmesh.add(spotlight);

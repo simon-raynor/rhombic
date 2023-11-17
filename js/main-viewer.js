@@ -13,11 +13,11 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 
 import Stats from 'three/addons/libs/stats.module.js';
-import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES, createRhombic } from './geometries/rhombicdodecahedron.js';
 import trider from './entities/trider/index.js';
 import generateCave, { redMaterial } from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
+import generateGeometry from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -73,11 +73,11 @@ composer.addPass(
     pixelPass
 ); */
 
-const bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
+/* const bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0.1;
 bloomPass.strength = 0.5;
 bloomPass.radius = 0;
-composer.addPass(bloomPass);
+composer.addPass(bloomPass); */
 
 
 composer.addPass(
@@ -100,9 +100,9 @@ scene.add( light );
 
 
 
+const CAVEDIMENSION = 4;
 
-
-const [cavemesh, paths] = generateCave(2);
+const [cavemesh, paths] = generateCave(CAVEDIMENSION);
 scene.add(cavemesh);
 
 
@@ -133,19 +133,33 @@ if (intersects.length) {
     );
 }
 
-/* paths.forEach(
+paths.forEach(
     path => {
     const pathMesh = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(
-            paths[0].getPoints(1000)
+            path.getPoints(1000)
         ),
         new THREE.LineDashedMaterial({ color: 0x00ff00, dashSize: 2, gapSize: 1 })
     )
 
     scene.add(pathMesh);
-}) */
+})
 
 
+
+
+const towermesh = generateGeometry()
+
+raycaster.set(trider.mesh.position, new THREE.Vector3(0, 1, 1).normalize());
+const tintersects = raycaster.intersectObject(cavemesh);
+console.log(tintersects)
+if (tintersects.length) {
+    towermesh.lookAt(tintersects[0].normal);
+    towermesh.rotateX(Math.PI / 2);
+    towermesh.position.copy(tintersects[0].point).sub(tintersects[0].normal);
+}
+
+scene.add(towermesh);
 
 
 

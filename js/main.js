@@ -15,6 +15,7 @@ import trider from './entities/trider/index.js';
 import generateCave from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
+import generateMesh from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -123,6 +124,23 @@ if (intersects.length) {
         cavemesh
     );
 }
+
+
+/* const towermesh = generateMesh()
+
+raycaster.set(trider.mesh.position, new THREE.Vector3(0, 1, 1).normalize());
+const tintersects = raycaster.intersectObject(cavemesh);
+if (tintersects.length) {
+    towermesh.lookAt(tintersects[0].normal);
+    towermesh.rotateX(Math.PI / 2);
+    towermesh.position.copy(tintersects[0].point).sub(tintersects[0].normal);
+}
+
+scene.add(towermesh); */
+
+
+
+
 
 
 

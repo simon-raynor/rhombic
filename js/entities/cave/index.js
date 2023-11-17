@@ -92,10 +92,13 @@ class GridCell {
     get openings() {
         return this.#openings.map(idx => this.neighbours[idx]);
     }
+    get openFaces() {
+        return this.#openings.map(idx => RHOMBIC_FACES_2D[idx]);
+    }
 }
 
 
-const CAVESCALE = 25;
+export const CAVESCALE = 25;
 
 
 export default function generateCave(
@@ -125,6 +128,8 @@ export default function generateCave(
             }
         }
     );
+
+    generateCellPaths(tunnel);
 
     const paths = [];
 
@@ -322,15 +327,106 @@ function generateGeometry(tunnel) {
 }
 
 
-function generatePath(start, end) {
+function generateCellPaths(tunnel) {
+    tunnel.forEach(
+        cell => {
+            cell.paths = new Map();
 
-    const pathCells = findPath(start, end);
+            if (cell.openings.length === 2) {
+                generateCellThroughPath(
+                    cell,
+                    cell.openings[0],
+                    cell.openings[1]
+                );
+            } else if (cell.openings.length === 1) {
 
-    const path = new THREE.CurvePath();
+            } else {
+                const l = cell.openings.length;
+                for (let i = 0; i < l - 1; i++) {
+                    for (let j = i + 1; j < l; j++) {
+                        generateCellThroughPath(
+                            cell,
+                            cell.openings[i],
+                            cell.openings[j]
+                        );
+                    }
+                }
+            }
+        }
+    )
+}
+
+function generateCellThroughPath(cell, start, end) {
+    const curvePoints = [];
     
     const prev = new THREE.Vector3();
     const next = new THREE.Vector3();
     const centre = new THREE.Vector3();
+
+    let prevFace = null;
+    let nextFace = null;
+
+    for (let i = 0; i < cell.neighbours.length; i++) {
+        if (cell.neighbours[i] === start) {
+            prevFace = RHOMBIC_FACES_2D[i];
+        }
+        if (cell.neighbours[i] === end) {
+            nextFace = RHOMBIC_FACES_2D[i];
+        }
+    }
+
+    let xsum = 0, ysum = 0, zsum = 0;
+    for (const vidx of prevFace) {
+        xsum += RHOMBIC_VERTICES[vidx * 3]
+        ysum += RHOMBIC_VERTICES[1 + vidx * 3]
+        zsum += RHOMBIC_VERTICES[2 + vidx * 3]
+    }
+    prev.set(
+        xsum / prevFace.length,
+        ysum / prevFace.length,
+        zsum / prevFace.length,
+    ).add(cell.position).multiplyScalar(CAVESCALE);
+
+    xsum = 0; ysum = 0; zsum = 0;
+    for (const vidx of nextFace) {
+        xsum += RHOMBIC_VERTICES[vidx * 3]
+        ysum += RHOMBIC_VERTICES[1 + vidx * 3]
+        zsum += RHOMBIC_VERTICES[2 + vidx * 3]
+    }
+    next.set(
+        xsum / nextFace.length,
+        ysum / nextFace.length,
+        zsum / nextFace.length,
+    ).add(cell.position).multiplyScalar(CAVESCALE);
+
+    // find midpoint between face centres and
+    // cell's own centre
+    centre.copy(cell.position).multiplyScalar(CAVESCALE)
+        .add(prev).add(next).multiplyScalar(1/3);
+
+    
+    curvePoints.push(
+        prev.clone()
+    );
+
+    curvePoints.push(
+        centre.clone()
+    );
+
+    curvePoints.push(
+        next.clone()
+    );
+
+    cell.paths.set(
+        `${start.id},${end.id}`,
+        curvePoints
+    );
+}
+
+
+function generatePath(start, end) {
+
+    const pathCells = findPath(start, end);
 
     const curvePoints = [];
 
@@ -339,75 +435,30 @@ function generatePath(start, end) {
             const prevCell = pathCells[idx - 1];
             const nextCell = pathCells[idx + 1];
 
-            let prevFace = null;
-            let nextFace = null;
+            let pathpoints = null;
 
-            for (let i = 0; i < cell.neighbours.length; i++) {
-                if (prevCell && cell.neighbours[i] === prevCell) {
-                    prevFace = RHOMBIC_FACES_2D[i];
+            if (prevCell && nextCell) {
+                const abId = `${prevCell.id},${nextCell.id}`,
+                    baId = `${nextCell.id},${prevCell.id}`;
+
+                if (cell.paths.has(abId)) {
+                    pathpoints = [...cell.paths.get(abId)];
+                } else if (cell.paths.has(baId)) {
+                    pathpoints = [...cell.paths.get(baId)].reverse();
+                } else {
+                    throw new Error(`${cell.id}: no cell path between ${abId}`);
                 }
-                if (nextCell && cell.neighbours[i] === nextCell) {
-                    nextFace = RHOMBIC_FACES_2D[i];
-                }
+
+                pathpoints.pop(); // remove final point as it should be first point of next section
             }
 
-            if (prevFace) {
-                let xsum = 0, ysum = 0, zsum = 0;
-                for (const vidx of prevFace) {
-                    xsum += RHOMBIC_VERTICES[vidx * 3]
-                    ysum += RHOMBIC_VERTICES[1 + vidx * 3]
-                    zsum += RHOMBIC_VERTICES[2 + vidx * 3]
-                }
-                prev.set(
-                    xsum / prevFace.length,
-                    ysum / prevFace.length,
-                    zsum / prevFace.length,
-                ).add(cell.position).multiplyScalar(CAVESCALE);
-
-                curvePoints.push(
-                    prev.clone()
-                );
-            }
-            
-            if (prevFace && nextFace) {
-                let xsum = 0, ysum = 0, zsum = 0;
-                for (const vidx of nextFace) {
-                    xsum += RHOMBIC_VERTICES[vidx * 3]
-                    ysum += RHOMBIC_VERTICES[1 + vidx * 3]
-                    zsum += RHOMBIC_VERTICES[2 + vidx * 3]
-                }
-                next.set(
-                    xsum / nextFace.length,
-                    ysum / nextFace.length,
-                    zsum / nextFace.length,
-                ).add(cell.position).multiplyScalar(CAVESCALE);
-
-                centre.copy(cell.position).multiplyScalar(CAVESCALE)
-                    .add(prev).add(next).multiplyScalar(1/3);
-
-                curvePoints.push(
-                    centre.clone(),
-                );
-            } else {
-                centre.copy(cell.position).multiplyScalar(CAVESCALE);
-
-                curvePoints.push(
-                    centre.clone()
+            if (pathpoints) {
+                pathpoints.forEach(
+                    ppt => curvePoints.push(ppt)
                 );
             }
         }
     );
-
-    /* const pathMesh = new THREE.Mesh(
-        new THREE.TubeGeometry(
-            //path,
-            new THREE.CatmullRomCurve3(curvePoints, false, 'centripetal', 1),
-            curvePoints.length * 5,
-            1,
-            5
-        ),
-        redMaterial
-    ); */
 
     return new THREE.CatmullRomCurve3(curvePoints);
 }
@@ -429,7 +480,7 @@ function findPath(from, to) {
         do {
             blocked.push(visited.shift());
         } while (visited.length && visited[0] !== junctions[0]);
-        current = visited[0];
+        current = visited.shift(); // shift as it'll be re-added
         // see the TODO at the top, I believe this to be the failure
         // condition we'd get if @from was not connected to @to, as
         // it would exhaust all of its junctions
