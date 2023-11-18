@@ -2,8 +2,7 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import { LoopSubdivision } from 'three-subdivide';
 
-import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
-import generateTowerGeometry, { generateTowerInCell } from '../tower/index.js'
+import { RHOMBIC_FACES_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
 
 const tmpVec3 = new THREE.Vector3();
 

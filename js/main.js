@@ -15,7 +15,7 @@ import trider from './entities/trider/index.js';
 import generateCave from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import generateMesh, { generateAlongPath } from './entities/tower/index.js';
+import { generateAlongPath } from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -24,9 +24,7 @@ document.body.appendChild( stats.dom )
 
 const scene = new THREE.Scene();
 
-const renderer = new THREE.WebGLRenderer({
-    logarithmicDepthBuffer: true
-});
+const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.pixelRatio = window.devicePixelRatio;
 //renderer.shadowMap.enabled = true;
@@ -126,12 +124,16 @@ if (intersects.length) {
 }
 
 
-scene.add(
+const towers = [
     ...generateAlongPath(
         paths[0],
-        0xcc0000,
+        0xcc00ee,
         cavemesh
-    )
+    ),
+];
+
+towers.map(
+    t => scene.add(t.mesh)
 );
 
 /* const towermesh = generateMesh()
@@ -205,6 +207,8 @@ function tick() {
     trider.tick(dt, cavemesh, movinginput);
 
     ppath.tick(dt);
+
+    towers.forEach(t => t.tick(dt));
 
     // follow cam
     const up = trider.up.clone().multiplyScalar(5);

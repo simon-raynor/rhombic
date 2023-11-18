@@ -14,11 +14,10 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 import Stats from 'three/addons/libs/stats.module.js';
 import trider from './entities/trider/index.js';
-import generateCave, { redMaterial } from './entities/cave/index.js';
+import generateCave from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import generateGeometry, { generateAlongPath } from './entities/tower/index.js';
-import generateMesh from './entities/tower/index.js';
+import { generateAlongPath } from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -27,9 +26,7 @@ document.body.appendChild( stats.dom )
 
 const scene = new THREE.Scene();
 
-const renderer = new THREE.WebGLRenderer({
-    logarithmicDepthBuffer: true
-});
+const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.pixelRatio = window.devicePixelRatio;
 //renderer.shadowMap.enabled = true;
@@ -146,28 +143,22 @@ if (intersects.length) {
     scene.add(pathMesh);
 }) */
 
-scene.add(
+const towers = [
     ...generateAlongPath(
         paths[0],
         0xcccc00,
         cavemesh
-    )
-);
-scene.add(
+    ),
     ...generateAlongPath(
         paths[1],
         0x00cccc,
         cavemesh
     )
-);
-/* scene.add(
-    ...generateAlongPath(
-        paths[2],
-        0xff00ff,
-        cavemesh
-    )
-); */
+];
 
+towers.map(
+    t => scene.add(t.mesh)
+);
 
 
 
@@ -221,6 +212,8 @@ function tick() {
     ppath.tick(dt);
 
     trider.tick(dt, cavemesh, moving);
+
+    towers.forEach(t => t.tick(dt));
 
     controls.update();
 
