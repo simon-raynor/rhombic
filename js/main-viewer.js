@@ -17,7 +17,8 @@ import trider from './entities/trider/index.js';
 import generateCave, { redMaterial } from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import generateGeometry from './entities/tower/index.js';
+import generateGeometry, { generateAlongPath } from './entities/tower/index.js';
+import generateMesh from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -133,7 +134,7 @@ if (intersects.length) {
     );
 }
 
-paths.forEach(
+/* paths.forEach(
     path => {
     const pathMesh = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(
@@ -143,23 +144,30 @@ paths.forEach(
     )
 
     scene.add(pathMesh);
-})
+}) */
 
+scene.add(
+    ...generateAlongPath(
+        paths[0],
+        0xcccc00,
+        cavemesh
+    )
+);
+scene.add(
+    ...generateAlongPath(
+        paths[1],
+        0x00cccc,
+        cavemesh
+    )
+);
+/* scene.add(
+    ...generateAlongPath(
+        paths[2],
+        0xff00ff,
+        cavemesh
+    )
+); */
 
-
-
-const towermesh = generateGeometry()
-
-raycaster.set(trider.mesh.position, new THREE.Vector3(0, 1, 1).normalize());
-const tintersects = raycaster.intersectObject(cavemesh);
-console.log(tintersects)
-if (tintersects.length) {
-    towermesh.lookAt(tintersects[0].normal);
-    towermesh.rotateX(Math.PI / 2);
-    towermesh.position.copy(tintersects[0].point).sub(tintersects[0].normal);
-}
-
-scene.add(towermesh);
 
 
 

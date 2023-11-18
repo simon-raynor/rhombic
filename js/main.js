@@ -15,7 +15,7 @@ import trider from './entities/trider/index.js';
 import generateCave from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import generateMesh from './entities/tower/index.js';
+import generateMesh, { generateAlongPath } from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -125,6 +125,14 @@ if (intersects.length) {
     );
 }
 
+
+scene.add(
+    ...generateAlongPath(
+        paths[0],
+        0xcc0000,
+        cavemesh
+    )
+);
 
 /* const towermesh = generateMesh()
 

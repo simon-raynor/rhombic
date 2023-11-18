@@ -3,6 +3,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 import { LoopSubdivision } from 'three-subdivide';
 
 import { RHOMBIC_FACES_2D, RHOMBIC_UVS_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
+import generateTowerGeometry, { generateTowerInCell } from '../tower/index.js'
 
 const tmpVec3 = new THREE.Vector3();
 
@@ -95,6 +96,10 @@ class GridCell {
     get openFaces() {
         return this.#openings.map(idx => RHOMBIC_FACES_2D[idx]);
     }
+
+    get worldposition() {
+
+    }
 }
 
 
@@ -120,9 +125,9 @@ export default function generateCave(
     tunnel.forEach(
         cell => {
             if (cell.openings.length === 1) {
-                const light = new THREE.PointLight( 0xff0000, 1, CAVESCALE * 3, 4 );
+                /* const light = new THREE.PointLight( 0xff0000, 1, CAVESCALE * 3, 4 );
                 light.position.copy(cell.position).multiplyScalar(CAVESCALE);
-                cavemesh.add(light);
+                cavemesh.add(light); */
 
                 deadends.push(cell);
             }
@@ -147,6 +152,14 @@ export default function generateCave(
         );
         paths.push(path);
     }
+
+
+    /* tunnel.forEach(
+        cell => {
+            const tower = generateTowerInCell(cell, cavemesh);
+            cavemesh.add(tower);
+        }
+    ) */
 
     
     return [cavemesh, paths];
@@ -332,24 +345,14 @@ function generateCellPaths(tunnel) {
         cell => {
             cell.paths = new Map();
 
-            if (cell.openings.length === 2) {
-                generateCellThroughPath(
-                    cell,
-                    cell.openings[0],
-                    cell.openings[1]
-                );
-            } else if (cell.openings.length === 1) {
-
-            } else {
-                const l = cell.openings.length;
-                for (let i = 0; i < l - 1; i++) {
-                    for (let j = i + 1; j < l; j++) {
-                        generateCellThroughPath(
-                            cell,
-                            cell.openings[i],
-                            cell.openings[j]
-                        );
-                    }
+            const l = cell.openings.length;
+            for (let i = 0; i < l - 1; i++) {
+                for (let j = i + 1; j < l; j++) {
+                    generateCellThroughPath(
+                        cell,
+                        cell.openings[i],
+                        cell.openings[j]
+                    );
                 }
             }
         }
