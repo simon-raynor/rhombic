@@ -208,7 +208,7 @@ function tick() {
 
     ppath.tick(dt);
 
-    towers.forEach(t => t.tick(dt));
+    towers.forEach(t => t.tick(dt, trider));
 
     // follow cam
     const up = trider.up.clone().multiplyScalar(5);

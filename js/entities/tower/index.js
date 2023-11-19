@@ -13,7 +13,7 @@ attribute float radius;
 attribute float theta;
 
 varying vec3 vColor;
-varying float vZ;
+varying float opacity;
 
 void main() {
     vColor = color;
@@ -38,19 +38,27 @@ void main() {
 
     gl_Position = projectionMatrix * mvPosition;
 
-    vZ = gl_Position.z;
+    opacity = max(
+        min(
+            amplitude + 1.0 - (radius / 3.0),
+            1.0
+        ),
+        0.0
+    );
 }
 `
 
 const fshader = `
 varying vec3 vColor;
+varying float opacity;
 
 void main() {
-    gl_FragColor = vec4( vColor, 1.0 );
+    gl_FragColor = vec4( vColor, opacity );
 }
 `
 
-const RINGS = 5;
+const RINGS = 7;
+const SPACING = 0.5;
 
 
 const raycaster = new THREE.Raycaster();
@@ -86,16 +94,16 @@ class Tower {
         tmpVec3.copy(this.normal).multiplyScalar(3).add(this.position);
         tmpNormal.copy(this.normal).negate();
 
-        for (let r = 0; r <= RINGS; r += 1) {
+        for (let r = 0; r <= RINGS * SPACING; r += SPACING) {
             const perRing = r * 6;
             for (let t = 0; t < perRing; t++) {
                 const fraction = t / perRing;
                 const theta = fraction * Math.PI * 2;
 
                 tmpPosn.set(
-                    Math.sin(theta) * (r),
+                    Math.sin(theta) * (r * 3),
                     0,
-                    Math.cos(theta) * (r)
+                    Math.cos(theta) * (r * 3)
                 )
                 .applyQuaternion(tmpQuat)
                 .add(tmpVec3);
@@ -158,14 +166,15 @@ class Tower {
 
     #getMesh(geom) {
         this.uniforms = {
-            t: { value: 0},
-            amplitude: { value: 0.5 }
+            t: { value: 0 },
+            amplitude: { value: 0.1 }
         };
         const material = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: vshader,
             fragmentShader: fshader,
         
+            transparent: true,
             depthTest: true,
             vertexColors: true
         });
@@ -177,19 +186,30 @@ class Tower {
             material
         );
 
-        const light = new THREE.PointLight(
+        this.light = new THREE.PointLight(
             this.color,
-            1,
+            0.1,
             CAVESCALE * 2
         );
 
-        light.position.copy(this.position).add(this.normal);
+        this.light.position.copy(this.normal).multiplyScalar(3).add(this.position);
 
-        this.mesh.add(light);
+        this.mesh.add(this.light);
     }
 
-    tick(dt) {
+    tick(dt, trider) {
         this.uniforms.t.value += dt;
+
+        const distance = this.position.distanceToSquared(trider.position);
+        if (distance < 200 && this.uniforms.amplitude.value < 1) {
+            this.uniforms.amplitude.value += dt;
+            if (this.uniforms.amplitude.value > 1) {
+                this.uniforms.amplitude.value = 1;
+            }
+            this.light.intensity = this.uniforms.amplitude.value;
+        }/*  else if (this.uniforms.amplitude.value > 0.25) {
+            this.uniforms.amplitude.value -= (dt / 3);
+        } */
     }
 }
 

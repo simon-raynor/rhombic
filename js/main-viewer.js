@@ -146,12 +146,12 @@ if (intersects.length) {
 const towers = [
     ...generateAlongPath(
         paths[0],
-        0xcccc00,
+        0xcc0000,
         cavemesh
     ),
     ...generateAlongPath(
         paths[1],
-        0x00cccc,
+        0xcc00cc,
         cavemesh
     )
 ];
@@ -163,7 +163,7 @@ towers.map(
 
 
 const controls = new OrbitControls( camera, renderer.domElement );
-camera.position.set(0, 10, -20);
+camera.position.set(0, 30, -60);
 controls.update();
 
 
@@ -213,7 +213,7 @@ function tick() {
 
     trider.tick(dt, cavemesh, moving);
 
-    towers.forEach(t => t.tick(dt));
+    towers.forEach(t => t.tick(dt, trider));
 
     controls.update();
 

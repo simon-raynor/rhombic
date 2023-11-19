@@ -3,6 +3,11 @@ import * as THREE from 'three';
 const tmpVec3 = new THREE.Vector3();
 
 
+// TODO: encode path into a DataTexture and read
+//      position from that via a custom shader
+
+
+
 const material = new THREE.PointsMaterial({
     color: 0xddccaa,
     size: 0.25
