@@ -71,18 +71,22 @@ const tmpPosn = new THREE.Vector3(),
 
 const up = new THREE.Vector3(0, 1, 0);
 
-class Tower {
-    constructor(cavemesh, position, normal, color) {
+export class Tower {
+    constructor(cavecell, position, normal, color) {
+        this.cavecell = cavecell;
+
         this.position = new THREE.Vector3().copy(position);
         this.normal = new THREE.Vector3().copy(normal);
         this.color = new THREE.Color().setHex(color);
 
         this.#getMesh(
-            this.#getGeometry(cavemesh)
+            this.#getGeometry()
         );
     }
 
-    #getGeometry(cavemesh) {
+    #getGeometry() {
+        const cavemesh = this.cavecell.cave.mesh;
+
         const points = [],
             normals = [],
             colors = [],

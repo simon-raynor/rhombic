@@ -5,37 +5,10 @@ import { LoopSubdivision } from 'three-subdivide';
 import { RHOMBIC_FACES_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
 
 const tmpVec3 = new THREE.Vector3();
+const raycaster = new THREE.Raycaster();
 
 
-
-
-const texture = new THREE.TextureLoader().load('/img/noise1.png');
-const texturebump = new THREE.TextureLoader().load('/img/noise2.png');
-/* const texture = new THREE.TextureLoader().load('/img/wall-atlas.png');
-const texturebump = new THREE.TextureLoader().load('/img/wall-atlas-bumps.png');
-
-texture.wrapS = THREE.RepeatWrapping;
-texture.repeat.x = -1;
-texturebump.wrapS = THREE.RepeatWrapping;
-texturebump.repeat.x = -1; */
-
-export const blockMaterial = new THREE.MeshLambertMaterial({
-    map: texture,
-    bumpMap: texturebump,
-    bumpScale: 1,
-    side: THREE.BackSide,
-    transparent: false
-});
-
-export const redMaterial = new THREE.MeshLambertMaterial({
-    color: 0xff0000,
-    emissive: 0x880000,
-    /* opacity: 0.5,
-    transparent: true, */
-    side: THREE.DoubleSide
-});
-
-
+export const CAVESCALE = 25;
 
 const GRID_DIRECTIONS = [
     [1, 1, 0],
@@ -55,12 +28,65 @@ const GRID_DIRECTIONS = [
 ];
 
 
+const texture = new THREE.TextureLoader().load('/img/noise1.png');
+const texturebump = new THREE.TextureLoader().load('/img/noise2.png');
 
-class GridCell {
+export const blockMaterial = new THREE.MeshLambertMaterial({
+    map: texture,
+    bumpMap: texturebump,
+    bumpScale: 1,
+    side: THREE.BackSide,
+    transparent: false
+});
+
+
+export class Cave {
+    scale = CAVESCALE;
+    constructor(dimension) {
+        const grid = generateGrid(dimension);
+    
+        this.cells = generateTunnel(grid);
+        generateCellPaths(this.cells);
+
+        this.cells.forEach(cell => cell.setCave(this));
+
+        const geometry = generateGeometry(this.cells);
+        geometry.scale(this.scale, this.scale, this.scale);
+
+        this.mesh = new THREE.Mesh(
+            smoothGeometry(geometry),
+            blockMaterial
+        );
+
+    
+        /* const deadends = [];
+        tunnel.forEach(
+            cell => {
+                if (cell.openings.length === 1) {
+                    deadends.push(cell);
+                }
+            }
+        ); */
+    
+    
+        const paths = [];
+    }
+    getPointInCell() {
+
+    }
+}
+
+
+class Cell {
     filled = true;
 
     constructor(posn) {
         this.position = posn;
+    }
+
+    setCave(cave) {
+        this.cave = cave;
+        this.worldposition = this.position.clone().multiplyScalar(cave.scale);
     }
 
     findNeighbours(cells) {
@@ -95,80 +121,27 @@ class GridCell {
     get openFaces() {
         return this.#openings.map(idx => RHOMBIC_FACES_2D[idx]);
     }
-
-    get worldposition() {
-
-    }
-}
-
-
-export const CAVESCALE = 25;
-
-
-export default function generateCave(
-    size = 5
-) {
-    const grid = generateGrid(size);
-
-    const tunnel = generateTunnel(grid);
-
-    const geometry = generateGeometry(tunnel);
-    geometry.scale(CAVESCALE, CAVESCALE, CAVESCALE);
-    const cavemesh = new THREE.Mesh(
-        smoothGeometry(geometry),
-        blockMaterial
-    );
-
     
-    const deadends = [];
-    tunnel.forEach(
-        cell => {
-            if (cell.openings.length === 1) {
-                /* const light = new THREE.PointLight( 0xff0000, 1, CAVESCALE * 3, 4 );
-                light.position.copy(cell.position).multiplyScalar(CAVESCALE);
-                cavemesh.add(light); */
-
-                deadends.push(cell);
+    getRandomPointOnMesh() {
+        let intersection;
+        do {
+            raycaster.set(
+                this.worldposition,
+                tmpVec3.randomDirection()
+            );
+            const intersections = raycaster.intersectObject(this.cave.mesh);
+            if (intersections.length && intersections[0].distance < this.cave.scale) {
+                intersection = intersections[0];
             }
-        }
-    );
+        } while(!intersection);
 
-    generateCellPaths(tunnel);
-
-    const paths = [];
-
-    /* for (let i = 0; i < deadends.length; i++) {
-        const path = generatePath(
-            deadends[i],
-            deadends[(i + 1) % deadends.length]
-        );
-        paths.push(path);
-    } */
-    for (let i = 0; i < deadends.length - 1; i++) {
-        const path = generatePath(
-            deadends[0],
-            deadends[i + 1]
-        );
-        paths.push(path);
+        return intersection;
     }
-
-
-    /* tunnel.forEach(
-        cell => {
-            const tower = generateTowerInCell(cell, cavemesh);
-            cavemesh.add(tower);
-        }
-    ) */
-
-    
-    return [cavemesh, paths];
 }
 
 
 
-function generateGrid(
-    size
-) {
+function generateGrid(size) {
     const cells = [];
 
     const idir = new THREE.Vector3(2, 0, 2);
@@ -179,7 +152,7 @@ function generateGrid(
         for (let j = 0; j < size; j++) {
             for (let k = 0; k < size; k++) {
                 cells.push(
-                    new GridCell(
+                    new Cell(
                         (new THREE.Vector3())
                         .add(idir.clone().multiplyScalar(i))
                         .add(jdir.clone().multiplyScalar(j))
@@ -336,6 +309,28 @@ function generateGeometry(tunnel) {
     // and neat with no overlapping anything, no interior
     // walls just a nice clean "cave"
     return BufferGeometryUtils.mergeGeometries(geometries);
+}
+
+function smoothGeometry(geometry) {
+
+    // TODO: detect vertices that are common without a
+    //      shared edge and separate them slightly?
+    //      INSET_FACTOR can do that but ideally can
+    //      find a way to just fix the ones that go all
+    //      pointy
+
+    const smoothed = LoopSubdivision.modify(
+        geometry,
+        1,
+        {
+            split: false
+        }
+    );
+
+    smoothed.computeVertexNormals();
+    smoothed.computeBoundsTree();
+
+    return smoothed;
 }
 
 
@@ -544,27 +539,3 @@ function findPath(from, to) {
 }
 
 
-
-
-
-function smoothGeometry(geometry) {
-
-    // TODO: detect vertices that are common without a
-    //      shared edge and separate them slightly?
-    //      INSET_FACTOR can do that but ideally can
-    //      find a way to just fix the ones that go all
-    //      pointy
-
-    const smoothed = LoopSubdivision.modify(
-        geometry,
-        1,
-        {
-            split: false
-        }
-    );
-
-    smoothed.computeVertexNormals();
-    smoothed.computeBoundsTree();
-
-    return smoothed;
-}

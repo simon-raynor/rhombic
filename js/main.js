@@ -12,10 +12,10 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 import Stats from 'three/addons/libs/stats.module.js';
 import trider from './entities/trider/index.js';
-import generateCave from './entities/cave/index.js';
+import { Cave } from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import { generateAlongPath } from './entities/tower/index.js';
+import { Tower } from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -92,17 +92,17 @@ scene.add( light );
 
 
 
-const [cavemesh, paths] = generateCave(3);
-scene.add(cavemesh);
+const cave = new Cave(4);
+scene.add(cave.mesh);
 
 scene.add( trider.mesh );
 
-const ppath = new ParticlePath(paths[0]);
+/* const ppath = new ParticlePath(paths[0]);
 scene.add(ppath.mesh);
-ppath.tick(0);
+ppath.tick(0); */
 
 
-const veg = generateVegetation(cavemesh, paths);
+const veg = generateVegetation(cave);
 scene.add(veg);
 
 
@@ -113,40 +113,38 @@ const raycaster = new THREE.Raycaster();
 
 raycaster.set(trider.mesh.position, new THREE.Vector3(0, -1, -1).normalize());
 
-const intersects = raycaster.intersectObject(cavemesh);
+const intersects = raycaster.intersectObject(cave.mesh);
 
 if (intersects.length) {
     trider.init(
         intersects[0].point,
         intersects[0].normal,
-        cavemesh
+        cave.mesh
     );
 }
 
 
-const towers = [
-    ...generateAlongPath(
-        paths[0],
-        0xcc00ee,
-        cavemesh
-    ),
-];
+
+const towers = [];
+
+cave.cells.forEach(
+    cell => {
+        const { point, normal } = cell.getRandomPointOnMesh();
+
+        towers.push(
+            new Tower(
+                cell,
+                point,
+                normal,
+                0xff0000
+            )
+        );
+    }
+);
 
 towers.map(
     t => scene.add(t.mesh)
 );
-
-/* const towermesh = generateMesh()
-
-raycaster.set(trider.mesh.position, new THREE.Vector3(0, 1, 1).normalize());
-const tintersects = raycaster.intersectObject(cavemesh);
-if (tintersects.length) {
-    towermesh.lookAt(tintersects[0].normal);
-    towermesh.rotateX(Math.PI / 2);
-    towermesh.position.copy(tintersects[0].point).sub(tintersects[0].normal);
-}
-
-scene.add(towermesh); */
 
 
 
@@ -204,9 +202,9 @@ function tick() {
     stats.update();
 
 
-    trider.tick(dt, cavemesh, movinginput);
+    trider.tick(dt, cave.mesh, movinginput);
 
-    ppath.tick(dt);
+    //ppath.tick(dt);
 
     towers.forEach(t => t.tick(dt, trider));
 

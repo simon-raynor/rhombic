@@ -14,10 +14,10 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 import Stats from 'three/addons/libs/stats.module.js';
 import trider from './entities/trider/index.js';
-import generateCave from './entities/cave/index.js';
+import { Cave } from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import { generateAlongPath } from './entities/tower/index.js';
+import { Tower, generateAlongPath } from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -100,16 +100,25 @@ scene.add( light );
 
 const CAVEDIMENSION = 4;
 
-const [cavemesh, paths] = generateCave(CAVEDIMENSION);
-scene.add(cavemesh);
+const cave = new Cave(CAVEDIMENSION);
+scene.add(cave.mesh);
 
 
-const ppath = new ParticlePath(paths[0])
+/* const ppath = new ParticlePath(paths[0])
 scene.add(ppath.mesh);
-ppath.tick(0);
+ppath.tick(0); */
 
-const veg = generateVegetation(cavemesh, paths);
+const veg = generateVegetation(cave);
 scene.add(veg);
+
+
+
+
+
+
+
+
+
 
 
 scene.add(trider.mesh);
@@ -121,15 +130,42 @@ const raycaster = new THREE.Raycaster();
 
 raycaster.set(trider.mesh.position, new THREE.Vector3(0, -1, -1).normalize());
 
-const intersects = raycaster.intersectObject(cavemesh);
+const intersects = raycaster.intersectObject(cave.mesh);
 
 if (intersects.length) {
     trider.init(
         intersects[0].point,
         intersects[0].normal,
-        cavemesh
+        cave.mesh
     );
 }
+
+
+const towers = [];
+
+cave.cells.forEach(
+    cell => {
+        const { point, normal } = cell.getRandomPointOnMesh();
+
+        towers.push(
+            new Tower(
+                cell,
+                point,
+                normal,
+                0xff0000
+            )
+        );
+    }
+);
+
+towers.map(
+    t => scene.add(t.mesh)
+);
+
+
+
+
+
 
 /* paths.forEach(
     path => {
@@ -143,7 +179,7 @@ if (intersects.length) {
     scene.add(pathMesh);
 }) */
 
-const towers = [
+/* const towers = [
     ...generateAlongPath(
         paths[0],
         0xcc0000,
@@ -158,7 +194,7 @@ const towers = [
 
 towers.map(
     t => scene.add(t.mesh)
-);
+); */
 
 
 
@@ -194,7 +230,7 @@ let t = Date.now();
 
 let slowfactor = 1;
 
-const moving = {vector: new THREE.Vector3(0, 1), force: 0};
+const moving = {vector: new THREE.Vector3(0, 1), force: 1};
 
 function tick() {
     const nextframe = requestAnimationFrame(tick);
@@ -209,11 +245,11 @@ function tick() {
 
     stats.update();
 
-    ppath.tick(dt);
+    //ppath.tick(dt);
 
-    trider.tick(dt, cavemesh, moving);
+    trider.tick(dt, cave.mesh, moving);
 
-    towers.forEach(t => t.tick(dt, trider));
+    //towers.forEach(t => t.tick(dt, trider));
 
     controls.update();
 
