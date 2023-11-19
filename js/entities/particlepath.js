@@ -9,9 +9,9 @@ const tmpVec3 = new THREE.Vector3();
 
 
 const material = new THREE.PointsMaterial({
-    color: 0xddccaa,
-    size: 0.25
-} );
+    color: 0xff0000,
+    size: 0.1
+});
 
 
 export default class ParticlePath {
@@ -28,7 +28,7 @@ export default class ParticlePath {
         
         this.particles = [];
 
-        for (let i = 0, l = 200; i < l; i++) {
+        for (let i = 0, l = length / 20; i < l; i++) {
             this.particles.push(
                 new Particle(this, i, this.duration * i / l)
             );

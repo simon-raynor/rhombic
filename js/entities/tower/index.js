@@ -84,6 +84,37 @@ export class Tower {
         );
     }
 
+    tick(dt, trider) {
+        this.uniforms.t.value += dt;
+
+        const distance = this.position.distanceToSquared(trider.position);
+        if (distance < 200 && this.uniforms.amplitude.value < 1) {
+            this.uniforms.amplitude.value += dt;
+            if (this.uniforms.amplitude.value > 1) {
+                this.uniforms.amplitude.value = 1;
+            }
+            this.light.intensity = this.uniforms.amplitude.value;
+        }/*  else if (this.uniforms.amplitude.value > 0.25) {
+            this.uniforms.amplitude.value -= (dt / 3);
+        } */
+    }
+
+    getPathTo(othertower) {
+        const points = [
+            this.position.clone(),
+            this.normal.clone().multiplyScalar(3).add(this.position)
+        ];
+
+        points.push(...this.cavecell.getPathTo(othertower.cavecell).reverse());
+
+        points.push(
+            othertower.normal.clone().multiplyScalar(3).add(othertower.position),
+            othertower.position.clone()
+        );
+
+        return points;
+    }
+
     #getGeometry() {
         const cavemesh = this.cavecell.cave.mesh;
 
@@ -200,49 +231,4 @@ export class Tower {
 
         this.mesh.add(this.light);
     }
-
-    tick(dt, trider) {
-        this.uniforms.t.value += dt;
-
-        const distance = this.position.distanceToSquared(trider.position);
-        if (distance < 200 && this.uniforms.amplitude.value < 1) {
-            this.uniforms.amplitude.value += dt;
-            if (this.uniforms.amplitude.value > 1) {
-                this.uniforms.amplitude.value = 1;
-            }
-            this.light.intensity = this.uniforms.amplitude.value;
-        }/*  else if (this.uniforms.amplitude.value > 0.25) {
-            this.uniforms.amplitude.value -= (dt / 3);
-        } */
-    }
-}
-
-
-
-
-
-
-
-
-export function generateAlongPath(path, color = 0xff0088, cavemesh) {
-    const towers = [];
-    path.getPoints(Math.round(path.getLength() / 200)).forEach(
-        point => {
-            raycaster.set(point, tmpVec3.random());
-            const tintersects = raycaster.intersectObject(cavemesh);
-            
-            if (tintersects.length) {
-                towers.push(
-                    new Tower(
-                        cavemesh,
-                        tintersects[0].point,
-                        tintersects[0].normal,
-                        color
-                    )
-                );
-            }
-        }
-    );
-    console.log(towers);
-    return towers;
 }

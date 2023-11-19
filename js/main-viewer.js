@@ -17,7 +17,7 @@ import trider from './entities/trider/index.js';
 import { Cave } from './entities/cave/index.js';
 import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import { Tower, generateAlongPath } from './entities/tower/index.js';
+import { Tower } from './entities/tower/index.js';
 
 
 const stats = new Stats();
@@ -98,7 +98,7 @@ scene.add( light );
 
 
 
-const CAVEDIMENSION = 4;
+const CAVEDIMENSION = 3;
 
 const cave = new Cave(CAVEDIMENSION);
 scene.add(cave.mesh);
@@ -113,6 +113,54 @@ scene.add(veg);
 
 
 
+const towers = [];
+
+cave.cells.forEach(
+    cell => {
+        const { point, normal } = cell.getRandomPointOnMesh();
+
+        towers.push(
+            new Tower(
+                cell,
+                point,
+                normal,
+                0xff0000
+            )
+        );
+    }
+);
+
+towers.map(
+    t => scene.add(t.mesh)
+);
+
+
+
+// NOTE: this is bad and should be instanced somehow,
+//      probably via datatextures and custom shaders
+const towerpaths = [];
+
+try {
+    for(let i = 0; i < towers.length - 1; i++) {
+        for(let j = 1; j < towers.length; j++) {
+            const towerA = towers[i];
+            const towerB = towers[j];
+
+            if (towerA !== towerB) {
+                const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
+                path.updateArcLengths();
+
+                const ppath = new ParticlePath(path);
+                ppath.tick(0);
+                towerpaths.push(ppath);
+            }
+        }
+    }
+
+    towerpaths.map(
+        tp => scene.add(tp.mesh)
+    );
+} catch (ex) { console.error(ex); }
 
 
 
@@ -141,60 +189,6 @@ if (intersects.length) {
 }
 
 
-const towers = [];
-
-cave.cells.forEach(
-    cell => {
-        const { point, normal } = cell.getRandomPointOnMesh();
-
-        towers.push(
-            new Tower(
-                cell,
-                point,
-                normal,
-                0xff0000
-            )
-        );
-    }
-);
-
-towers.map(
-    t => scene.add(t.mesh)
-);
-
-
-
-
-
-
-/* paths.forEach(
-    path => {
-    const pathMesh = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(
-            path.getPoints(1000)
-        ),
-        new THREE.LineDashedMaterial({ color: 0x00ff00, dashSize: 2, gapSize: 1 })
-    )
-
-    scene.add(pathMesh);
-}) */
-
-/* const towers = [
-    ...generateAlongPath(
-        paths[0],
-        0xcc0000,
-        cavemesh
-    ),
-    ...generateAlongPath(
-        paths[1],
-        0xcc00cc,
-        cavemesh
-    )
-];
-
-towers.map(
-    t => scene.add(t.mesh)
-); */
 
 
 
@@ -223,6 +217,17 @@ scene.add( ikhelper ); */
 );
 scene.add(fwdArr); */
 
+/* paths.forEach(
+    path => {
+    const pathMesh = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(
+            path.getPoints(1000)
+        ),
+        new THREE.LineDashedMaterial({ color: 0x00ff00, dashSize: 2, gapSize: 1 })
+    )
+
+    scene.add(pathMesh);
+}) */
 
 
 
@@ -249,7 +254,8 @@ function tick() {
 
     trider.tick(dt, cave.mesh, moving);
 
-    //towers.forEach(t => t.tick(dt, trider));
+    towers.forEach(t => t.tick(dt, trider));
+    towerpaths.forEach(t => t.tick(dt));
 
     controls.update();
 

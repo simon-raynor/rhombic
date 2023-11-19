@@ -46,7 +46,7 @@ export class Cave {
         const grid = generateGrid(dimension);
     
         this.cells = generateTunnel(grid);
-        generateCellPaths(this.cells);
+        //generateCellPaths(this.cells);
 
         this.cells.forEach(cell => cell.setCave(this));
 
@@ -87,6 +87,9 @@ class Cell {
     setCave(cave) {
         this.cave = cave;
         this.worldposition = this.position.clone().multiplyScalar(cave.scale);
+        this.generateOpeningCentres();
+        this.paths = new Map();
+        this.generateThroughPaths();
     }
 
     findNeighbours(cells) {
@@ -121,6 +124,15 @@ class Cell {
     get openFaces() {
         return this.#openings.map(idx => RHOMBIC_FACES_2D[idx]);
     }
+    openFaceCentres = []
+
+    getFaceCentreForNeighbour(neighbour) {
+        for (let i = 0; i < this.#openings.length; i++) {
+            if (this.#openings[i] === neighbour) {
+                return this.openFaceCentres[i];
+            }
+        }
+    }
     
     getRandomPointOnMesh() {
         let intersection;
@@ -136,6 +148,84 @@ class Cell {
         } while(!intersection);
 
         return intersection;
+    }
+
+    getPathTo(othercell) {
+        return generatePath(this, othercell);
+    }
+
+
+    generateOpeningCentres() {
+        for (const face of this.openFaces) {
+            let xsum = 0, ysum = 0, zsum = 0;
+            for (const vidx of face) {
+                xsum += RHOMBIC_VERTICES[vidx * 3]
+                ysum += RHOMBIC_VERTICES[1 + vidx * 3]
+                zsum += RHOMBIC_VERTICES[2 + vidx * 3]
+            }
+            tmpVec3.set(
+                xsum / face.length,
+                ysum / face.length,
+                zsum / face.length,
+            ).add(this.position).multiplyScalar(CAVESCALE);
+
+            this.openFaceCentres.push(tmpVec3.clone());
+        }
+    }
+
+    generateThroughPaths() {
+        const l = this.openings.length;
+        for (let i = 0; i < l - 1; i++) {
+            for (let j = i + 1; j < l; j++) {
+                this.generateThroughPath(
+                    this.openings[i],
+                    this.openings[j]
+                );
+            }
+        }
+    }
+
+    generateThroughPath(start, end) {
+        const curvePoints = [];
+        
+        const centre = new THREE.Vector3();
+    
+        let prev = null;
+        let next = null;
+    
+        // get the correct face centres
+        for (let i = 0; i < this.openings.length; i++) {
+            if (this.openings[i] === start) {
+                prev = this.openFaceCentres[i];
+            }
+            if (this.openings[i] === end) {
+                next = this.openFaceCentres[i];
+            }
+        }
+
+    
+        // find midpoint between face centres and
+        // cell's own centre
+        centre.copy(this.position).multiplyScalar(CAVESCALE)
+            .add(prev).add(next).multiplyScalar(1/3);
+    
+        
+        curvePoints.push(
+            prev.clone()
+        );
+    
+        curvePoints.push(
+            centre.clone()
+        );
+    
+        curvePoints.push(
+            next.clone()
+        );
+    
+        this.paths.set(
+            `${start.id},${end.id}`,
+            curvePoints
+        );
     }
 }
 
@@ -204,7 +294,26 @@ function generateTunnel(grid) {
     const tunnel = grid.filter(({filled}) => !filled);
 
     // give em an ID so easier to debug
-    tunnel.forEach((cell, idx) => cell.id = idx);
+    tunnel.forEach((cell, idx) => {
+        cell.id = idx;
+
+        // check each neighbour, if it's open we
+        // need to flag that face for removal
+        // N.B. this works because the directions
+        //      are in the same order as the faces
+        const openDirections = [];
+        
+        cell.neighbours.forEach(
+            (neighbour, nidx) => {
+                if (neighbour && !neighbour.filled) {
+                    openDirections.push(nidx);
+                }
+            }
+        );
+
+        // assign this now that it's been calculated
+        cell.openings = openDirections;
+    });
 
     return tunnel;
 }
@@ -228,31 +337,13 @@ function generateGeometry(tunnel) {
             // move them away from the adjoining cell
             const holeVertices = new Set();
 
-            // check each neighbour, if it's open we
-            // need to flag that face for removal
-            // N.B. this works because the directions
-            //      are in the same order as the faces
-            const openDirections = [];
-            
-            cell.neighbours.forEach(
-                (neighbour, nidx) => {
-                    if (neighbour && !neighbour.filled) {
-                        openDirections.push(nidx);
-                    }
-                }
-            );
-
-            // assign this now that it's been calculated
-            cell.openings = openDirections;
-
             // remove the open faces while logging their
             // vertices so that we can leave portals to
             // match up between cells
-            openDirections.forEach(
-                fidx => {
-                    const toRemove = RHOMBIC_FACES_2D[fidx];
-                    toRemove.forEach(vidx => holeVertices.add(vidx));
-                    faces[fidx] = null;
+            cell.openFaces.forEach(
+                face => {
+                    face.forEach(vidx => holeVertices.add(vidx));
+                    faces[faces.indexOf(face)] = null;
                 }
             );
 
@@ -334,93 +425,6 @@ function smoothGeometry(geometry) {
 }
 
 
-function generateCellPaths(tunnel) {
-    tunnel.forEach(
-        cell => {
-            cell.paths = new Map();
-
-            const l = cell.openings.length;
-            for (let i = 0; i < l - 1; i++) {
-                for (let j = i + 1; j < l; j++) {
-                    generateCellThroughPath(
-                        cell,
-                        cell.openings[i],
-                        cell.openings[j]
-                    );
-                }
-            }
-        }
-    )
-}
-
-function generateCellThroughPath(cell, start, end) {
-    const curvePoints = [];
-    
-    const prev = new THREE.Vector3();
-    const next = new THREE.Vector3();
-    const centre = new THREE.Vector3();
-
-    let prevFace = null;
-    let nextFace = null;
-
-    for (let i = 0; i < cell.neighbours.length; i++) {
-        if (cell.neighbours[i] === start) {
-            prevFace = RHOMBIC_FACES_2D[i];
-        }
-        if (cell.neighbours[i] === end) {
-            nextFace = RHOMBIC_FACES_2D[i];
-        }
-    }
-
-    let xsum = 0, ysum = 0, zsum = 0;
-    for (const vidx of prevFace) {
-        xsum += RHOMBIC_VERTICES[vidx * 3]
-        ysum += RHOMBIC_VERTICES[1 + vidx * 3]
-        zsum += RHOMBIC_VERTICES[2 + vidx * 3]
-    }
-    prev.set(
-        xsum / prevFace.length,
-        ysum / prevFace.length,
-        zsum / prevFace.length,
-    ).add(cell.position).multiplyScalar(CAVESCALE);
-
-    xsum = 0; ysum = 0; zsum = 0;
-    for (const vidx of nextFace) {
-        xsum += RHOMBIC_VERTICES[vidx * 3]
-        ysum += RHOMBIC_VERTICES[1 + vidx * 3]
-        zsum += RHOMBIC_VERTICES[2 + vidx * 3]
-    }
-    next.set(
-        xsum / nextFace.length,
-        ysum / nextFace.length,
-        zsum / nextFace.length,
-    ).add(cell.position).multiplyScalar(CAVESCALE);
-
-    // find midpoint between face centres and
-    // cell's own centre
-    centre.copy(cell.position).multiplyScalar(CAVESCALE)
-        .add(prev).add(next).multiplyScalar(1/3);
-
-    
-    curvePoints.push(
-        prev.clone()
-    );
-
-    curvePoints.push(
-        centre.clone()
-    );
-
-    curvePoints.push(
-        next.clone()
-    );
-
-    cell.paths.set(
-        `${start.id},${end.id}`,
-        curvePoints
-    );
-}
-
-
 function generatePath(start, end) {
 
     const pathCells = findPath(start, end);
@@ -446,7 +450,15 @@ function generatePath(start, end) {
                     throw new Error(`${cell.id}: no cell path between ${abId}`);
                 }
 
-                pathpoints.pop(); // remove final point as it should be first point of next section
+                if (nextCell !== end) {
+                    pathpoints.pop();   // remove final point as it should
+                                        // be first point of next section
+                                        // (unless that's the final one)
+                }
+            } else {
+                pathpoints = [
+                    cell.worldposition
+                ];
             }
 
             if (pathpoints) {
@@ -457,7 +469,7 @@ function generatePath(start, end) {
         }
     );
 
-    return new THREE.CatmullRomCurve3(curvePoints);
+    return curvePoints;
 }
 
 // TODO: somehow detect if they are unable to reach each other?
@@ -482,6 +494,10 @@ function findPath(from, to) {
         // condition we'd get if @from was not connected to @to, as
         // it would exhaust all of its junctions
         if (!current) {
+            // NOTE: this also appears to happen if from
+            // is not a dead end and it picks the wrong
+            // direction first
+            console.error('backtrack error:', from, to);
             throw new Error('backtracked too far!');
         }
     }
@@ -496,8 +512,18 @@ function findPath(from, to) {
             // return here! (it's not obvious at a glance)
             //
             return visited;
+        // straight through
         } else if (current.openings.length === 2) {
-            current = current.openings.find(next => !visited.includes(next));
+            const open = current.openings.filter(
+                next => !blocked.includes(next) && !visited.includes(next)
+            );
+            // handle the edge case that we're starting here
+            if (open.length === 2) {
+                junctions.unshift(current);
+            } else if (junctions[0] === current) {
+                junctions.shift();
+            }
+            current = open[0];
             continue;
         // dead-end
         } else if (current.openings.length === 1) {

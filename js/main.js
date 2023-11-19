@@ -92,7 +92,7 @@ scene.add( light );
 
 
 
-const cave = new Cave(4);
+const cave = new Cave(3);
 scene.add(cave.mesh);
 
 scene.add( trider.mesh );
@@ -148,6 +148,33 @@ towers.map(
 
 
 
+// NOTE: this is bad and should be instanced somehow,
+//      probably via datatextures and custom shaders
+const towerpaths = [];
+
+try {
+    for(let i = 0; i < towers.length - 1; i++) {
+        for(let j = 1; j < towers.length; j++) {
+            try {
+                const towerA = towers[i];
+                const towerB = towers[j];
+
+                if (towerA !== towerB) {
+                    const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
+                    path.updateArcLengths();
+
+                    const ppath = new ParticlePath(path);
+                    ppath.tick(0);
+                    towerpaths.push(ppath);
+                }
+            } catch (ex) { console.error(ex); }
+        }
+    }
+
+    towerpaths.map(
+        tp => scene.add(tp.mesh)
+    );
+} catch (ex) { console.error(ex); }
 
 
 
@@ -207,6 +234,7 @@ function tick() {
     //ppath.tick(dt);
 
     towers.forEach(t => t.tick(dt, trider));
+    towerpaths.forEach(t => t.tick(dt));
 
     // follow cam
     const up = trider.up.clone().multiplyScalar(5);
