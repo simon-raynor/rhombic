@@ -71,11 +71,11 @@ composer.addPass(
     pixelPass
 ); */
 
-/* const bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0.1;
 bloomPass.strength = 0.5;
 bloomPass.radius = 0;
-composer.addPass(bloomPass); */
+composer.addPass(bloomPass);
 
 
 composer.addPass(
@@ -117,7 +117,7 @@ const towers = [];
 
 cave.cells.forEach(
     cell => {
-        if (Math.random() > 0.25) {
+        if (Math.random() > 0) {
             const { point, normal } = cell.getRandomPointOnMesh();
 
             towers.push(
@@ -165,7 +165,7 @@ try {
 } catch (ex) { console.error(ex); } */
 
 const TEXTURE_WIDTH = 256;
-const TEXTURE_HEIGHT = towers.length - 1;
+const TEXTURE_HEIGHT = (towers.length - 1) * (towers.length - 1);
 const TEXTURE_CHANNELS = 4;
 
 const curvesdata = new Float32Array( TEXTURE_WIDTH * TEXTURE_HEIGHT * TEXTURE_CHANNELS );
@@ -192,31 +192,53 @@ const curveNos = [];
 const tmpVec3 = new THREE.Vector3();
 const tmpColor = new THREE.Color(0x0000ff);
 
-for(let j = 1; j < towers.length; j++) {
-    const towerA = towers[0];
-    const towerB = towers[j];
+let curveNo = 0;
 
-    if (towerA !== towerB) {
-        const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
-        path.updateArcLengths();
+for(let i = 0; i < towers.length - 1; i++) {
+    for(let j = 1; j < towers.length; j++) {
+        const towerA = towers[i];
+        const towerB = towers[j];
 
-        path.getSpacedPoints(256).forEach(
-            (point, idx) => {
+        if (towerA !== towerB) {
+            const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
+            path.updateArcLengths();
+
+            const length = path.getLength();
+
+            path.getSpacedPoints(256).forEach(
+                (point, idx) => {
+                    setTextureValue(
+                        idx,
+                        point.x,
+                        point.y,
+                        point.z,
+                        curveNo
+                    );
+                }
+            );
+
+            const pointcount = length / 10;
+
+            for (let i = 0; i < pointcount; i++) {
                 particles.push(...tmpVec3.randomDirection().toArray());
                 colors.push(...tmpColor.setHSL(Math.random(), 1, 0.55).toArray());
-                offsets.push(idx/256);
-                curveNos.push((j - 0.5) / TEXTURE_HEIGHT);
-                setTextureValue(
-                    idx,
-                    point.x,
-                    point.y,
-                    point.z,
-                    j - 1
-                );
+                offsets.push((i + 0.5) / pointcount);
+                curveNos.push(curveNo);
             }
-        );
+
+            curveNo++;
+        }
     }
 }
+
+const curvecount = curveNos.length;
+
+curveNos.forEach(
+    (no, idx) => {
+        curveNos[idx] = (no + 0.5) / TEXTURE_HEIGHT;
+    }
+)
+
 
 curvestexture.needsUpdate = true;
 
