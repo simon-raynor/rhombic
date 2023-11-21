@@ -457,7 +457,7 @@ function generatePath(start, end) {
                 }
             } else {
                 pathpoints = [
-                    cell.worldposition
+                    //cell.worldposition
                 ];
             }
 
@@ -480,6 +480,8 @@ function findPath(from, to) {
     
     let current = from;
 
+
+
     // WARNING: this assumes the maze is solveable!
     // removes cells from @visited, adding them to @blocked,
     // until we reach the most recent junction
@@ -489,7 +491,8 @@ function findPath(from, to) {
         do {
             blocked.push(visited.shift());
         } while (visited.length && visited[0] !== junctions[0]);
-        current = visited.shift(); // shift as it'll be re-added
+        visited.shift();
+        current = junctions.shift(); // shift as it'll be re-added
         // see the TODO at the top, I believe this to be the failure
         // condition we'd get if @from was not connected to @to, as
         // it would exhaust all of its junctions
@@ -512,18 +515,43 @@ function findPath(from, to) {
             // return here! (it's not obvious at a glance)
             //
             return visited;
-        // straight through
-        } else if (current.openings.length === 2) {
+        } else {
             const open = current.openings.filter(
                 next => !blocked.includes(next) && !visited.includes(next)
             );
-            // handle the edge case that we're starting here
-            if (open.length === 2) {
-                junctions.unshift(current);
-            } else if (junctions[0] === current) {
-                junctions.shift();
+
+            if (open.length) {
+                if (
+                    open.length > 1
+                    && !junctions.includes(current)
+                ) {
+                    junctions.unshift(current);
+                }
+                current = open[0];
+            } else {
+                backtrack();
+                //throw new Error('not a through passage?!');
             }
+        }
+        
+        
+        
+        /* 
+        if (current === from) {
+            const open = current.openings.filter(
+                next => !blocked.includes(next) && !visited.includes(next)
+            );
             current = open[0];
+        }else if (current.openings.length === 2) {
+            const open = current.openings.filter(
+                next => !blocked.includes(next) && !visited.includes(next)
+            );
+
+            if (open.length) {
+                current = open[0];
+            } else {
+                throw new Error('not a through passage?!');
+            }
             continue;
         // dead-end
         } else if (current.openings.length === 1) {
@@ -560,7 +588,7 @@ function findPath(from, to) {
                 backtrack();
                 continue;
             }
-        }
+        } */
     } while (current);
 }
 

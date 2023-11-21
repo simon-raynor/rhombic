@@ -117,16 +117,18 @@ const towers = [];
 
 cave.cells.forEach(
     cell => {
-        const { point, normal } = cell.getRandomPointOnMesh();
+        if (Math.random() > 0.25) {
+            const { point, normal } = cell.getRandomPointOnMesh();
 
-        towers.push(
-            new Tower(
-                cell,
-                point,
-                normal,
-                0xff0000
-            )
-        );
+            towers.push(
+                new Tower(
+                    cell,
+                    point,
+                    normal,
+                    0xff0000
+                )
+            );
+        }
     }
 );
 
@@ -139,7 +141,7 @@ towers.map(
 // NOTE: this is bad and should be instanced somehow,
 //      probably via datatextures and custom shaders
 const towerpaths = [];
-
+/* 
 try {
     for(let i = 0; i < towers.length - 1; i++) {
         for(let j = 1; j < towers.length; j++) {
@@ -160,7 +162,138 @@ try {
     towerpaths.map(
         tp => scene.add(tp.mesh)
     );
-} catch (ex) { console.error(ex); }
+} catch (ex) { console.error(ex); } */
+
+const TEXTURE_WIDTH = 256;
+const TEXTURE_HEIGHT = towers.length - 1;
+const TEXTURE_CHANNELS = 4;
+
+const curvesdata = new Float32Array( TEXTURE_WIDTH * TEXTURE_HEIGHT * TEXTURE_CHANNELS );
+const curvestexture = new THREE.DataTexture(curvesdata, TEXTURE_WIDTH, TEXTURE_HEIGHT, THREE.RGBAFormat, THREE.FloatType);
+
+const path = new THREE.CatmullRomCurve3(towers[0].getPathTo(towers[1]));
+path.updateArcLengths();
+
+function setTextureValue(index, x, y, z, c) {
+    const image = curvestexture.image;
+    const { width, height, data } = image;
+    const row = TEXTURE_CHANNELS * TEXTURE_WIDTH * c;
+    data[index * TEXTURE_CHANNELS + row] = x;
+    data[index * TEXTURE_CHANNELS + row + 1] = y;
+    data[index * TEXTURE_CHANNELS + row + 2] = z;
+    data[index * TEXTURE_CHANNELS + row + 3] = 1;
+}
+
+const particles = [];
+const colors = [];
+const offsets = [];
+const curveNos = [];
+
+const tmpVec3 = new THREE.Vector3();
+const tmpColor = new THREE.Color(0x0000ff);
+
+for(let j = 1; j < towers.length; j++) {
+    const towerA = towers[0];
+    const towerB = towers[j];
+
+    if (towerA !== towerB) {
+        const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
+        path.updateArcLengths();
+
+        path.getSpacedPoints(256).forEach(
+            (point, idx) => {
+                particles.push(...tmpVec3.randomDirection().toArray());
+                colors.push(...tmpColor.setHSL(Math.random(), 1, 0.55).toArray());
+                offsets.push(idx/256);
+                curveNos.push((j - 0.5) / TEXTURE_HEIGHT);
+                setTextureValue(
+                    idx,
+                    point.x,
+                    point.y,
+                    point.z,
+                    j - 1
+                );
+            }
+        );
+    }
+}
+
+curvestexture.needsUpdate = true;
+
+const curvesuniforms = {
+    t: { value: 0, type: 'f' },
+    curvetexture: { value: curvestexture },
+};
+
+const curvesmaterial = new THREE.ShaderMaterial({
+    uniforms: curvesuniforms,
+    vertexShader: `
+    uniform sampler2D curvetexture;
+    uniform float t;
+
+    attribute float offset;
+    attribute float curveNo;
+
+    varying vec3 vColor;
+
+    void main() {
+        vColor = color;
+
+        float my_t = mod(t + offset, 1.0);
+
+        vec3 curve_posn = texture2D(curvetexture, vec2(my_t, curveNo)).xyz;
+
+        vec3 moved_posn = position + curve_posn;
+
+        vec4 mvPosition = modelViewMatrix * vec4(moved_posn, 1.0);
+
+        gl_PointSize = ( 50.0 / -mvPosition.z );
+
+        gl_Position = projectionMatrix * mvPosition;
+    }
+    `,
+    fragmentShader: `
+    varying vec3 vColor;
+
+    void main() {
+        gl_FragColor = vec4( vColor, 1.0 );
+    }
+    `,
+    depthTest: true,
+    vertexColors: true
+});
+
+const points = new THREE.BufferGeometry();
+points.setAttribute(
+    'position',
+    new THREE.BufferAttribute( new Float32Array(particles), 3 )
+);
+points.setAttribute(
+    'color',
+    new THREE.BufferAttribute( new Float32Array(colors), 3 )
+);
+points.setAttribute(
+    'offset',
+    new THREE.BufferAttribute( new Float32Array(offsets), 1 )
+);
+points.setAttribute(
+    'curveNo',
+    new THREE.BufferAttribute( new Float32Array(curveNos), 1 )
+);
+
+const cmesh = new THREE.Points(
+    points,
+    curvesmaterial
+);
+
+scene.add(cmesh);
+
+
+
+
+
+
+
 
 
 
@@ -249,6 +382,8 @@ function tick() {
     }
 
     stats.update();
+
+    curvesuniforms.t.value += dt / 20;
 
     //ppath.tick(dt);
 
