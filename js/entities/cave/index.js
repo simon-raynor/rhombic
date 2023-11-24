@@ -529,6 +529,9 @@ function findPath(from, to) {
                 }
                 current = open[0];
             } else {
+                if (current === from) {
+                    throw new Error('unable to find route:', from, to);
+                }
                 backtrack();
                 //throw new Error('not a through passage?!');
             }
