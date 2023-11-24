@@ -13,9 +13,9 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import Stats from 'three/addons/libs/stats.module.js';
 import trider from './entities/trider/index.js';
 import { Cave } from './entities/cave/index.js';
-import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
 import { Tower } from './entities/tower/index.js';
+import ParticlePath from './entities/particles/index.js';
 
 
 const stats = new Stats();
@@ -37,7 +37,7 @@ const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.5,
-    1000
+    500
 );
 
 
@@ -92,15 +92,10 @@ scene.add( light );
 
 
 
-const cave = new Cave(3);
+const CAVEDIMENSION = 3;
+
+const cave = new Cave(CAVEDIMENSION);
 scene.add(cave.mesh);
-
-scene.add( trider.mesh );
-
-/* const ppath = new ParticlePath(paths[0]);
-scene.add(ppath.mesh);
-ppath.tick(0); */
-
 
 const veg = generateVegetation(cave);
 scene.add(veg);
@@ -108,6 +103,8 @@ scene.add(veg);
 
 // find the point "below" 0,0 and translate/orient the trider
 // so that it sits there
+
+scene.add( trider.mesh );
 
 const raycaster = new THREE.Raycaster();
 
@@ -148,33 +145,26 @@ towers.map(
 
 
 
-// NOTE: this is bad and should be instanced somehow,
-//      probably via datatextures and custom shaders
-const towerpaths = [];
 
-try {
-    for(let i = 0; i < towers.length - 1; i++) {
-        for(let j = 1; j < towers.length; j++) {
-            try {
-                const towerA = towers[i];
-                const towerB = towers[j];
+const particlePathManager = new ParticlePath();
 
-                if (towerA !== towerB) {
-                    const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
-                    path.updateArcLengths();
+for(let i = 0; i < towers.length - 1; i++) {
+    for(let j = 1; j < towers.length; j++) {
+        const towerA = towers[i];
+        const towerB = towers[j];
 
-                    const ppath = new ParticlePath(path);
-                    ppath.tick(0);
-                    towerpaths.push(ppath);
-                }
-            } catch (ex) { console.error(ex); }
+        if (towerA !== towerB) {
+            const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
+            path.updateArcLengths();
+            particlePathManager.addCurve(path);
         }
     }
+}
 
-    towerpaths.map(
-        tp => scene.add(tp.mesh)
-    );
-} catch (ex) { console.error(ex); }
+scene.add(particlePathManager.mesh);
+
+
+
 
 
 
@@ -219,6 +209,8 @@ let t = Date.now();
 
 let slowfactor = 1;
 
+let addToCurveIdx = 0;
+
 function tick() {
     requestAnimationFrame(tick);
 
@@ -231,10 +223,16 @@ function tick() {
 
     trider.tick(dt, cave.mesh, movinginput);
 
-    //ppath.tick(dt);
-
     towers.forEach(t => t.tick(dt, trider));
-    towerpaths.forEach(t => t.tick(dt));
+
+    if (addToCurveIdx >= particlePathManager.curveCount) {
+        addToCurveIdx = addToCurveIdx % particlePathManager.curveCount;
+    }
+
+    particlePathManager.addParticle(0xff0000, addToCurveIdx);
+    particlePathManager.tick(dt);
+    
+    addToCurveIdx += 11;
 
     // follow cam
     const up = trider.up.clone().multiplyScalar(5);
