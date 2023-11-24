@@ -157,16 +157,14 @@ towers.map(
 
 const particlePathManager = new ParticlePath();
 
-for(let i = 0; i < towers.length - 1; i++) {
-    for(let j = 1; j < towers.length; j++) {
-        const towerA = towers[i];
-        const towerB = towers[j];
+for(let i = 1; i < towers.length; i++) {
+    const towerA = towers[i];
+    const towerB = towers[0];
 
-        if (towerA !== towerB) {
-            const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
-            path.updateArcLengths();
-            particlePathManager.addCurve(path);
-        }
+    if (towerA !== towerB) {
+        const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
+        path.updateArcLengths();
+        particlePathManager.addCurve(path);
     }
 }
 

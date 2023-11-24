@@ -59,8 +59,6 @@ export default class ParticlePath {
     }
 
     setTextureValue(index, x, y, z, rowNum) {
-        const image = this.texture.image;
-        const { width, height, data } = image;
         const indexOffset = index * TEXTURE_CHANNELS;
         const rowOffset = TEXTURE_CHANNELS * TEXTURE_WIDTH * rowNum;
         this.dataArray[indexOffset + rowOffset] = x;
@@ -72,7 +70,6 @@ export default class ParticlePath {
 
     addParticle(color, curve) {
         if (this.particleCount > MAX_PARTICLES) {
-            console.log('max particles hit');
             this.particleCount = 0;
         }
 
