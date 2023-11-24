@@ -27,6 +27,8 @@ const GRID_DIRECTIONS = [
     [0, -1, -1]
 ];
 
+const INITIAL_TUNNEL_DIRS = [ 8, 9, 10, 11];
+
 
 const texture = new THREE.TextureLoader().load('/img/noise1.png');
 const texturebump = new THREE.TextureLoader().load('/img/noise2.png');
@@ -43,10 +45,10 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
 export class Cave {
     scale = CAVESCALE;
     constructor(dimension) {
-        const grid = generateGrid(dimension);
+        const [ grid, centre ] = generateGrid(dimension);
+        this.centre = centre;
     
-        this.cells = generateTunnel(grid);
-        //generateCellPaths(this.cells);
+        this.cells = generateTunnel(grid, this.centre);
 
         this.cells.forEach(cell => cell.setCave(this));
 
@@ -136,15 +138,18 @@ class Cell {
     
     getRandomPointOnMesh() {
         let intersection;
+        let distance = this.cave.scale;
         do {
             raycaster.set(
                 this.worldposition,
                 tmpVec3.randomDirection()
             );
             const intersections = raycaster.intersectObject(this.cave.mesh);
-            if (intersections.length && intersections[0].distance < this.cave.scale) {
+            if (intersections.length && intersections[0].distance < distance) {
                 intersection = intersections[0];
             }
+            // gradually widen the search
+            distance *= 1.1;
         } while(!intersection);
 
         return intersection;
@@ -238,34 +243,48 @@ function generateGrid(size) {
     const jdir = new THREE.Vector3(2, 2, 0);
     const kdir = new THREE.Vector3(-2, 0, 2);
 
+    let centre;
+
+    const halfsize = Math.round((size - 1) / 2);
+
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
             for (let k = 0; k < size; k++) {
-                cells.push(
-                    new Cell(
-                        (new THREE.Vector3())
-                        .add(idir.clone().multiplyScalar(i))
-                        .add(jdir.clone().multiplyScalar(j))
-                        .add(kdir.clone().multiplyScalar(k))
-                    )
+                const cell = new Cell(
+                    (new THREE.Vector3())
+                    .add(idir.clone().multiplyScalar(i))
+                    .add(jdir.clone().multiplyScalar(j))
+                    .add(kdir.clone().multiplyScalar(k))
                 );
+
+                cells.push( cell );
+
+                if (i === halfsize && j === halfsize && k === halfsize) {
+                    centre = cell;
+                }
             }
         }
     }
 
     cells.forEach(cell => cell.findNeighbours(cells));
 
-    return cells;
+    return [ cells, centre ];
 }
 
 
-function generateTunnel(grid) {
-    let cursor = grid[0];
+function generateTunnel(grid, start) {
+    let current = start;
+
     const visited = [];
+
     
-    function advanceCursor() {
+    function advanceCursor(cursor) {
         cursor.filled = false;
         if (visited.indexOf(cursor) < 0) visited.push(cursor);
+
+        if (cursor === start && tunnelStarts.length) {
+            
+        }
         
         const valid = cursor.neighbours.filter(
             // check each direct neighbour
@@ -282,13 +301,19 @@ function generateTunnel(grid) {
             visited.splice(visited.indexOf(cursor), 1);
     
             return visited.length
-                ? visited[Math.floor(visited.length * Math.random())]
+                ? visited[Math.floor(visited.length * Math.random() * Math.random())]
                 : null;
         }
     }
 
-    while (cursor) {
-        cursor = advanceCursor();
+
+    const tunnelStarts = INITIAL_TUNNEL_DIRS.map(dIdx => start.neighbours[dIdx]);
+    tunnelStarts.forEach(cell => {
+        advanceCursor(cell);
+    });
+
+    while (current) {
+        current = advanceCursor(current);
     }
 
     const tunnel = grid.filter(({filled}) => !filled);
@@ -307,6 +332,8 @@ function generateTunnel(grid) {
             (neighbour, nidx) => {
                 if (neighbour && !neighbour.filled) {
                     openDirections.push(nidx);
+                } else {
+                    cell.neighbours[nidx] = null;
                 }
             }
         );
