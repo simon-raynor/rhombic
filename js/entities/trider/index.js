@@ -59,26 +59,15 @@ for (let i = 0, l = 12; i < l; i++) {
 }
 
 
-const trigonalmesh = new THREE.SkinnedMesh(
-    geometry,
-    blockMaterial
-);
-
-trigonalmesh.add(skeleton.bones[0]); // root bone
-trigonalmesh.bind(skeleton);
-
 
 
 const light = new THREE.PointLight( GLOW_COLOR, 1, 20 );
-trigonalmesh.add(light);
 light.position.add({x: 0, y: SQRT3, z: 0});
 
 
 const spotlight = new THREE.SpotLight(GLOW_COLOR, 1, 150, Math.PI / 6, 0.5, 4);
 const spottarget = new THREE.Object3D();
 
-trigonalmesh.add(spotlight);
-trigonalmesh.add(spottarget);
 spotlight.position.set(0, SQRT3 * 2, SQRT3);
 spottarget.position.set(0, SQRT3 * 2, 1 + SQRT3);
 spotlight.target = spottarget;
@@ -154,7 +143,7 @@ const forwardQuat = new THREE.Quaternion().setFromUnitVectors(
 
 
 
-class Trider {
+export default class Trider {
     up = null
     forwards = null
 
@@ -169,8 +158,16 @@ class Trider {
 
     #stepTs = [0, 0, 0];
 
-    constructor(mesh) {
-        this.mesh = mesh;
+    constructor() {
+        this.mesh = new THREE.SkinnedMesh(
+            geometry,
+            blockMaterial
+        );
+        this.mesh.add(skeleton.bones[0]); // root bone
+        this.mesh.bind(skeleton);
+        this.mesh.add(light);
+        this.mesh.add(spotlight);
+        this.mesh.add(spottarget);
         this.#footIKBones = [
             this.mesh.skeleton.bones[1 + BONES_PER_LEG],
             this.mesh.skeleton.bones[1 + BONES_PER_LEG + BONES_PER_LEG],
@@ -190,14 +187,11 @@ class Trider {
 
     init(
         position,
-        normal,
-        cavemesh
+        normal
     ) {
-        this.up = normal;
-        const down = this.up.clone().negate();
-
-        this.forwards = this.up.clone().applyQuaternion(forwardQuat);
-        this.mesh.lookAt(this.forwards);
+        this.up = new THREE.Vector3().copy(normal);
+        tmpQuat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.up);
+        this.mesh.applyQuaternion(tmpQuat);
 
 
         this.position.copy(position);
@@ -226,8 +220,6 @@ class Trider {
             movinginput.vector.y
         ).applyQuaternion(this.quaternion).clone();
         const moveForce = Math.min(movinginput.force, 1);
-
-        const up = this.up;
         
         if (moveDirection) {
             const moveAmount = moveDirection.clone().multiplyScalar(speed * moveForce);
@@ -277,7 +269,7 @@ class Trider {
         floornormal.normalize();
 
         tmpQuat.identity().slerp(
-            anotherTmpQuat.setFromUnitVectors(up, floornormal),
+            anotherTmpQuat.setFromUnitVectors(this.up, floornormal),
             0.1
         );
 
@@ -294,7 +286,6 @@ class Trider {
 
 
         this.up.applyQuaternion(tmpQuat);
-        this.forwards.applyQuaternion(tmpQuat);
         this.mesh.applyQuaternion(tmpQuat);
 
         
@@ -442,10 +433,6 @@ class Trider {
             .applyQuaternion(quat).clone();
     }
 }
-
-const trider = new Trider(trigonalmesh);
-
-export default trider;
 
 
 

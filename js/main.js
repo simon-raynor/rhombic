@@ -11,18 +11,21 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 
 import Stats from 'three/addons/libs/stats.module.js';
-import trider from './entities/trider/index.js';
 import { Cave } from './entities/cave/index.js';
 import generateVegetation from './entities/vegetation/index.js';
 import { Tower } from './entities/tower/index.js';
 import ParticlePath from './entities/particles/index.js';
+import Trider from './entities/trider/index.js';
 
 
 const stats = new Stats();
 document.body.appendChild( stats.dom )
 
 
+
 const scene = new THREE.Scene();
+
+
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -37,7 +40,7 @@ const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.5,
-    500
+    250
 );
 
 
@@ -101,41 +104,43 @@ const veg = generateVegetation(cave);
 scene.add(veg);
 
 
-// find the point "below" 0,0 and translate/orient the trider
-// so that it sits there
+const { point, normal } = cave.centre.getRandomPointOnMesh();
 
-scene.add( trider.mesh );
+const trider = new Trider();
 
-const raycaster = new THREE.Raycaster();
+scene.add(trider.mesh);
 
-raycaster.set(trider.mesh.position, new THREE.Vector3(0, -1, -1).normalize());
-
-const intersects = raycaster.intersectObject(cave.mesh);
-
-if (intersects.length) {
-    trider.init(
-        intersects[0].point,
-        intersects[0].normal,
-        cave.mesh
-    );
-}
+trider.init(
+    new THREE.Vector3().copy(point),
+    new THREE.Vector3().copy(normal)
+);
 
 
+const centreTower = new Tower(
+    cave.centre,
+    point,
+    normal,
+    0xff0000
+);
 
 const towers = [];
 
+towers.push(centreTower);
+
 cave.cells.forEach(
     cell => {
-        const { point, normal } = cell.getRandomPointOnMesh();
+        if (cell !== cave.centre && Math.random() > 0) {
+            const { point, normal } = cell.getRandomPointOnMesh();
 
-        towers.push(
-            new Tower(
-                cell,
-                point,
-                normal,
-                0xff0000
-            )
-        );
+            towers.push(
+                new Tower(
+                    cell,
+                    point,
+                    normal,
+                    0xff0000
+                )
+            );
+        }
     }
 );
 
@@ -145,19 +150,16 @@ towers.map(
 
 
 
-
 const particlePathManager = new ParticlePath();
 
-for(let i = 0; i < towers.length - 1; i++) {
-    for(let j = 1; j < towers.length; j++) {
-        const towerA = towers[i];
-        const towerB = towers[j];
+for(let i = 1; i < towers.length; i++) {
+    const towerA = towers[i];
+    const towerB = towers[0];
 
-        if (towerA !== towerB) {
-            const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
-            path.updateArcLengths();
-            particlePathManager.addCurve(path);
-        }
+    if (towerA !== towerB) {
+        const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
+        path.updateArcLengths();
+        particlePathManager.addCurve(path);
     }
 }
 
@@ -211,6 +213,10 @@ let slowfactor = 1;
 
 let addToCurveIdx = 0;
 
+
+const tmpUp = new THREE.Vector3(),
+    tmpBack = new THREE.Vector3();
+
 function tick() {
     requestAnimationFrame(tick);
 
@@ -234,16 +240,16 @@ function tick() {
     
     addToCurveIdx += 11;
 
-    // follow cam
-    const up = trider.up.clone().multiplyScalar(5);
-    const back = trider.forwards.clone().multiplyScalar(15);
+    // follow cam (needs work!)
+    tmpUp.copy(trider.up).multiplyScalar(5);
+    tmpBack.set(0, 0, -1).applyQuaternion(trider.quaternion).multiplyScalar(15);
 
     camera.position.copy(trider.position)
-        .add(up)
-        .sub(back)
+        .add(tmpUp)
+        .add(tmpBack)
     camera.up.copy(trider.up);
     camera.lookAt(trider.position);
-    camera.position.add(up);
+    camera.position.add(tmpUp);
 
 
     //renderer.render(scene, camera);

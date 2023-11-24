@@ -13,12 +13,12 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 
 import Stats from 'three/addons/libs/stats.module.js';
-import trider from './entities/trider/index.js';
 import { Cave } from './entities/cave/index.js';
 //import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
 import { Tower } from './entities/tower/index.js';
 import ParticlePath from './entities/particles/index.js';
+import Trider from './entities/trider/index.js';
 
 
 const stats = new Stats();
@@ -112,29 +112,38 @@ scene.add(veg);
 // find the point "below" 0,0 and translate/orient the trider
 // so that it sits there
 
+
+
+console.log(cave.centre.getRandomPointOnMesh())
+
+const { point, normal } = cave.centre.getRandomPointOnMesh();
+
+
+const trider = new Trider();
+
 scene.add(trider.mesh);
 
-const raycaster = new THREE.Raycaster();
-
-raycaster.set(trider.mesh.position, new THREE.Vector3(0, -1, -1).normalize());
-
-const intersects = raycaster.intersectObject(cave.mesh);
-
-if (intersects.length) {
-    trider.init(
-        intersects[0].point,
-        intersects[0].normal,
-        cave.mesh
-    );
-}
+trider.init(
+    new THREE.Vector3().copy(point),
+    new THREE.Vector3().copy(normal)
+);
 
 
+
+const centreTower = new Tower(
+    cave.centre,
+    point,
+    normal,
+    0xff0000
+);
 
 const towers = [];
 
+towers.push(centreTower);
+
 cave.cells.forEach(
     cell => {
-        if (Math.random() > 0) {
+        if (cell !== cave.centre && Math.random() > 0) {
             const { point, normal } = cell.getRandomPointOnMesh();
 
             towers.push(
@@ -199,6 +208,7 @@ scene.add(pathMesh); */
 
 const controls = new OrbitControls( camera, renderer.domElement );
 camera.position.set(0, 30, -60);
+controls.target = cave.centre.worldposition;
 controls.update();
 
 
@@ -212,15 +222,14 @@ scene.add( skelehelper ); */
 /* const ikhelper = trider.ikSolver.createHelper();
 scene.add( ikhelper ); */
 
-/* const fwdArr = new THREE.ArrowHelper(
-    new THREE.Vector3(),
-    new THREE.Vector3(),
+/* scene.add(new THREE.ArrowHelper(
+    new THREE.Vector3().randomDirection().cross(normal),
+    point,
     5,
     0xffffff,
     1,
     1
-);
-scene.add(fwdArr); */
+)); */
 
 /* paths.forEach(
     path => {
