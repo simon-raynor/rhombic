@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-import { CAVESCALE } from '../cave/index.js';
+
+import Tower from "./Tower.js";
 
 
 
@@ -71,21 +71,33 @@ const tmpPosn = new THREE.Vector3(),
 
 const up = new THREE.Vector3(0, 1, 0);
 
-export class Tower {
-    constructor(cavecell, centreTower, color) {
-        this.cavecell = cavecell;
-        const { point, normal } = this.cavecell.getRandomPointOnMesh();
 
-        this.centreTower = centreTower;
 
-        this.position = new THREE.Vector3().copy(point);
-        this.normal = new THREE.Vector3().copy(normal);
-        this.color = new THREE.Color().setHex(color);
+export default class SourceTower extends Tower {
+    constructor(cavecell, targetTower, color) {
+        super(cavecell);
 
-        this.#getMesh(
-            this.#getGeometry()
-        );
+        this.color = color;
+
+        this.target = targetTower;
+
+        this.#getMesh();
     }
+
+    generatePathToTarget(particlePathManager) {
+        this.particlePathManager = particlePathManager;
+        this.path = new THREE.CatmullRomCurve3(
+            this.getPathToTower(this.target)
+        );
+        this.path.updateArcLengths();
+        this.curveNo = this.particlePathManager.addCurve(this.path);
+    }
+
+    emitParticle() {
+        this.particlePathManager.addParticle(this.color, this.curveNo);
+    }
+
+    #maxPower = 2;
 
     #emissionrate = 5;
     #emissionT = 0;
@@ -115,33 +127,6 @@ export class Tower {
         }
     }
 
-    generatePathToCentre(particlePathManager) {
-        this.particlePathManager = particlePathManager;
-        this.path = new THREE.CatmullRomCurve3(this.getPathToTower(this.centreTower));
-        this.path.updateArcLengths();
-        this.curveNo = this.particlePathManager.addCurve(this.path);
-    }
-
-    emitParticle() {
-        this.particlePathManager.addParticle(this.color, this.curveNo);
-    }
-
-    getPathToTower(othertower) {
-        const points = [
-            this.position.clone(),
-            this.normal.clone().multiplyScalar(3).add(this.position)
-        ];
-
-        points.push(...this.cavecell.getPathTo(othertower.cavecell).reverse());
-
-        points.push(
-            othertower.normal.clone().multiplyScalar(3).add(othertower.position),
-            othertower.position.clone()
-        );
-
-        return points;
-    }
-
     #getGeometry() {
         const cavemesh = this.cavecell.cave.mesh;
 
@@ -155,6 +140,8 @@ export class Tower {
         tmpQuat.setFromUnitVectors(up, this.normal);
         tmpVec3.copy(this.normal).multiplyScalar(3).add(this.position);
         tmpNormal.copy(this.normal).negate();
+
+        const color = tmpColor.set(this.color).toArray();
 
         for (let r = 0; r <= RINGS * SPACING; r += SPACING) {
             const perRing = r * 6;
@@ -188,7 +175,7 @@ export class Tower {
                         tintersects[0].normal.y,
                         tintersects[0].normal.z
                     );
-                    colors.push(...this.color.toArray());
+                    colors.push(...color);
                     radii.push(r * 2);
                     heights.push(3 / r);
                     thetas.push(theta);
@@ -226,7 +213,9 @@ export class Tower {
         return geom;
     }
 
-    #getMesh(geom) {
+    #getMesh() {
+        const geom = this.#getGeometry();
+
         this.uniforms = {
             t: { value: 0 },
             amplitude: { value: 0.1 }
@@ -251,7 +240,7 @@ export class Tower {
         this.light = new THREE.PointLight(
             this.color,
             0.1,
-            CAVESCALE * 2
+            this.cavecell.cave.scale * 2
         );
 
         this.light.position.copy(this.normal).multiplyScalar(3).add(this.position);

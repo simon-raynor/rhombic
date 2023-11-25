@@ -129,8 +129,8 @@ class Cell {
     openFaceCentres = []
 
     getFaceCentreForNeighbour(neighbour) {
-        for (let i = 0; i < this.#openings.length; i++) {
-            if (this.#openings[i] === neighbour) {
+        for (let i = 0; i < this.openings.length; i++) {
+            if (this.openings[i] === neighbour) {
                 return this.openFaceCentres[i];
             }
         }
@@ -453,48 +453,53 @@ function smoothGeometry(geometry) {
 
 
 function generatePath(start, end) {
-
-    const pathCells = findPath(start, end);
-
     const curvePoints = [];
 
-    pathCells.forEach(
-        (cell, idx) => {
-            const prevCell = pathCells[idx - 1];
-            const nextCell = pathCells[idx + 1];
+    if (start.neighbours.includes(end)) {
+        curvePoints.push(
+            start.getFaceCentreForNeighbour(end)
+        );
+    } else {
+        const pathCells = findPath(start, end);
 
-            let pathpoints = null;
+        pathCells.forEach(
+            (cell, idx) => {
+                const prevCell = pathCells[idx - 1];
+                const nextCell = pathCells[idx + 1];
 
-            if (prevCell && nextCell) {
-                const abId = `${prevCell.id},${nextCell.id}`,
-                    baId = `${nextCell.id},${prevCell.id}`;
+                let pathpoints = null;
 
-                if (cell.paths.has(abId)) {
-                    pathpoints = [...cell.paths.get(abId)];
-                } else if (cell.paths.has(baId)) {
-                    pathpoints = [...cell.paths.get(baId)].reverse();
+                if (prevCell && nextCell) {
+                    const abId = `${prevCell.id},${nextCell.id}`,
+                        baId = `${nextCell.id},${prevCell.id}`;
+
+                    if (cell.paths.has(abId)) {
+                        pathpoints = [...cell.paths.get(abId)];
+                    } else if (cell.paths.has(baId)) {
+                        pathpoints = [...cell.paths.get(baId)].reverse();
+                    } else {
+                        throw new Error(`${cell.id}: no cell path between ${abId}`);
+                    }
+
+                    if (nextCell !== end) {
+                        pathpoints.pop();   // remove final point as it should
+                                            // be first point of next section
+                                            // (unless that's the final one)
+                    }
                 } else {
-                    throw new Error(`${cell.id}: no cell path between ${abId}`);
+                    pathpoints = [
+                        //cell.worldposition
+                    ];
                 }
 
-                if (nextCell !== end) {
-                    pathpoints.pop();   // remove final point as it should
-                                        // be first point of next section
-                                        // (unless that's the final one)
+                if (pathpoints) {
+                    pathpoints.forEach(
+                        ppt => curvePoints.push(ppt)
+                    );
                 }
-            } else {
-                pathpoints = [
-                    //cell.worldposition
-                ];
             }
-
-            if (pathpoints) {
-                pathpoints.forEach(
-                    ppt => curvePoints.push(ppt)
-                );
-            }
-        }
-    );
+        );
+    }
 
     return curvePoints;
 }

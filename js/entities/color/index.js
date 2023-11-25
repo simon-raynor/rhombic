@@ -1,0 +1,11 @@
+const RED = 0xff1111;
+const GREEN = 0x22cc00;
+const BLUE = 0x4444ff;
+
+const CYAN = 0x11ffff;
+const MAGENTA = 0xff33aa;
+const YELLOW = 0xffdd00;
+
+const COLORS = [ RED, GREEN, BLUE/* , CYAN, MAGENTA, YELLOW */ ];
+
+export default COLORS;

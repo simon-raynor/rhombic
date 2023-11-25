@@ -16,9 +16,11 @@ import Stats from 'three/addons/libs/stats.module.js';
 import { Cave } from './entities/cave/index.js';
 //import ParticlePath from './entities/particlepath.js';
 import generateVegetation from './entities/vegetation/index.js';
-import { Tower } from './entities/tower/index.js';
 import ParticlePath from './entities/particles/index.js';
 import Trider from './entities/trider/index.js';
+import COLORS from './entities/color/index.js';
+import TargetTower from './entities/towers/TargetTower.js';
+import SourceTower from './entities/towers/SourceTower.js';
 
 
 const stats = new Stats();
@@ -132,7 +134,7 @@ trider.init(
 
 
 
-const centreTower = new Tower(
+const centreTower = new TargetTower(
     cave.centre,
     null,
     0xffffff
@@ -148,10 +150,11 @@ cave.cells.forEach(
     cell => {
         if (cell !== cave.centre) {
             towers.push(
-                new Tower(
+                new SourceTower(
                     cell,
                     centreTower,
-                    tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
+                    COLORS[Math.floor(COLORS.length * Math.random())]
+                    //tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
                 )
             );
         }
@@ -170,8 +173,8 @@ scene.add(particlePathManager.mesh);
 
 towers.forEach(
     tower => {
-        if (tower.centreTower) {
-            tower.generatePathToCentre(particlePathManager);
+        if (tower.target) {
+            tower.generatePathToTarget(particlePathManager);
         }
     }
 )
