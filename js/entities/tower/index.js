@@ -72,10 +72,13 @@ const tmpPosn = new THREE.Vector3(),
 const up = new THREE.Vector3(0, 1, 0);
 
 export class Tower {
-    constructor(cavecell, position, normal, color) {
+    constructor(cavecell, centreTower, color) {
         this.cavecell = cavecell;
+        const { point, normal } = this.cavecell.getRandomPointOnMesh();
 
-        this.position = new THREE.Vector3().copy(position);
+        this.centreTower = centreTower;
+
+        this.position = new THREE.Vector3().copy(point);
         this.normal = new THREE.Vector3().copy(normal);
         this.color = new THREE.Color().setHex(color);
 
@@ -83,6 +86,9 @@ export class Tower {
             this.#getGeometry()
         );
     }
+
+    #emissionrate = 5;
+    #emissionT = 0;
 
     tick(dt, trider) {
         this.uniforms.t.value += dt;
@@ -97,9 +103,30 @@ export class Tower {
         }/*  else if (this.uniforms.amplitude.value > 0.25) {
             this.uniforms.amplitude.value -= (dt / 3);
         } */
+
+        if (this.path) {
+            if (this.#emissionT <= 0) {
+                this.emitParticle();
+                this.#emissionT = this.#emissionrate
+                        + (this.#emissionrate * (Math.random() - 0.5));
+            } else {
+                this.#emissionT -= dt * this.uniforms.amplitude.value * this.uniforms.amplitude.value * 100;
+            }
+        }
     }
 
-    getPathTo(othertower) {
+    generatePathToCentre(particlePathManager) {
+        this.particlePathManager = particlePathManager;
+        this.path = new THREE.CatmullRomCurve3(this.getPathToTower(this.centreTower));
+        this.path.updateArcLengths();
+        this.curveNo = this.particlePathManager.addCurve(this.path);
+    }
+
+    emitParticle() {
+        this.particlePathManager.addParticle(this.color, this.curveNo);
+    }
+
+    getPathToTower(othertower) {
         const points = [
             this.position.clone(),
             this.normal.clone().multiplyScalar(3).add(this.position)

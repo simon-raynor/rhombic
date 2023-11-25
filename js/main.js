@@ -116,28 +116,27 @@ trider.init(
 );
 
 
+
 const centreTower = new Tower(
     cave.centre,
-    point,
-    normal,
-    0xff0000
+    null,
+    0xffffff
 );
 
 const towers = [];
 
 towers.push(centreTower);
 
+const tmpColor = new THREE.Color();
+
 cave.cells.forEach(
     cell => {
-        if (cell !== cave.centre && Math.random() > 0) {
-            const { point, normal } = cell.getRandomPointOnMesh();
-
+        if (cell !== cave.centre) {
             towers.push(
                 new Tower(
                     cell,
-                    point,
-                    normal,
-                    0xff0000
+                    centreTower,
+                    tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
                 )
             );
         }
@@ -152,18 +151,15 @@ towers.map(
 
 const particlePathManager = new ParticlePath();
 
-for(let i = 1; i < towers.length; i++) {
-    const towerA = towers[i];
-    const towerB = towers[0];
-
-    if (towerA !== towerB) {
-        const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
-        path.updateArcLengths();
-        particlePathManager.addCurve(path);
-    }
-}
-
 scene.add(particlePathManager.mesh);
+
+towers.forEach(
+    tower => {
+        if (tower.centreTower) {
+            tower.generatePathToCentre(particlePathManager);
+        }
+    }
+)
 
 
 
@@ -230,15 +226,9 @@ function tick() {
     trider.tick(dt, cave.mesh, movinginput);
 
     towers.forEach(t => t.tick(dt, trider));
-
-    if (addToCurveIdx >= particlePathManager.curveCount) {
-        addToCurveIdx = addToCurveIdx % particlePathManager.curveCount;
-    }
-
-    particlePathManager.addParticle(0xff0000, addToCurveIdx);
+    
     particlePathManager.tick(dt);
     
-    addToCurveIdx += 11;
 
     // follow cam (needs work!)
     tmpUp.copy(trider.up).multiplyScalar(5);

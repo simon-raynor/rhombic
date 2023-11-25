@@ -104,17 +104,19 @@ const CAVEDIMENSION = 4;
 const cave = new Cave(CAVEDIMENSION);
 scene.add(cave.mesh);
 
+
+
+
+
 const veg = generateVegetation(cave);
 scene.add(veg);
 
 
 
-// find the point "below" 0,0 and translate/orient the trider
-// so that it sits there
 
 
 
-console.log(cave.centre.getRandomPointOnMesh())
+
 
 const { point, normal } = cave.centre.getRandomPointOnMesh();
 
@@ -132,26 +134,24 @@ trider.init(
 
 const centreTower = new Tower(
     cave.centre,
-    point,
-    normal,
-    0xff0000
+    null,
+    0xffffff
 );
 
 const towers = [];
 
 towers.push(centreTower);
 
+const tmpColor = new THREE.Color();
+
 cave.cells.forEach(
     cell => {
-        if (cell !== cave.centre && Math.random() > 0) {
-            const { point, normal } = cell.getRandomPointOnMesh();
-
+        if (cell !== cave.centre) {
             towers.push(
                 new Tower(
                     cell,
-                    point,
-                    normal,
-                    0xff0000
+                    centreTower,
+                    tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
                 )
             );
         }
@@ -166,19 +166,15 @@ towers.map(
 
 const particlePathManager = new ParticlePath();
 
-for(let i = 1; i < towers.length; i++) {
-    const towerA = towers[i];
-    const towerB = towers[0];
-
-    if (towerA !== towerB) {
-        const path = new THREE.CatmullRomCurve3(towerA.getPathTo(towerB));
-        path.updateArcLengths();
-        particlePathManager.addCurve(path);
-    }
-}
-
 scene.add(particlePathManager.mesh);
 
+towers.forEach(
+    tower => {
+        if (tower.centreTower) {
+            tower.generatePathToCentre(particlePathManager);
+        }
+    }
+)
 
 
 /* const pathMesh = new THREE.Line(
@@ -252,9 +248,6 @@ let slowfactor = 1;
 const moving = {vector: new THREE.Vector3(0, 1), force: 1};
 
 
-let addToCurveIdx = 0;
-
-
 function tick() {
     const nextframe = requestAnimationFrame(tick);
 
@@ -273,15 +266,7 @@ function tick() {
 
     towers.forEach(t => t.tick(dt, trider));
 
-
-    if (addToCurveIdx >= particlePathManager.curveCount) {
-        addToCurveIdx = addToCurveIdx % particlePathManager.curveCount;
-    }
-
-    particlePathManager.addParticle(0x0000ff, addToCurveIdx);
     particlePathManager.tick(dt);
-
-    addToCurveIdx += 11;
 
 
 

@@ -10,7 +10,7 @@ import createMixer, { OPEN_FACTOR } from './animations.js';
 const SQRT3 = Math.sqrt(3);
 
 
-const GLOW_COLOR = 0xff4400;
+const GLOW_COLOR = 0x8800ff;
 
 
 const texture = new THREE.TextureLoader().load('/img/trider.png');
