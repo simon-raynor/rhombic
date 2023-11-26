@@ -21,6 +21,11 @@ export default class TargetTower extends Tower {
         this.#getMesh();
     }
 
+    tick(dt, trider) {
+        super.tick(dt);
+
+        // TODO prevent collision w/ trider (or that may be trider's job)
+    }
 
     pointsInbound(entrance) {
         const spiral = [];
@@ -84,7 +89,8 @@ export default class TargetTower extends Tower {
 
     #getMesh() {
         const points = [
-            { x: 3, y: 0 },
+            { x: 0, y: 0.001 },
+            { x: 3, y: 0.002 },
             { x: 3.5, y: 1.5 },
             { x: 4.5, y: 3 },
             { x: 6, y: 4.5 }
