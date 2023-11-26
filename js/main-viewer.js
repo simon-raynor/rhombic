@@ -21,6 +21,7 @@ import Trider from './entities/trider/index.js';
 import COLORS from './entities/color/index.js';
 import TargetTower from './entities/towers/TargetTower.js';
 import SourceTower from './entities/towers/SourceTower.js';
+import Pillslug from './entities/pillslug/index.js';
 
 
 const stats = new Stats();
@@ -92,9 +93,9 @@ composer.addPass(
 
 
 
-/* const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
 directionalLight.position.set(3, 2, 1);
-scene.add( directionalLight ); */
+scene.add( directionalLight );
 const light = new THREE.AmbientLight( 0x202020 ); // soft white light
 //const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
@@ -104,24 +105,123 @@ scene.add( light );
 const CAVEDIMENSION = 4;
 
 const cave = new Cave(CAVEDIMENSION);
-scene.add(cave.mesh);
+//scene.add(cave.mesh);
+
+
+const wf = new THREE.WireframeGeometry(cave.mesh.geometry);
+const line = new THREE.LineSegments(wf);
+scene.add(line);
+
+
+/* const veg = generateVegetation(cave);
+scene.add(veg); */
+
+
+
+
+const tmpVec3A = new THREE.Vector3(),
+    tmpVec3B = new THREE.Vector3(),
+    tmpVec3C = new THREE.Vector3();
+
+const triangle = new THREE.Triangle(),
+    tmpPosn = new THREE.Vector3(),
+    tmpNormal = new THREE.Vector3();
+
+
+class Pathfinder {
+    constructor(geometry) {
+        this.nodes = [];
+
+        const points = [],
+            normals = [],
+            edges = [];
+
+        for (let i = 0; i < geometry.attributes.position.count; i += 3) {
+            tmpVec3A.fromBufferAttribute(geometry.attributes.position, i);
+            tmpVec3B.fromBufferAttribute(geometry.attributes.position, i + 1);
+            tmpVec3C.fromBufferAttribute(geometry.attributes.position, i + 2);
+
+            triangle.set(tmpVec3A, tmpVec3B, tmpVec3C);
+            triangle.getMidpoint(tmpPosn);
+            triangle.getNormal(tmpNormal);
+
+            this.nodes.push(
+                new PFNode(this, tmpPosn, tmpNormal)
+            );
+
+            points.push(...tmpPosn.toArray());
+            normals.push(...tmpNormal.negate().add(tmpPosn).toArray());
+
+
+        }
+
+        const segments = this.nodes.map(
+            node => node.edges.map(
+                other => [
+                    ...node.position.toArray(),
+                    ...other.position.toArray()
+                ]
+            ).flat()
+        ).flat();
+
+        const egGeom = new THREE.BufferGeometry();
+        egGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(segments), 3));
+
+        this.egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ color: 0x2222ff }));
+        /* const ptGeom = new THREE.BufferGeometry();
+        ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
+
+        const ptMat = new THREE.PointsMaterial({ color: 0xff0000 });
+
+        this.ptMesh = new THREE.Points(ptGeom, ptMat);
+
+        const nlGeom = new THREE.BufferGeometry();
+        nlGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(normals), 3));
+
+        const nlMat = new THREE.PointsMaterial({ color: 0x00ff00 });
+
+        this.nlMesh = new THREE.Points(nlGeom, nlMat); */
+    }
+}
+
+
+class PFNode {
+    constructor(finder, position, normal) {
+        this.position = position.clone();
+        this.normal = normal.clone();
+
+        this.edges = finder.nodes.filter(
+            n => {
+                if (this.position.distanceTo(n.position) < 15) {
+                    n.edges.push(this);
+                    return true;
+                }
+            }
+        );
+    }
+}
+
+
+
+
+const pf = new Pathfinder(cave.mesh.geometry);
+
+scene.add(pf.egMesh);
+
+console.log(pf)
 
 
 
 
 
-const veg = generateVegetation(cave);
-scene.add(veg);
 
 
-
-
-
+const pillslug = new Pillslug(cave.centre);
+scene.add(pillslug.mesh);
 
 
 
 const { point, normal } = cave.centre.getRandomPointOnMesh();
-
 
 const trider = new Trider();
 
@@ -135,14 +235,12 @@ trider.init(
 
 
 const centreTower = new TargetTower(
-    cave.centre,
-    null,
-    0xffffff
+    cave.centre
 );
 
 const towers = [];
 
-towers.push(centreTower);
+/* towers.push(centreTower);
 
 cave.cells.forEach(
     cell => {
@@ -160,13 +258,13 @@ cave.cells.forEach(
 
 towers.map(
     t => scene.add(t.mesh)
-);
+); */
 
 
 
 const particlePathManager = new ParticlePath();
 
-scene.add(particlePathManager.mesh);
+//scene.add(particlePathManager.mesh);
 
 towers.forEach(
     tower => {
@@ -187,6 +285,8 @@ towers.forEach(
 
 
 
+pillslug.registerTargets(towers);
+
 
 
 
@@ -202,13 +302,13 @@ towers.forEach(
 
 const controls = new OrbitControls( camera, renderer.domElement );
 camera.position.set(0, 30, -60);
-controls.target = cave.centre.worldposition;
+controls.target = pillslug.position;
 controls.update();
 
 
 
-/* const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper ); */
+const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper );
 
 /* const skelehelper = new THREE.SkeletonHelper( trider.mesh );
 scene.add( skelehelper ); */
@@ -271,6 +371,8 @@ function tick() {
 
 function tickGame(dt) {
     trider.tick(dt, cave.mesh, moving);
+
+    pillslug.tick(dt);
 
     towers.forEach(t => t.tick(dt, trider));
 
