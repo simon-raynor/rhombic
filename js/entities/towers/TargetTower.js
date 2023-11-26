@@ -11,21 +11,25 @@ const MINLOOPS = 16;
 export default class TargetTower extends Tower {
     constructor(cavecell) {
         super(cavecell);
+
+        // get world orientation quat
+        this.quat = new THREE.Quaternion().setFromUnitVectors(
+            stdUp,
+            this.normal
+        );
+
+        this.#getMesh();
     }
+
 
     pointsInbound(entrance) {
         const spiral = [];
 
         // underground point to "store" particles invisibly
-        const finalPoint = this.normal.clone().multiplyScalar(-3).add(this.position);
+        //const finalPoint = this.normal.clone().multiplyScalar(-1).add(this.position);
+        const finalPoint = this.position;
 
         spiral.unshift(finalPoint);
-
-        // get world orientation quat
-        tmpQuat.setFromUnitVectors(
-            stdUp,
-            this.normal
-        );
 
         // random spiral start angle offset
         const offset = Math.PI * 2 * Math.random();
@@ -39,7 +43,7 @@ export default class TargetTower extends Tower {
             const z = Math.cos(theta) * r;
 
             const pt = new THREE.Vector3(x, y, z)
-                .applyQuaternion(tmpQuat)
+                .applyQuaternion(this.quat)
                 //.add(tmpVec3A.random().multiplyScalar(i / 5))
                 .add(this.position);
 
@@ -75,5 +79,32 @@ export default class TargetTower extends Tower {
         }
 
         return spiral;
+    }
+
+
+    #getMesh() {
+        const points = [
+            { x: 3, y: 0 },
+            { x: 3.5, y: 1.5 },
+            { x: 4.5, y: 3 },
+            { x: 6, y: 4.5 }
+        ];
+        const geom = new THREE.LatheGeometry(
+            points,
+            12
+        );
+
+        const material = new THREE.MeshLambertMaterial({
+            color: 0xeeeeee,
+            side: THREE.DoubleSide
+        })
+
+        this.mesh = new THREE.Mesh(
+            geom,
+            material,
+        );
+
+        this.mesh.position.copy(this.position);
+        this.mesh.applyQuaternion(this.quat);
     }
 }
