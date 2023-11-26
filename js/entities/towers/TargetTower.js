@@ -6,6 +6,8 @@ const tmpVec3A = new THREE.Vector3();
 const tmpVec3B = new THREE.Vector3();
 const stdUp = new THREE.Vector3(0, 1, 0);
 
+const MINLOOPS = 16;
+
 export default class TargetTower extends Tower {
     constructor(cavecell) {
         super(cavecell);
@@ -19,18 +21,22 @@ export default class TargetTower extends Tower {
 
         spiral.unshift(finalPoint);
 
-
+        // get world orientation quat
         tmpQuat.setFromUnitVectors(
             stdUp,
             this.normal
         );
 
+        // random spiral start angle offset
         const offset = Math.PI * 2 * Math.random();
         
+        // spiral step function for convenience
         const step = (i, theta) => {
-            const x = Math.sin(theta) * i;
+            const r = 1 + Math.pow(i / 6, 2);
+
+            const x = Math.sin(theta) * r;
             const y = i - 1/i;
-            const z = Math.cos(theta) * i;
+            const z = Math.cos(theta) * r;
 
             const pt = new THREE.Vector3(x, y, z)
                 .applyQuaternion(tmpQuat)
@@ -43,7 +49,7 @@ export default class TargetTower extends Tower {
         let i = 1
         let theta = offset;//Math.PI / 4;
 
-        for (; i <= 16; i++) {
+        for (; i <= MINLOOPS; i++) {
             step(i, theta);
             theta += Math.PI / 4;
         }
@@ -51,6 +57,9 @@ export default class TargetTower extends Tower {
         tmpVec3A.copy(spiral[0]).sub(spiral[1]);
         tmpVec3B.copy(spiral[0]).sub(entrance);
 
+        // try to get a nice smooth entry to the spiral,
+        // we want as close to 180deg as possible (straight
+        // lines are the smoothest you can get)
         let angleTo = tmpVec3A.angleTo(tmpVec3B);
 
         while (

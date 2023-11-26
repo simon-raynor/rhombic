@@ -167,7 +167,7 @@ export default class ParticlePath {
             }
             `,
         
-            transparent: false,
+            transparent: true,
             depthTest: true,
             vertexColors: true
         });
