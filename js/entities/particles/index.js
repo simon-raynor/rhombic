@@ -76,7 +76,7 @@ export default class ParticlePath {
         const speed = 10 / this.curveLengths[curve];
         const offset = -this.uniforms.t.value * speed;
 
-        tmpVec3.randomDirection().multiplyScalar(3 * Math.random());
+        tmpVec3.randomDirection().multiplyScalar(2 * Math.random());
         tmpColor.set(color);
 
         const idx = this.particleCount;
@@ -149,7 +149,7 @@ export default class ParticlePath {
             void main() {
                 vColor = color;
         
-                float my_t = mod((t * speed) + offset, 1.0);
+                float my_t = (t * speed) + offset;//mod((t * speed) + offset, 1.0);
         
                 vec3 curve_posn = texture2D(curvetexture, vec2(my_t, curveNo)).xyz;
         

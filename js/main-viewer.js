@@ -144,17 +144,14 @@ const towers = [];
 
 towers.push(centreTower);
 
-const tmpColor = new THREE.Color();
-
 cave.cells.forEach(
     cell => {
-        if (cell !== cave.centre) {
+        if (cell !== cave.centre && Math.random() > 0.5) {
             towers.push(
                 new SourceTower(
                     cell,
                     centreTower,
                     COLORS[Math.floor(COLORS.length * Math.random())]
-                    //tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
                 )
             );
         }
@@ -175,20 +172,18 @@ towers.forEach(
     tower => {
         if (tower.target) {
             tower.generatePathToTarget(particlePathManager);
+
+            /* const pathMesh = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(
+                    tower.path.getPoints(1000)
+                ),
+                new THREE.LineDashedMaterial({ color: tower.color, dashSize: 2, gapSize: 1 })
+            )
+
+            scene.add(pathMesh); */
         }
     }
 )
-
-
-/* const pathMesh = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(
-        path.getPoints(1000)
-    ),
-    new THREE.LineDashedMaterial({ color: 0x008800, dashSize: 2, gapSize: 1 })
-)
-
-scene.add(pathMesh); */
-
 
 
 
@@ -248,7 +243,7 @@ let t = Date.now();
 
 let slowfactor = 1;
 
-const moving = {vector: new THREE.Vector3(0, 1), force: 1};
+const moving = {vector: new THREE.Vector3(0, 1), force: 0};
 
 
 function tick() {
@@ -265,19 +260,21 @@ function tick() {
 
     stats.update();
 
-    trider.tick(dt, cave.mesh, moving);
-
-    towers.forEach(t => t.tick(dt, trider));
-
-    particlePathManager.tick(dt);
-
-
+    tickGame(dt);
 
     controls.update();
 
     //renderer.render(scene, camera);
     composer.render();
 
+}
+
+function tickGame(dt) {
+    trider.tick(dt, cave.mesh, moving);
+
+    towers.forEach(t => t.tick(dt, trider));
+
+    particlePathManager.tick(dt);
 }
 
 
@@ -297,6 +294,14 @@ function pause(nextframe) {
 
 
 renderer.render(scene, camera);
+
+
+for (let i = 0; i <= 100; i++) {
+    tickGame(1);
+}
+
+moving.force = 1;
+
 
 setTimeout(
     () => {

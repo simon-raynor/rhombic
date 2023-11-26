@@ -4,13 +4,14 @@ import { CCDIKSolver } from 'three/addons/animation/CCDIKSolver.js';
 import { geometry, knees } from './geometry.js';
 import { BONES_PER_LEG, iks, skeleton } from './skeleton.js';
 import createMixer, { OPEN_FACTOR } from './animations.js';
+import COLORS from '../color/index.js';
 
 
 
 const SQRT3 = Math.sqrt(3);
 
 
-const GLOW_COLOR = 0x8800ff;
+const GLOW_COLOR =  COLORS[Math.floor(COLORS.length * Math.random())];
 
 
 const texture = new THREE.TextureLoader().load('/img/trider.png');
