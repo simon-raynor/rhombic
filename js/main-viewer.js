@@ -102,7 +102,7 @@ scene.add( light );
 
 
 
-const CAVEDIMENSION = 4;
+const CAVEDIMENSION = 3;
 
 const cave = new Cave(CAVEDIMENSION);
 //scene.add(cave.mesh);
@@ -117,8 +117,44 @@ scene.add(line);
 scene.add(veg); */
 
 
+const tmpPosn = new THREE.Vector3(),
+    tmpNormal = new THREE.Vector3();
 
 
+const points = [],
+    normals = [],
+    edges = [];
+
+cave.pfNodes.forEach(
+    node => {
+        points.push(...node.posn.toArray());
+        normals.push(...tmpNormal.copy(node.normal).add(node.posn).toArray());
+        node.edges.forEach(
+            edge => {
+                edges.push(
+                    ...node.posn.toArray(),
+                    ...edge.posn.toArray()
+                );
+            }
+        )
+    }
+)
+
+const egGeom = new THREE.BufferGeometry();
+egGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(edges), 3));
+const egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ color: 0x2222ff }));
+
+const ptGeom = new THREE.BufferGeometry();
+ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
+const ptMesh = new THREE.Points(ptGeom, new THREE.PointsMaterial({ color: 0xff0000 }));
+
+const nmGeom = new THREE.BufferGeometry();
+nmGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(normals), 3));
+const nmMesh = new THREE.Points(nmGeom, new THREE.PointsMaterial({ color: 0x00ff00 }));
+
+scene.add(egMesh, ptMesh/* , nmMesh */);
+
+/* 
 const tmpVec3A = new THREE.Vector3(),
     tmpVec3B = new THREE.Vector3(),
     tmpVec3C = new THREE.Vector3();
@@ -168,19 +204,13 @@ class Pathfinder {
         egGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(segments), 3));
 
         this.egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ color: 0x2222ff }));
-        /* const ptGeom = new THREE.BufferGeometry();
+        
+        const ptGeom = new THREE.BufferGeometry();
         ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
 
         const ptMat = new THREE.PointsMaterial({ color: 0xff0000 });
 
         this.ptMesh = new THREE.Points(ptGeom, ptMat);
-
-        const nlGeom = new THREE.BufferGeometry();
-        nlGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(normals), 3));
-
-        const nlMat = new THREE.PointsMaterial({ color: 0x00ff00 });
-
-        this.nlMesh = new THREE.Points(nlGeom, nlMat); */
     }
 }
 
@@ -206,10 +236,10 @@ class PFNode {
 
 const pf = new Pathfinder(cave.mesh.geometry);
 
-scene.add(pf.egMesh);
+scene.add(pf.ptMesh, pf.egMesh);
 
 console.log(pf)
-
+ */
 
 
 

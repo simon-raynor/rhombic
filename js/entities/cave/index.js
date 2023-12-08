@@ -60,6 +60,8 @@ export class Cave {
             blockMaterial
         );
 
+        this.pfNodes = generatePFPoints(this.mesh.geometry);
+
     
         /* const deadends = [];
         tunnel.forEach(
@@ -72,9 +74,6 @@ export class Cave {
     
     
         const paths = [];
-    }
-    getPointInCell() {
-
     }
 }
 
@@ -449,6 +448,83 @@ function smoothGeometry(geometry) {
     smoothed.computeBoundsTree();
 
     return smoothed;
+}
+
+
+const tmpVec3A = new THREE.Vector3(),
+    tmpVec3B = new THREE.Vector3(),
+    tmpVec3C = new THREE.Vector3();
+
+const tmpTriangle = new THREE.Triangle(),
+    tmpPosn = new THREE.Vector3(),
+    tmpNormal = new THREE.Vector3();
+
+function generatePFPoints(geometry) {
+    const vertexCentres = new Map();
+
+    function addVertexCentre(vertex, centre) {
+        //const key = tmpVec3.copy(vertex)/* .multiplyScalar(100) */.round().toArray().join(',');
+
+        let found = false;
+
+        for (let [key] of vertexCentres) {
+            if (key.equals(vertex)) {
+                vertexCentres.set(key, [ ...vertexCentres.get(key), centre ]);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            vertexCentres.set(
+                vertex.clone(),
+                [ centre ]
+            );
+        }
+    }
+
+    const nodes = [];
+
+    const vCount = geometry.attributes.position.count;
+
+    for (let i = 0; i < vCount; i += 3) {
+        tmpVec3A.fromBufferAttribute(geometry.attributes.position, i);
+        tmpVec3B.fromBufferAttribute(geometry.attributes.position, i + 1);
+        tmpVec3C.fromBufferAttribute(geometry.attributes.position, i + 2);
+
+        // get centrepoint & normal
+        tmpTriangle.set(tmpVec3A, tmpVec3B, tmpVec3C);
+        tmpTriangle.getMidpoint(tmpPosn);
+        tmpTriangle.getNormal(tmpNormal);
+        // we are inside the mesh so negate
+        tmpNormal.negate();
+
+        const node = {
+            posn: tmpPosn.clone(),
+            normal: tmpNormal.clone(),
+            edges: []
+        };
+
+        nodes.push(node);
+
+        addVertexCentre(tmpVec3A, node);
+        addVertexCentre(tmpVec3B, node);
+        addVertexCentre(tmpVec3C, node);
+    }
+
+    for (let [key, nodes] of vertexCentres) {
+        nodes.forEach(
+            node => {
+                nodes.forEach(n => {
+                    if (n != node) {
+                        node.edges.push(n);
+                    }
+                });
+            }
+        );
+    }
+
+    return nodes;
 }
 
 
