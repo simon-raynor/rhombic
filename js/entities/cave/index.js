@@ -3,6 +3,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 import { LoopSubdivision } from 'three-subdivide';
 
 import { RHOMBIC_FACES_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
+import Pathfinder from '../../utilities/Pathfinder/index.js';
 
 const tmpVec3 = new THREE.Vector3();
 const raycaster = new THREE.Raycaster();
@@ -60,7 +61,8 @@ export class Cave {
             blockMaterial
         );
 
-        this.pfNodes = generatePFPoints(this.mesh.geometry);
+
+        this.pathfinder = new Pathfinder(this, generatePFNodes(this.mesh.geometry));
 
     
         /* const deadends = [];
@@ -459,7 +461,7 @@ const tmpTriangle = new THREE.Triangle(),
     tmpPosn = new THREE.Vector3(),
     tmpNormal = new THREE.Vector3();
 
-function generatePFPoints(geometry) {
+function generatePFNodes(geometry) {
     const vertexCentres = new Map();
 
     function addVertexCentre(vertex, centre) {

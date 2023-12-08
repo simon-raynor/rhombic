@@ -117,23 +117,18 @@ scene.add(line);
 scene.add(veg); */
 
 
-const tmpPosn = new THREE.Vector3(),
-    tmpNormal = new THREE.Vector3();
-
 
 const points = [],
-    normals = [],
     edges = [];
 
-cave.pfNodes.forEach(
+cave.pathfinder.nodes.forEach(
     node => {
-        points.push(...node.posn.toArray());
-        normals.push(...tmpNormal.copy(node.normal).add(node.posn).toArray());
+        points.push(...node.position.toArray());
         node.edges.forEach(
             edge => {
                 edges.push(
-                    ...node.posn.toArray(),
-                    ...edge.posn.toArray()
+                    ...edge.A.position.toArray(),
+                    ...edge.B.position.toArray()
                 );
             }
         )
@@ -148,98 +143,8 @@ const ptGeom = new THREE.BufferGeometry();
 ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
 const ptMesh = new THREE.Points(ptGeom, new THREE.PointsMaterial({ color: 0xff0000 }));
 
-const nmGeom = new THREE.BufferGeometry();
-nmGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(normals), 3));
-const nmMesh = new THREE.Points(nmGeom, new THREE.PointsMaterial({ color: 0x00ff00 }));
+scene.add(egMesh, ptMesh);
 
-scene.add(egMesh, ptMesh/* , nmMesh */);
-
-/* 
-const tmpVec3A = new THREE.Vector3(),
-    tmpVec3B = new THREE.Vector3(),
-    tmpVec3C = new THREE.Vector3();
-
-const triangle = new THREE.Triangle(),
-    tmpPosn = new THREE.Vector3(),
-    tmpNormal = new THREE.Vector3();
-
-
-class Pathfinder {
-    constructor(geometry) {
-        this.nodes = [];
-
-        const points = [],
-            normals = [],
-            edges = [];
-
-        for (let i = 0; i < geometry.attributes.position.count; i += 3) {
-            tmpVec3A.fromBufferAttribute(geometry.attributes.position, i);
-            tmpVec3B.fromBufferAttribute(geometry.attributes.position, i + 1);
-            tmpVec3C.fromBufferAttribute(geometry.attributes.position, i + 2);
-
-            triangle.set(tmpVec3A, tmpVec3B, tmpVec3C);
-            triangle.getMidpoint(tmpPosn);
-            triangle.getNormal(tmpNormal);
-
-            this.nodes.push(
-                new PFNode(this, tmpPosn, tmpNormal)
-            );
-
-            points.push(...tmpPosn.toArray());
-            normals.push(...tmpNormal.negate().add(tmpPosn).toArray());
-
-
-        }
-
-        const segments = this.nodes.map(
-            node => node.edges.map(
-                other => [
-                    ...node.position.toArray(),
-                    ...other.position.toArray()
-                ]
-            ).flat()
-        ).flat();
-
-        const egGeom = new THREE.BufferGeometry();
-        egGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(segments), 3));
-
-        this.egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ color: 0x2222ff }));
-        
-        const ptGeom = new THREE.BufferGeometry();
-        ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
-
-        const ptMat = new THREE.PointsMaterial({ color: 0xff0000 });
-
-        this.ptMesh = new THREE.Points(ptGeom, ptMat);
-    }
-}
-
-
-class PFNode {
-    constructor(finder, position, normal) {
-        this.position = position.clone();
-        this.normal = normal.clone();
-
-        this.edges = finder.nodes.filter(
-            n => {
-                if (this.position.distanceTo(n.position) < 15) {
-                    n.edges.push(this);
-                    return true;
-                }
-            }
-        );
-    }
-}
-
-
-
-
-const pf = new Pathfinder(cave.mesh.geometry);
-
-scene.add(pf.ptMesh, pf.egMesh);
-
-console.log(pf)
- */
 
 
 
