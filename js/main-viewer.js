@@ -109,7 +109,7 @@ const cave = new Cave(CAVEDIMENSION);
 
 
 const wf = new THREE.WireframeGeometry(cave.mesh.geometry);
-const line = new THREE.LineSegments(wf);
+const line = new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0x999999 }));
 scene.add(line);
 
 
@@ -118,7 +118,7 @@ scene.add(veg); */
 
 
 
-const points = [],
+/* const points = [],
     edges = [];
 
 cave.pathfinder.nodes.forEach(
@@ -137,13 +137,37 @@ cave.pathfinder.nodes.forEach(
 
 const egGeom = new THREE.BufferGeometry();
 egGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(edges), 3));
-const egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ color: 0x2222ff }));
+const egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ color: 0x000044 }));
 
 const ptGeom = new THREE.BufferGeometry();
 ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
-const ptMesh = new THREE.Points(ptGeom, new THREE.PointsMaterial({ color: 0xff0000 }));
+const ptMesh = new THREE.Points(ptGeom, new THREE.PointsMaterial({ color: 0x440000 }));
 
-scene.add(egMesh, ptMesh);
+scene.add(egMesh, ptMesh); */
+
+
+
+const posns = [];
+
+for (let i = 0; i < 500; i += 50) {
+    let path = cave.pathfinder.pathfind(
+        cave.pathfinder.nodes[i],
+        cave.pathfinder.nodes[i + 50]
+    );
+    console.log(i, path);
+    
+    for (let i = 1; i < path.length; i++) {
+        posns.push(
+            ...path[i - 1].position.toArray(),
+            ...path[i].position.toArray()
+        );
+    }
+}
+
+const pathGeom = new THREE.BufferGeometry();
+pathGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posns), 3));
+const pathMesh = new THREE.LineSegments(pathGeom, new THREE.LineBasicMaterial({ color: 0x33ff33 }));
+scene.add(pathMesh);
 
 
 
