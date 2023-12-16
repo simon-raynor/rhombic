@@ -54,7 +54,7 @@ export default class Pathfinder {
                             // dijkstra's rather than A*
                             // if a better heuristic can be found we might
                             // be able to go back to A*
-                            //edge.B.h = edge.B.position.distanceToSquared(end.position);
+                            //edge.B.h = edge.B.position.distanceTo(end.position);
 
                             edge.B.g = g;
                             edge.B.parent = current;
@@ -109,7 +109,7 @@ class PFNode {
                                     node
                                 )
                             );
-                            if (!node.edges.find(({B}) => B === this )) {
+                            if (!node.edges.find(({B}) => B === this)) {
                                 node.edges.push(
                                     new PFEdge(
                                         node,
@@ -132,7 +132,7 @@ class PFEdge {
         this.A = nodeA;
         this.B = nodeB;
 
-        this.size = nodeA.position.distanceToSquared(nodeB.position);
+        this.size = nodeA.position.distanceTo(nodeB.position);
     }
 }
 
@@ -157,7 +157,7 @@ class PFHeap {
             const parentIdx = Math.floor((idx - 1) / 2);
             const parent = this.values[parentIdx];
 
-            if (parent.f >= current.f) {
+            if (parent.f <= current.f) {
                 this.values[parentIdx] = current;
                 this.values[idx] = parent;
                 idx = parentIdx;
