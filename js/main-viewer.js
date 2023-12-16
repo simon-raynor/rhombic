@@ -110,16 +110,17 @@ const cave = new Cave(CAVEDIMENSION);
 
 const wf = new THREE.WireframeGeometry(cave.mesh.geometry);
 const line = new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0x999999 }));
-scene.add(line);
+//scene.add(line);
 
 
 /* const veg = generateVegetation(cave);
 scene.add(veg); */
 
 
-
-/* const points = [],
+const points = [],
     edges = [];
+const tmpVec3 = new THREE.Vector3();
+
 
 cave.pathfinder.nodes.forEach(
     node => {
@@ -128,7 +129,7 @@ cave.pathfinder.nodes.forEach(
             edge => {
                 edges.push(
                     ...edge.A.position.toArray(),
-                    ...edge.B.position.toArray()
+                    ...tmpVec3.copy(edge.B.position).add(edge.A.position).multiplyScalar(0.5).toArray()
                 );
             }
         )
@@ -141,18 +142,29 @@ const egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ colo
 
 const ptGeom = new THREE.BufferGeometry();
 ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
-const ptMesh = new THREE.Points(ptGeom, new THREE.PointsMaterial({ color: 0x440000 }));
+const ptMesh = new THREE.Points(ptGeom, new THREE.PointsMaterial({ color: 0x880000 }));
 
-scene.add(egMesh, ptMesh); */
+scene.add(egMesh, ptMesh);
 
 
+const start = cave.pathfinder.nodes[Math.floor(Math.random() * cave.pathfinder.nodes.length)],
+    end = cave.pathfinder.nodes[Math.floor(Math.random() * cave.pathfinder.nodes.length)];
+
+const stPt = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial({color:0x00ff00}));
+stPt.position.copy(start.position);
+scene.add(stPt);
+
+const edPt = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial({color:0xff0000}));
+edPt.position.copy(end.position);
+scene.add(edPt);
 
 const posns = [];
 
-for (let i = 0; i < 500; i += 50) {
+let i = 0;
+//for (let i = 0; i < 500; i += 50) {
     let path = cave.pathfinder.pathfind(
-        cave.pathfinder.nodes[i],
-        cave.pathfinder.nodes[i + 50]
+        start,
+        end
     );
     console.log(i, path);
     
@@ -162,14 +174,12 @@ for (let i = 0; i < 500; i += 50) {
             ...path[i].position.toArray()
         );
     }
-}
+//}
 
 const pathGeom = new THREE.BufferGeometry();
 pathGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posns), 3));
 const pathMesh = new THREE.LineSegments(pathGeom, new THREE.LineBasicMaterial({ color: 0x33ff33 }));
 scene.add(pathMesh);
-
-
 
 
 

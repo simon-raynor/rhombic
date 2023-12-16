@@ -4,7 +4,7 @@ export default class Pathfinder {
         this.cave = cave;
         
         this.nodes = nodes.map(
-            node => new PFNode(this, node)
+            (node, idx) => new PFNode(this, node, idx)
         );
 
         this.nodes.forEach(node => node.initEdges());
@@ -25,14 +25,15 @@ export default class Pathfinder {
         openheap.add(start);
 
         while (openheap.size) {
+            //console.log(openheap.values.map(({idx}) => idx).join(','))
             const current = openheap.extract();
 
             if (current === end) {
                 let cursor = current;
-                const retval = [];
+                const retval = [cursor];
 
                 while (cursor.parent) {
-                    retval.push(cursor);
+                    retval.push(cursor.parent);
                     cursor = cursor.parent;
                 }
 
@@ -43,39 +44,49 @@ export default class Pathfinder {
 
             current.edges.forEach(
                 edge => {
-                    const g = current.g + edge.size;
+                    if (!closed.includes(edge.B)) {
+                        const g = current.g + edge.size;
 
-                    if (!openheap.includes(edge.B)) {
-                        edge.B.g = g;
-                        // TODO: is there a better heuristic?
-                        edge.B.h = edge.B.position.distanceTo(end.position);
+                        if (!openheap.includes(edge.B)) {
+                            openheap.add(edge.B);
 
-                        edge.B.parent = current;
+                            // by not setting h we are effectively using
+                            // dijkstra's rather than A*
+                            // if a better heuristic can be found we might
+                            // be able to go back to A*
+                            //edge.B.h = edge.B.position.distanceToSquared(end.position);
 
-                        openheap.add(edge.B);
-                    } else if (g < edge.B.g) {
-                        edge.B.g = g;
-
-                        edge.B.parent = current;
+                            edge.B.g = g;
+                            edge.B.parent = current;
+                        } else if (g < edge.B.g) {
+                            edge.B.g = g;
+                            edge.B.parent = current;
+                        }
                     }
                 }
             )
         }
 
         // failure case, couldn't find a path
+        console.error('pathfinding failed:', from, '->', to);
+        console.log(closed.map(({idx})=>idx));
         return [];
     }
 }
 
 
 class PFNode {
+    idx = null;
+
     g = 0;
     h = 0;
-    parent = null;
     get f() { return this.g + this.h; }
 
-    constructor(finder, data) {
+    parent = null;
+
+    constructor(finder, data, idx) {
         this.finder = finder;
+        this.idx = idx;
 
         this.position = data.posn.clone();
         this.normal = data.normal.clone();
@@ -97,7 +108,15 @@ class PFNode {
                                     this,
                                     node
                                 )
-                            )
+                            );
+                            if (!node.edges.find(({B}) => B === this )) {
+                                node.edges.push(
+                                    new PFEdge(
+                                        node,
+                                        this,
+                                    )
+                                );
+                            }
                         }
                     }
                 );
@@ -113,11 +132,12 @@ class PFEdge {
         this.A = nodeA;
         this.B = nodeB;
 
-        this.size = nodeA.position.distanceTo(nodeB.position);
+        this.size = nodeA.position.distanceToSquared(nodeB.position);
     }
 }
 
-
+// ~~stolen shamelessly~~ adapted from:
+// https://www.digitalocean.com/community/tutorials/js-binary-heaps
 class PFHeap {
     constructor() {
         this.values = [];

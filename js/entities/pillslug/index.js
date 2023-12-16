@@ -67,7 +67,7 @@ export default class Pillslug {
             }
             `, */
         });
-        console.log(new THREE.MeshLambertMaterial());
+        //console.log(new THREE.MeshLambertMaterial());
 
         this.mesh = new THREE.Mesh(
             geom,
