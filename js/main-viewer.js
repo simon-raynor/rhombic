@@ -22,6 +22,7 @@ import COLORS from './entities/color/index.js';
 import TargetTower from './entities/towers/TargetTower.js';
 import SourceTower from './entities/towers/SourceTower.js';
 import Pillslug from './entities/pillslug/index.js';
+import Creature from './entities/creature/index.js';
 
 
 const stats = new Stats();
@@ -184,17 +185,26 @@ towers.forEach(
 
 
 
-const pillslug = new Pillslug(cave.centre.openings[0]);
+/* const pillslug = new Pillslug(cave.centre.openings[0]);
 pillslug.target = centreTower;
 
-scene.add(pillslug.mesh);
+scene.add(pillslug.mesh); */
 
 
 
 
 
+const creature = new Creature();
 
+const intersect = cave.cells[10].getRandomPointOnMesh();
 
+creature.init(cave, intersect.point, intersect.normal);
+
+creature.target = centreTower;
+
+scene.add(creature.mesh);
+
+console.log(creature)
 
 
 
@@ -205,7 +215,7 @@ scene.add(pillslug.mesh);
 
 const controls = new OrbitControls( camera, renderer.domElement );
 camera.position.set(0, 30, -60);
-controls.target = pillslug.position;
+controls.target = creature.position;
 controls.update();
 
 
@@ -265,7 +275,7 @@ function tick() {
 
     tickGame(dt);
 
-    pillslug.tick(dt);
+    //pillslug.tick(dt);
 
     controls.update();
 
@@ -283,6 +293,15 @@ function tickGame(dt) {
     towers.forEach(t => t.tick(dt, trider));
 
     particlePathManager.tick(dt);
+
+    //pillslug.tick(dt);
+
+    creature.tick(dt);
+
+    if (!pathMesh && creature.path) {
+        pathMesh = drawPath(creature.path);
+        scene.add(pathMesh);
+    }
 }
 
 
@@ -304,9 +323,9 @@ function pause(nextframe) {
 renderer.render(scene, camera);
 
 
-for (let i = 0; i <= 100; i++) {
+/* for (let i = 0; i <= 100; i++) {
     tickGame(1);
-}
+} */
 
 moving.force = 1;
 
@@ -322,3 +341,22 @@ setTimeout(
 
 
 
+
+
+
+function drawPath(path) {
+    const posns = [];
+        
+    for (let i = 1; i < path.length; i++) {
+        posns.push(
+            ...path[i - 1].position.toArray(),
+            ...path[i].position.toArray()
+        );
+    }
+
+    const pathGeom = new THREE.BufferGeometry();
+    pathGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posns), 3));
+    const pathMesh = new THREE.LineSegments(pathGeom, new THREE.LineBasicMaterial({ color: 0x33ff33 }));
+    
+    return pathMesh;
+}

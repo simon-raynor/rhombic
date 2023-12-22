@@ -116,7 +116,7 @@ export default class Pillslug {
                 this.moveTarget = null;
             }
 
-            this.position.add(tmpVec3A);
+            //this.position.add(tmpVec3A);
 
             tmpVec3A.copy(this.position).add(this.normal);
             tmpVec3B.copy(this.normal).negate();
