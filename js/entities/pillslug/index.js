@@ -23,10 +23,11 @@ const geom = new THREE.LatheGeometry(POINTS, 4 , 0, Math.PI);
 
 geom.rotateZ(Math.PI / 2);
 geom.rotateY(-Math.PI / 2);
-geom.scale(0.5, 0.5, 0.5);
+geom.scale(0.4, 0.4, 0.4);
 
 
 const tmpQuat = new THREE.Quaternion();
+const anotherTmpQuat = new THREE.Quaternion();
 const tmpVec3A = new THREE.Vector3();
 const tmpVec3B = new THREE.Vector3();
 const stdUp = new THREE.Vector3(0, 1, 0);
@@ -46,10 +47,7 @@ export default class Pillslug {
     }
 
     tick(dt) {
-        if (!this.target && this.targets?.length) {
-            this.#findTarget();
-        }
-
+        this.moveAlongPath(dt);
         //this.position.add(tmpVec3A.copy(stdFwd).multiplyScalar(1/100).applyQuaternion(this.quaternion));
         //this.mesh.position.copy(this.position);
         //this.mesh.applyQuaternion(this.quaternion);
@@ -57,8 +55,9 @@ export default class Pillslug {
 
     #getMesh() {
         const material = new THREE.MeshLambertMaterial({
-            color: 0xcccccc,
+            color: 0xccdd77,
             flatShading: true,
+            emissive: 0x112200
             /* vertexShader: `
             void main() {
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
@@ -75,28 +74,6 @@ export default class Pillslug {
         );
     }
 
-    #findTarget() {
-        this.targets.forEach(
-            target => {
-                raycaster.set(
-                    this.position,
-                    tmpVec3A.copy(target.position).sub(this.position).normalize()
-                );
-                const intersect = raycaster.intersectObject(this.cave.mesh);
-
-                if (
-                    intersect
-                    && intersect[0].distance < 250
-                    && target.position.distanceToSquared(intersect[0].point) < 10
-                ) {
-                    console.log(target);
-
-                    this.target = target;
-                }
-            }
-        )
-    }
-
     placeInCell(cavecell) {
         const { point, normal } = cavecell.getRandomPointOnMesh();
 
@@ -107,11 +84,63 @@ export default class Pillslug {
         this.mesh.applyQuaternion(this.quaternion);
     }
 
-    registerTargets(targets) {
-        this.targets = targets;
-    }
-
     get position() {
         return this.mesh.position;
+    }
+
+    pathfind() {
+        this.path = this.cave.pathfinder.pathfind(
+            this.position,
+            this.target.position
+        );
+    }
+
+    moveAlongPath(dt) {
+        if (!this.path) {
+            this.pathfind();
+        }
+        if (!this.moveTarget) {
+            this.moveTarget = this.path.shift();
+        }
+
+        if (this.moveTarget) {
+            const step = dt * 5;
+            
+            tmpVec3A.copy(this.moveTarget.position).sub(this.position);
+
+            const distance = tmpVec3A.length();
+
+            if (distance >= step) {
+                tmpVec3A.multiplyScalar(step / distance);
+            } else {
+                this.moveTarget = null;
+            }
+
+            this.position.add(tmpVec3A);
+
+            tmpVec3A.copy(this.position).add(this.normal);
+            tmpVec3B.copy(this.normal).negate();
+
+            raycaster.set(
+                tmpVec3A,
+                tmpVec3B
+            );
+
+            const intersects = raycaster.intersectObject(this.cave.mesh);
+
+            if (intersects[0]) {
+                if (intersects[0].distance < 1) {
+                    tmpVec3A.copy(this.normal).negate().multiplyScalar(1 - intersects[0].distance);
+                    this.position.add(tmpVec3A);
+                }
+
+                tmpQuat.identity().slerp(
+                    anotherTmpQuat.setFromUnitVectors(this.normal, intersects[0].normal),
+                    0.1
+                );
+                this.normal.applyQuaternion(tmpQuat);
+                this.mesh.applyQuaternion(tmpQuat);
+            }
+        }
     }
 }

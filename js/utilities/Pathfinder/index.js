@@ -16,8 +16,8 @@ export default class Pathfinder {
         // init start/end point as a tmp node,
         // find closest node(s) add as edges
         // N.B. for now assume @from is a node
-        const start = from;
-        const end = to;
+        const start = this.getClosestNode(from);
+        const end = this.getClosestNode(to);
 
         const openheap = new PFHeap();
         const closed = [];
@@ -71,6 +71,22 @@ export default class Pathfinder {
         console.error('pathfinding failed:', from, '->', to);
         console.log(closed.map(({idx})=>idx));
         return [];
+    }
+
+    getClosestNode(position) {
+        let closest = null;
+        let minDistance = Infinity;
+        for (let i = 0; i < this.nodes.length; i++) {
+            const node = this.nodes[i];
+            const distance = position.distanceToSquared(node.position);
+
+            if (distance < minDistance) {
+                closest = node;
+                minDistance = distance;
+            }
+        }
+
+        return closest;
     }
 }
 

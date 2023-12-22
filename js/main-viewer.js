@@ -105,88 +105,16 @@ scene.add( light );
 const CAVEDIMENSION = 3;
 
 const cave = new Cave(CAVEDIMENSION);
-//scene.add(cave.mesh);
+scene.add(cave.mesh);
 
 
-const wf = new THREE.WireframeGeometry(cave.mesh.geometry);
+/* const wf = new THREE.WireframeGeometry(cave.mesh.geometry);
 const line = new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0x999999 }));
-//scene.add(line);
+scene.add(line); */
 
 
-/* const veg = generateVegetation(cave);
-scene.add(veg); */
-
-
-const points = [],
-    edges = [];
-const tmpVec3 = new THREE.Vector3();
-
-
-cave.pathfinder.nodes.forEach(
-    node => {
-        points.push(...node.position.toArray());
-        node.edges.forEach(
-            edge => {
-                edges.push(
-                    ...edge.A.position.toArray(),
-                    ...tmpVec3.copy(edge.B.position).add(edge.A.position).multiplyScalar(0.5).toArray()
-                );
-            }
-        )
-    }
-)
-
-const egGeom = new THREE.BufferGeometry();
-egGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(edges), 3));
-const egMesh = new THREE.LineSegments(egGeom, new THREE.LineBasicMaterial({ color: 0x000044 }));
-
-const ptGeom = new THREE.BufferGeometry();
-ptGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
-const ptMesh = new THREE.Points(ptGeom, new THREE.PointsMaterial({ color: 0x880000 }));
-
-scene.add(egMesh, ptMesh);
-
-
-const start = cave.pathfinder.nodes[Math.floor(Math.random() * cave.pathfinder.nodes.length)],
-    end = cave.pathfinder.nodes[Math.floor(Math.random() * cave.pathfinder.nodes.length)];
-
-const stPt = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial({color:0x00ff00}));
-stPt.position.copy(start.position);
-scene.add(stPt);
-
-const edPt = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial({color:0xff0000}));
-edPt.position.copy(end.position);
-scene.add(edPt);
-
-const posns = [];
-
-let i = 0;
-//for (let i = 0; i < 500; i += 50) {
-    let path = cave.pathfinder.pathfind(
-        start,
-        end
-    );
-    console.log(i, path);
-    
-    for (let i = 1; i < path.length; i++) {
-        posns.push(
-            ...path[i - 1].position.toArray(),
-            ...path[i].position.toArray()
-        );
-    }
-//}
-
-const pathGeom = new THREE.BufferGeometry();
-pathGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posns), 3));
-const pathMesh = new THREE.LineSegments(pathGeom, new THREE.LineBasicMaterial({ color: 0x33ff33 }));
-scene.add(pathMesh);
-
-
-
-
-
-const pillslug = new Pillslug(cave.centre);
-scene.add(pillslug.mesh);
+const veg = generateVegetation(cave);
+scene.add(veg);
 
 
 
@@ -209,7 +137,7 @@ const centreTower = new TargetTower(
 
 const towers = [];
 
-/* towers.push(centreTower);
+towers.push(centreTower);
 
 cave.cells.forEach(
     cell => {
@@ -227,13 +155,13 @@ cave.cells.forEach(
 
 towers.map(
     t => scene.add(t.mesh)
-); */
+);
 
 
 
 const particlePathManager = new ParticlePath();
 
-//scene.add(particlePathManager.mesh);
+scene.add(particlePathManager.mesh);
 
 towers.forEach(
     tower => {
@@ -254,7 +182,13 @@ towers.forEach(
 
 
 
-pillslug.registerTargets(towers);
+
+
+const pillslug = new Pillslug(cave.centre.openings[0]);
+pillslug.target = centreTower;
+
+scene.add(pillslug.mesh);
+
 
 
 
@@ -331,6 +265,8 @@ function tick() {
 
     tickGame(dt);
 
+    pillslug.tick(dt);
+
     controls.update();
 
     //renderer.render(scene, camera);
@@ -338,10 +274,11 @@ function tick() {
 
 }
 
+
+let pathMesh = null;
+
 function tickGame(dt) {
     trider.tick(dt, cave.mesh, moving);
-
-    pillslug.tick(dt);
 
     towers.forEach(t => t.tick(dt, trider));
 
