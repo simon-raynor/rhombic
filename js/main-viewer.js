@@ -194,7 +194,7 @@ scene.add(pillslug.mesh); */
 
 
 
-const creature = new Creature();
+const creature = new Pillslug();
 
 const intersect = cave.cells[10].getRandomPointOnMesh();
 

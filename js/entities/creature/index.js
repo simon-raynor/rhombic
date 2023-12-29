@@ -21,7 +21,7 @@ export default class Creature {
     }
 
     normal = null;
-    speed = 5;
+    speed = 1;
     
     constructor() {
         this.normal = new THREE.Vector3();
@@ -30,8 +30,6 @@ export default class Creature {
     init(cave, position, normal) {
         this.cave = cave;
 
-        this.initMesh();
-
         this.position.copy(position);
         this.normal.copy(normal);
 
@@ -39,7 +37,7 @@ export default class Creature {
         this.mesh.applyQuaternion(tmpQuatA);
     }
 
-    initMesh() {
+    #initMesh() {
         const geom = new THREE.BoxGeometry(3, 3, 3);
         geom.translate(0, 1.5, 0);
 

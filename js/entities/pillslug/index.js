@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import Creature from '../creature/index.js';
 
 const POINTS = [
     new THREE.Vector2(0, -11),
@@ -36,24 +37,19 @@ const stdFwd = new THREE.Vector3(0, 0, 1);
 const raycaster = new THREE.Raycaster();
 
 
-export default class Pillslug {
-    target = null;
-    constructor(cavecell) {
-        this.cave = cavecell.cave;
+export default class Pillslug extends Creature {
+    speed = 5;
 
-        this.#getMesh();
-
-        this.placeInCell(cavecell);
+    constructor() {
+        super();
     }
 
-    tick(dt) {
-        this.moveAlongPath(dt);
-        //this.position.add(tmpVec3A.copy(stdFwd).multiplyScalar(1/100).applyQuaternion(this.quaternion));
-        //this.mesh.position.copy(this.position);
-        //this.mesh.applyQuaternion(this.quaternion);
+    init(cave, position, normal) {
+        this.#initMesh();
+        super.init(cave, position, normal );
     }
 
-    #getMesh() {
+    #initMesh() {
         const material = new THREE.MeshLambertMaterial({
             color: 0xccdd77,
             flatShading: true,
@@ -72,75 +68,5 @@ export default class Pillslug {
             geom,
             material
         );
-    }
-
-    placeInCell(cavecell) {
-        const { point, normal } = cavecell.getRandomPointOnMesh();
-
-        this.position.copy(point);
-        this.normal = new THREE.Vector3().copy(normal);
-        this.quaternion = new THREE.Quaternion().setFromUnitVectors(stdUp, this.normal);
-
-        this.mesh.applyQuaternion(this.quaternion);
-    }
-
-    get position() {
-        return this.mesh.position;
-    }
-
-    pathfind() {
-        this.path = this.cave.pathfinder.pathfind(
-            this.position,
-            this.target.position
-        );
-    }
-
-    moveAlongPath(dt) {
-        if (!this.path) {
-            this.pathfind();
-        }
-        if (!this.moveTarget) {
-            this.moveTarget = this.path.shift();
-        }
-
-        if (this.moveTarget) {
-            const step = dt * 5;
-            
-            tmpVec3A.copy(this.moveTarget.position).sub(this.position);
-
-            const distance = tmpVec3A.length();
-
-            if (distance >= step) {
-                tmpVec3A.multiplyScalar(step / distance);
-            } else {
-                this.moveTarget = null;
-            }
-
-            //this.position.add(tmpVec3A);
-
-            tmpVec3A.copy(this.position).add(this.normal);
-            tmpVec3B.copy(this.normal).negate();
-
-            raycaster.set(
-                tmpVec3A,
-                tmpVec3B
-            );
-
-            const intersects = raycaster.intersectObject(this.cave.mesh);
-
-            if (intersects[0]) {
-                if (intersects[0].distance < 1) {
-                    tmpVec3A.copy(this.normal).negate().multiplyScalar(1 - intersects[0].distance);
-                    this.position.add(tmpVec3A);
-                }
-
-                tmpQuat.identity().slerp(
-                    anotherTmpQuat.setFromUnitVectors(this.normal, intersects[0].normal),
-                    0.1
-                );
-                this.normal.applyQuaternion(tmpQuat);
-                this.mesh.applyQuaternion(tmpQuat);
-            }
-        }
     }
 }
