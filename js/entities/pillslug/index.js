@@ -27,16 +27,6 @@ geom.rotateY(-Math.PI / 2);
 geom.scale(0.4, 0.4, 0.4);
 
 
-const tmpQuat = new THREE.Quaternion();
-const anotherTmpQuat = new THREE.Quaternion();
-const tmpVec3A = new THREE.Vector3();
-const tmpVec3B = new THREE.Vector3();
-const stdUp = new THREE.Vector3(0, 1, 0);
-const stdFwd = new THREE.Vector3(0, 0, 1);
-
-const raycaster = new THREE.Raycaster();
-
-
 export default class Pillslug extends Creature {
     speed = 5;
 
@@ -54,15 +44,7 @@ export default class Pillslug extends Creature {
             color: 0xccdd77,
             flatShading: true,
             emissive: 0x112200
-            /* vertexShader: `
-            void main() {
-                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-
-                gl_Position = projectionMatrix * mvPosition;
-            }
-            `, */
         });
-        //console.log(new THREE.MeshLambertMaterial());
 
         this.mesh = new THREE.Mesh(
             geom,

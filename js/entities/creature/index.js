@@ -1,11 +1,9 @@
 import * as THREE from 'three';
 
-const tmpVec2 = new THREE.Vector2();
 const tmpVec3A = new THREE.Vector3();
 const tmpVec3B = new THREE.Vector3();
 const tmpQuatA = new THREE.Quaternion();
 const tmpQuatB = new THREE.Quaternion();
-const tmpObj = new THREE.Object3D();
 
 const raycaster = new THREE.Raycaster();
 
@@ -28,6 +26,9 @@ export default class Creature {
     }
     
     init(cave, position, normal) {
+        if (!this.mesh) {
+            this.#initMesh();
+        }
         this.cave = cave;
 
         this.position.copy(position);
