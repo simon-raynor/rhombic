@@ -183,28 +183,26 @@ towers.forEach(
 
 
 
+const creatures = [];
 
 
-/* const pillslug = new Pillslug(cave.centre.openings[0]);
-pillslug.target = centreTower;
+for (let i = 0; i < 10; i++) {
+    const cellNo = 1 + Math.floor(Math.random() * (cave.cells.length - 1));
+    const intersect = cave.cells[cellNo].getRandomPointOnMesh();
 
-scene.add(pillslug.mesh); */
+    const creature = new Pillslug();
 
+    creature.init(cave, intersect.point, intersect.normal);
 
+    creature.target = centreTower;
+    creature.pathfind();
+        
+    scene.add(creature.mesh);
 
+    creatures.push(creature);
+}
 
-
-const creature = new Pillslug();
-
-const intersect = cave.cells[10].getRandomPointOnMesh();
-
-creature.init(cave, intersect.point, intersect.normal);
-
-creature.target = centreTower;
-
-scene.add(creature.mesh);
-
-console.log(creature)
+console.log(creatures)
 
 
 
@@ -215,7 +213,7 @@ console.log(creature)
 
 const controls = new OrbitControls( camera, renderer.domElement );
 camera.position.set(0, 30, -60);
-controls.target = creature.position;
+controls.target = centreTower.position;
 controls.update();
 
 
@@ -289,19 +287,18 @@ let pathMesh = null;
 
 function tickGame(dt) {
     trider.tick(dt, cave.mesh, moving);
+    //trider2.tick(dt, cave.mesh, moving);
 
     towers.forEach(t => t.tick(dt, trider));
 
     particlePathManager.tick(dt);
 
-    //pillslug.tick(dt);
+    creatures.forEach(c => c.tick(dt));
 
-    creature.tick(dt);
-
-    if (!pathMesh && creature.path) {
+    /* if (!pathMesh && creature.path) {
         pathMesh = drawPath(creature.path);
         scene.add(pathMesh);
-    }
+    } */
 }
 
 
@@ -344,7 +341,7 @@ setTimeout(
 
 
 
-function drawPath(path) {
+/* function drawPath(path) {
     const posns = [];
         
     for (let i = 1; i < path.length; i++) {
@@ -359,4 +356,4 @@ function drawPath(path) {
     const pathMesh = new THREE.LineSegments(pathGeom, new THREE.LineBasicMaterial({ color: 0x33ff33 }));
     
     return pathMesh;
-}
+} */

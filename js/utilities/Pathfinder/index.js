@@ -22,6 +22,8 @@ export default class Pathfinder {
         const openheap = new PFHeap();
         const closed = [];
 
+        // reset this incase it was set from last time
+        start.parent = null;
         openheap.add(start);
 
         while (openheap.size) {

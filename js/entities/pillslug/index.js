@@ -27,6 +27,13 @@ geom.rotateY(-Math.PI / 2);
 geom.scale(0.4, 0.4, 0.4);
 
 
+const material = new THREE.MeshLambertMaterial({
+    color: 0xccdd77,
+    flatShading: true,
+    emissive: 0x112200
+});
+
+
 export default class Pillslug extends Creature {
     speed = 5;
 
@@ -40,12 +47,6 @@ export default class Pillslug extends Creature {
     }
 
     #initMesh() {
-        const material = new THREE.MeshLambertMaterial({
-            color: 0xccdd77,
-            flatShading: true,
-            emissive: 0x112200
-        });
-
         this.mesh = new THREE.Mesh(
             geom,
             material
