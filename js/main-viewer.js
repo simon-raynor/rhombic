@@ -5,12 +5,6 @@ import nipplejs from 'nipplejs';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-
 
 import Stats from 'three/addons/libs/stats.module.js';
 import { Cave } from './entities/cave/index.js';
@@ -23,6 +17,7 @@ import TargetTower from './entities/towers/TargetTower.js';
 import SourceTower from './entities/towers/SourceTower.js';
 import Pillslug from './entities/pillslug/index.js';
 import Creature from './entities/creature/index.js';
+import { Camera } from './entities/camera/index.js';
 
 
 const stats = new Stats();
@@ -40,52 +35,6 @@ document.body.appendChild(renderer.domElement);
 
 
 
-const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.5,
-    500
-);
-
-
-
-const renderTarget = new THREE.WebGLRenderTarget(
-    window.innerWidth,
-    window.innerHeight,
-    {
-        //format: THREE.RGBAFormat,
-        type: THREE.FloatType,
-    }
-)
-
-
-
-const composer = new EffectComposer( renderer/* , renderTarget */ );
-
-composer.addPass(
-    new RenderPass(scene, camera)
-);
-
-
-/* const PIXEL_SIZE = 1;
-const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, camera);
-pixelPass.normalEdgeStrength = 0.05;
-pixelPass.depthEdgeStrength = 0.1;
-
-composer.addPass(
-    pixelPass
-); */
-
-/* const bloomPass = new UnrealBloomPass(new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85);
-bloomPass.threshold = 0.1;
-bloomPass.strength = 0.5;
-bloomPass.radius = 0;
-composer.addPass(bloomPass); */
-
-
-composer.addPass(
-    new OutputPass()
-);
 
 
 
@@ -94,9 +43,9 @@ composer.addPass(
 
 
 
-const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+/* const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
 directionalLight.position.set(3, 2, 1);
-scene.add( directionalLight );
+scene.add( directionalLight ); */
 const light = new THREE.AmbientLight( 0x202020 ); // soft white light
 //const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
@@ -186,7 +135,7 @@ towers.forEach(
 const creatures = [];
 
 
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 1; i++) {
     const cellNo = 1 + Math.floor(Math.random() * (cave.cells.length - 1));
     const intersect = cave.cells[cellNo].getRandomPointOnMesh();
 
@@ -211,10 +160,21 @@ console.log(creatures)
 
 
 
-const controls = new OrbitControls( camera, renderer.domElement );
-camera.position.set(0, 30, -60);
+const maincamera = new Camera();
+maincamera.init(renderer, scene, cave);
+scene.add(maincamera.instance);
+
+//maincamera.lookAt(trider);
+maincamera.instance.position.set(...cave.centre.worldposition.toArray());
+maincamera.instance.lookAt(centreTower.position);
+
+console.log(maincamera);
+
+
+/* const controls = new OrbitControls( maincamera.instance, renderer.domElement );
+//maincamera.instance.position.set(0, 30, -60);
 controls.target = centreTower.position;
-controls.update();
+controls.update(); */
 
 
 
@@ -268,17 +228,12 @@ function tick() {
         pause(nextframe);
     }
 
-
-    stats.update();
-
     tickGame(dt);
 
-    //pillslug.tick(dt);
+    stats.update();
+    //controls.update();
 
-    controls.update();
-
-    //renderer.render(scene, camera);
-    composer.render();
+    maincamera.tick(dt);
 
 }
 
@@ -316,8 +271,6 @@ function pause(nextframe) {
 }
 
 
-
-renderer.render(scene, camera);
 
 
 /* for (let i = 0; i <= 100; i++) {
