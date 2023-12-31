@@ -66,12 +66,12 @@ const light = new THREE.PointLight( GLOW_COLOR, 1, 20 );
 light.position.add({x: 0, y: SQRT3, z: 0});
 
 
-const spotlight = new THREE.SpotLight(GLOW_COLOR, 1, 150, Math.PI / 6, 0.5, 4);
+/* const spotlight = new THREE.SpotLight(GLOW_COLOR, 1, 150, Math.PI / 6, 0.5, 4);
 const spottarget = new THREE.Object3D();
 
 spotlight.position.set(0, SQRT3 * 2, SQRT3);
 spottarget.position.set(0, SQRT3 * 2, 1 + SQRT3);
-spotlight.target = spottarget;
+spotlight.target = spottarget; */
 
 
 // orientation arrows
@@ -167,8 +167,8 @@ export default class Trider {
         this.mesh.add(skeleton.bones[0]); // root bone
         this.mesh.bind(skeleton);
         this.mesh.add(light);
-        this.mesh.add(spotlight);
-        this.mesh.add(spottarget);
+        //this.mesh.add(spotlight);
+        //this.mesh.add(spottarget);
         this.#footIKBones = [
             this.mesh.skeleton.bones[1 + BONES_PER_LEG],
             this.mesh.skeleton.bones[1 + BONES_PER_LEG + BONES_PER_LEG],

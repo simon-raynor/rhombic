@@ -1,6 +1,6 @@
 const RED = 0xff1111;
 const GREEN = 0x22cc00;
-const BLUE = 0x4444ff;
+const BLUE = 0x6666ff;
 
 const CYAN = 0x11ffff;
 const MAGENTA = 0xff22cc;

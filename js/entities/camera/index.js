@@ -29,10 +29,11 @@ export class Camera {
 
         this.light = new THREE.SpotLight(
             0x888888,
+            0.5,
+            CAVESCALE * 6,
+            Math.PI / 4,
             0.75,
-            CAVESCALE * 5,
-            Math.PI / 5,
-            0.5
+            2
         );
         this.light.position.set(0, 0, 1);
         this.wrapper.add(this.light);
