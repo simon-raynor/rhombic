@@ -162,11 +162,11 @@ console.log(creatures)
 
 const maincamera = new Camera();
 maincamera.init(renderer, scene, cave);
-scene.add(maincamera.instance);
+scene.add(maincamera.wrapper);
 
 //maincamera.lookAt(trider);
-maincamera.instance.position.set(...cave.centre.worldposition.toArray());
-maincamera.instance.lookAt(centreTower.position);
+maincamera.wrapper.position.set(...cave.centre.worldposition.toArray());
+maincamera.wrapper.lookAt(centreTower.position);
 
 console.log(maincamera);
 
@@ -178,8 +178,8 @@ controls.update(); */
 
 
 
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
+/* const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper ); */
 
 /* const skelehelper = new THREE.SkeletonHelper( trider.mesh );
 scene.add( skelehelper ); */

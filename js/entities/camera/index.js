@@ -17,15 +17,33 @@ const STD_FWD = new THREE.Vector3(0, 0, 1);
 
 export class Camera {
     constructor() {
+        this.wrapper = new THREE.Object3D();
+        
         this.instance = new THREE.PerspectiveCamera(
             75,
             window.innerWidth / window.innerHeight,
             0.5,
             500
         );
+        this.wrapper.add(this.instance);
+
+        this.light = new THREE.SpotLight(
+            0x888888,
+            0.75,
+            CAVESCALE * 5,
+            Math.PI / 5,
+            0.5
+        );
+        this.light.position.set(0, 0, 1);
+        this.wrapper.add(this.light);
+        this.light.target = this.instance;
+
     }
 
     init(renderer, scene, cave) {
+        this.renderer = renderer;
+
+
         this.cave = cave;
 
         // should the render effects really be here? where
@@ -83,19 +101,17 @@ export class Camera {
                 this.#t = 1;
             }
 
-            this.instance.position.lerpVectors(
+            this.wrapper.position.lerpVectors(
                 this.#position,
                 this.#nextposition,
                 this.#t
             );
 
-            this.instance.quaternion.slerpQuaternions(
+            this.wrapper.quaternion.slerpQuaternions(
                 this.#quaternion,
                 this.#nextquaternion,
                 this.#t
             );
-
-            console.log(...this.instance.position.toArray(), '|', ...this.instance.quaternion.toArray());
 
             if (this.#t === 1) {
                 this.#position.copy(this.#nextposition);
@@ -116,11 +132,11 @@ export class Camera {
 
 
     lookAt(point, normal) {
-        this.#position.copy(this.instance.position);
-        this.#quaternion.copy(this.instance.quaternion);
+        this.#position.copy(this.wrapper.position);
+        this.#quaternion.copy(this.wrapper.quaternion);
 
         this.#nextposition.copy(normal)
-            .multiplyScalar(CAVESCALE * 1.5)
+            .multiplyScalar(CAVESCALE * 1.75)
             .add(point);
         this.#nextquaternion.setFromUnitVectors(
             STD_FWD,
@@ -146,6 +162,11 @@ export class Camera {
         );
 
         this.#addHandler(
+            'wheel',
+            evt => this.#handleWheel(evt)
+        );
+
+        this.#addHandler(
             'pointerdown',
             evt => this.#handlePointerDown(evt)
         );
@@ -153,6 +174,11 @@ export class Camera {
         this.#addHandler(
             'pointerup',
             evt => this.#handlePointerUp(evt)
+        );
+
+        this.#addHandler(
+            'pointerout',
+            evt => this.#handlePointerOut(evt)
         );
 
         this.#addHandler(
@@ -166,73 +192,70 @@ export class Camera {
     #addHandler(evtname, fn) {
         if (this.#handlers[evtname]) {
             // TODO reuse the DOM event somehow
-            this.#handlers[evtname].push(window.addEventListener(evtname, fn));
+            this.#handlers[evtname].push(
+                this.renderer.domElement.addEventListener(evtname, fn));
         } else {
-            this.#handlers[evtname] = [window.addEventListener(evtname, fn)];
+            this.#handlers[evtname] = [this.renderer.domElement.addEventListener(evtname, fn)];
         };
     }
 
     #removeEventListeners() {
         for (let [evtname, handlers] of Object.entries(this.#handlers)) {
-            handlers.forEach(handler => window.removeEventListener(evtname, handler));
+            handlers.forEach(handler => this.renderer.domElement.removeEventListener(evtname, handler));
         }
     }
 
 
     #handleClick(evt) {
-        console.log(evt);
-        if (evt.detail == 1) {
-            // single click
-            raycaster.setFromCamera(
-                tmpVec2.set(
-                    ...normaliseEventScreenCoords(evt)
-                ),
-                this.instance
-            );
-            
-            // TODO: check for clicking on actual "things" e.g. triders
-            const intersect = raycaster.intersectObject(this.cave.mesh);
+        if (evt.button === 0) {
+            if (evt.detail == 1) {
+                // single click
+                raycaster.setFromCamera(
+                    tmpVec2.set(
+                        ...normaliseEventScreenCoords(evt)
+                    ),
+                    this.instance
+                );
+                
+                // TODO: check for clicking on actual "things" e.g. triders
+                const intersect = raycaster.intersectObject(this.cave.mesh);
 
-            /* this.scene.add(
-                new THREE.ArrowHelper(
-                    intersect[0].normal,
-                    intersect[0].point,
-                    CAVESCALE,
-                    0xdddd88
-                )
-            ); */
+                /* this.scene.add(
+                    new THREE.ArrowHelper(
+                        intersect[0].normal,
+                        intersect[0].point,
+                        CAVESCALE,
+                        0xdddd88
+                    )
+                ); */
 
-        } else if (evt.detail == 2) {
-            // double click
-            raycaster.setFromCamera(
-                tmpVec2.set(
-                    ...normaliseEventScreenCoords(evt)
-                ),
-                this.instance
-            );
+            } else if (evt.detail == 2) {
+                // double click
+                raycaster.setFromCamera(
+                    tmpVec2.set(
+                        ...normaliseEventScreenCoords(evt)
+                    ),
+                    this.instance
+                );
 
-            // TODO: check for clicking on actual "things" e.g. triders
-            const intersect = raycaster.intersectObject(this.cave.mesh);
+                // TODO: check for clicking on actual "things" e.g. triders
+                const intersect = raycaster.intersectObject(this.cave.mesh);
 
-            const { point, normal } = intersect[0];
+                const { point, normal } = intersect[0];
 
-            this.lookAt(point, normal);
-
-
-            /* const mesh = new THREE.Mesh(
-                new THREE.SphereGeometry(1),
-                new THREE.MeshBasicMaterial({color: 0xff0000, emissive: 0xff0000})
-            );
-            mesh.position.copy(this.#nextposition).sub(intersect[0].normal).sub(intersect[0].normal).sub(intersect[0].normal);
-            this.scene.add(
-                new THREE.ArrowHelper(
-                    intersect[0].normal,
-                    intersect[0].point,
-                    CAVESCALE
-                ),
-                mesh
-            ); */
+                this.lookAt(point, normal);
+            }
         }
+    }
+
+    #handleWheel(evt) {
+        const dy = evt.deltaY;
+
+        tmpVec3.copy(STD_FWD)
+            .applyQuaternion(this.wrapper.quaternion)
+            .multiplyScalar(dy / 100);
+
+        this.wrapper.position.add(tmpVec3);
     }
 
 
@@ -257,7 +280,7 @@ export class Camera {
         } else if (!this.#pointer2) {
             const [x, y] = normaliseEventScreenCoords(evt);
             this.#pointer2 = {
-                id: pointerId,
+                id: evt.pointerId,
                 x,
                 y,
                 t: Date.now()
@@ -289,12 +312,14 @@ export class Camera {
 
     #handlePointerDown(evt) {
         this.#addPointer(evt);
-        console.log(this.#pointer1, this.#pointer2);
     }
 
     #handlePointerUp(evt) {
         this.#removePointer(evt);
-        console.log(this.#pointer1, this.#pointer2);
+    }
+
+    #handlePointerOut(evt) {
+        this.#removePointer(evt);
     }
 
     #handlePointerMove(evt) {
@@ -315,7 +340,7 @@ export class Camera {
                 -dy,
                 dx,
                 0
-            ).applyQuaternion(this.instance.quaternion);
+            ).applyQuaternion(this.wrapper.quaternion);
 
             const magnitude = tmpVec3.length();
 
@@ -324,12 +349,12 @@ export class Camera {
                 magnitude
             );
 
-            this.instance.applyQuaternion(tmpQuat);
+            this.wrapper.applyQuaternion(tmpQuat);
 
             this.#pointer1.x = evtX;
             this.#pointer1.y = evtY;
 
-            this.#quaternion.copy(this.instance.quaternion);
+            this.#quaternion.copy(this.wrapper.quaternion);
         }
     }
 }

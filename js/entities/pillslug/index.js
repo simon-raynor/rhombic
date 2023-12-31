@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import Creature from '../creature/index.js';
 
+const SIZE = 0.1;
+
 const POINTS = [
     new THREE.Vector2(0, -11),
     new THREE.Vector2(3, -9.5),
@@ -24,7 +26,7 @@ const geom = new THREE.LatheGeometry(POINTS, 4 , 0, Math.PI);
 
 geom.rotateZ(Math.PI / 2);
 geom.rotateY(-Math.PI / 2);
-geom.scale(0.4, 0.4, 0.4);
+geom.scale(SIZE, SIZE, SIZE);
 
 
 const material = new THREE.MeshLambertMaterial({

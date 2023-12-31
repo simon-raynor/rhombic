@@ -6,22 +6,6 @@ import { TRIGONAL_ROTATER, createTrigonal } from "../../geometries/trigonaltrape
 
 
 
-const OUTER1_UVS = [
-    0,1, 0,0.5, 0.5,0.5,
-    0,1, 0.5,0.5, 0.5,1
-];
-const OUTER2_UVS = [
-    0.5,0.5, 0.5,0, 1,0,
-    0.5,0.5, 1,0, 1,0.5
-];
-const FACE_UVS = [
-    0.5,1, 0.5,0.5, 1,0.5,
-    0.5,1, 1,0.5, 1,1
-];
-const INNER_UVS = [
-    0,0.5, 0,0, 0.5,0,
-    0,0.5, 0.5,0, 0.5,0.5
-];
 
 const UVS = [
     0,1, 0,0, 1,0,
@@ -57,12 +41,6 @@ body.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([
     ...UVS,
     ...UVS,
     ...UVS,
-    /*... OUTER2_UVS,
-    ...FACE_UVS,
-    ...INNER_UVS,
-    ...INNER_UVS,
-    ...INNER_UVS,
-    ...OUTER1_UVS */
 ]), 2));
 
 
@@ -91,21 +69,7 @@ const theta = Math.acos(A.dot(knee1) / (A.length() * knee1.length()));
 
 
 const flipAxis = new THREE.Vector3(0, -1, 0);
-/* 
-const arm1 = trigonal.clone();
-const arm1rotAxis = new THREE.Vector3(1.73205080757, 0, 1).normalize();
-arm1.applyQuaternion(
-    (new THREE.Quaternion()).setFromAxisAngle(
-        flipAxis,
-        Math.PI
-    ).multiply(
-        (new THREE.Quaternion()).setFromAxisAngle(
-            arm1rotAxis,
-            Math.PI - (2 * theta)
-        )
-    )
-);
- */
+
 const arm1 = trigonal.clone();
 arm1.setAttribute('uv', new THREE.BufferAttribute(ARM_UVS, 2));
 arm1.applyQuaternion(

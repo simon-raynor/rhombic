@@ -148,7 +148,7 @@ export default class Trider {
     up = null
     forwards = null
 
-    #moveSpeed = 8
+    #moveSpeed = 5
 
 
     #footIKBones = [];
@@ -174,6 +174,8 @@ export default class Trider {
             this.mesh.skeleton.bones[1 + BONES_PER_LEG + BONES_PER_LEG],
             this.mesh.skeleton.bones[1 + BONES_PER_LEG + BONES_PER_LEG + BONES_PER_LEG],
         ];
+
+        //this.mesh.scale.set(0.5, 0.5, 0.5);
 
         this.ikSolver = new CCDIKSolver( this.mesh, iks );
     }
