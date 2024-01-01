@@ -12,10 +12,10 @@ const STD_FWD = new THREE.Vector3(0, 0, 1);
 
 export default class Creature {
     get position() {
-        return this.mesh ? this.mesh.position : null;
+        return this.mesh.position;
     }
     get quaternion() {
-        return this.mesh ? this.mesh.quaternion : null;
+        return this.mesh.quaternion;
     }
 
     normal = null;

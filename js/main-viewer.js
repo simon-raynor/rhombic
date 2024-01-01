@@ -18,6 +18,7 @@ import SourceTower from './entities/towers/SourceTower.js';
 import Pillslug from './entities/pillslug/index.js';
 import Creature from './entities/creature/index.js';
 import { Camera } from './entities/camera/index.js';
+import RhombicTower from './entities/towers/RhombicTower.js';
 
 
 const stats = new Stats();
@@ -87,9 +88,18 @@ const centreTower = new TargetTower(
 
 const towers = [];
 
-towers.push(centreTower);
-
 cave.cells.forEach(
+    cell => {
+        const { point, normal } = cell.getRandomPointOnMesh();
+        const tower = new RhombicTower();
+        tower.init(point, normal)
+        towers.push(tower);
+    }
+);
+
+//towers.push(centreTower);
+
+/* cave.cells.forEach(
     cell => {
         if (cell !== cave.centre && Math.random() > 0.5) {
             towers.push(
@@ -101,7 +111,7 @@ cave.cells.forEach(
             );
         }
     }
-);
+); */
 
 towers.map(
     t => scene.add(t.mesh)
@@ -113,29 +123,20 @@ const particlePathManager = new ParticlePath();
 
 scene.add(particlePathManager.mesh);
 
-towers.forEach(
+/* towers.forEach(
     tower => {
         if (tower.target) {
             tower.generatePathToTarget(particlePathManager);
-
-            /* const pathMesh = new THREE.Line(
-                new THREE.BufferGeometry().setFromPoints(
-                    tower.path.getPoints(1000)
-                ),
-                new THREE.LineDashedMaterial({ color: tower.color, dashSize: 2, gapSize: 1 })
-            )
-
-            scene.add(pathMesh); */
         }
     }
-)
+) */
 
 
 
 const creatures = [];
 
 
-for (let i = 0; i < 1; i++) {
+/* for (let i = 0; i < 1; i++) {
     const cellNo = 1 + Math.floor(Math.random() * (cave.cells.length - 1));
     const intersect = cave.cells[cellNo].getRandomPointOnMesh();
 
@@ -151,7 +152,7 @@ for (let i = 0; i < 1; i++) {
     creatures.push(creature);
 }
 
-console.log(creatures)
+console.log(creatures) */
 
 
 
@@ -166,7 +167,7 @@ scene.add(maincamera.wrapper);
 
 //maincamera.lookAt(trider);
 maincamera.wrapper.position.set(...cave.centre.worldposition.toArray());
-maincamera.wrapper.lookAt(centreTower.position);
+maincamera.lookAt(trider.position, trider.up);
 
 console.log(maincamera);
 
