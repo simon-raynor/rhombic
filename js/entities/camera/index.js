@@ -154,6 +154,8 @@ export class Camera {
             'resize',
             () => {
                 this.instance.aspect = window.innerWidth / window.innerHeight;
+                this.instance.updateProjectionMatrix();
+                this.renderer.setSize( window.innerWidth, window.innerHeight );
             }
         );
 
