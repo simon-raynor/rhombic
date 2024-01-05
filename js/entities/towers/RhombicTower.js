@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import COLORS from '../color/index.js';
 
 
 const twoOverRtFive = 2 / Math.sqrt(5);
@@ -90,19 +91,28 @@ uniform float t;
 attribute vec3 barycoord;
 
 varying vec3 vBarycoord;
+varying vec3 vColor;
 
 void main() {
-    vec3 bounce = vec3(0.0, sin(instanceMatrix[3][1] + t * 2.0) + 2.0, 0.0);
+    vec3 bounce = vec3(0.0, sin(instanceMatrix[3][1] + t * 2.0) / 2.0, 0.0);
 
-    float cosT = cos(instanceMatrix[3][1] + t);
-    float sinT = sin(instanceMatrix[3][1] + t);
+    float cosSpin = cos(instanceMatrix[3][1] + t);
+    float sinSpin = sin(instanceMatrix[3][1] + t);
+    float wobbleAngle = cos(instanceMatrix[3][1] + t * 0.5) / 4.0;
+    float cosWobble = cos(wobbleAngle);
+    float sinWobble = sin(wobbleAngle);
 
     mat3 wobble = mat3(
-        cosT, 0.0, sinT,
+        cosSpin, 0.0, sinSpin,
         0.0, 1.0, 0.0,
-        -sinT, 0.0, cosT );
+        -sinSpin, 0.0, cosSpin )
+        * mat3(
+        cosWobble, -sinWobble, 0.0,
+        sinWobble, cosWobble, 0.0,
+        0.0, 0.0, 1.0 );
 
     vBarycoord = barycoord;
+    vColor = instanceColor;
 
     gl_Position = modelViewMatrix * instanceMatrix * vec4(wobble * position + bounce, 1.0) * projectionMatrix;
 }
@@ -112,11 +122,12 @@ const fragmentShader = `
 uniform float t;
 
 varying vec3 vBarycoord;
+varying vec3 vColor;
 
 void main() {
     float edgeProximity = abs(vBarycoord.x - vBarycoord.z) + abs(vBarycoord.y);
     float colored = step(0.8, edgeProximity);
-    gl_FragColor = vec4(colored, colored / 64.0, colored / 64.0, 1.0);
+    gl_FragColor = vec4(colored * vColor, 1.0);
 }
 `;
 
@@ -124,12 +135,6 @@ void main() {
 
 
 
-
-
-const topMaterial = new THREE.MeshPhongMaterial({
-    color: 0xffff00,
-    emissive: 0x888800
-});
 
 
 const tmpObj3d = new THREE.Object3D();
@@ -157,6 +162,7 @@ export default class RhombicTower {
             uniforms: this.#uniforms,
             vertexShader,
             fragmentShader,
+            transparent: true
         });
 
         this.mesh = new THREE.InstancedMesh(
@@ -170,7 +176,11 @@ export default class RhombicTower {
             tmpObj3d.position.set(0, i / 2, 0);
             tmpObj3d.updateMatrix();
             
-            this.mesh.setMatrixAt( PER_TOWER - i, tmpObj3d.matrix )
+            this.mesh.setMatrixAt( PER_TOWER - i, tmpObj3d.matrix );
+            this.mesh.setColorAt(
+                PER_TOWER - i,
+                new THREE.Color(COLORS[Math.floor(COLORS.length * Math.random())])
+            );
         }
 
     }
