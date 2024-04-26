@@ -119,7 +119,7 @@ trider.init(
 
 
 
-const centreTower = new TargetTower(
+/* const centreTower = new TargetTower(
     cave.centre,
     null,
     0xffffff
@@ -148,11 +148,11 @@ cave.cells.forEach(
 
 towers.map(
     t => scene.add(t.mesh)
-);
+); */
 
 
 
-const particlePathManager = new ParticlePath();
+/* const particlePathManager = new ParticlePath();
 
 scene.add(particlePathManager.mesh);
 
@@ -162,7 +162,7 @@ towers.forEach(
             tower.generatePathToTarget(particlePathManager);
         }
     }
-)
+) */
 
 
 
@@ -228,9 +228,9 @@ function tick() {
 
     trider.tick(dt, cave.mesh, movinginput);
 
-    towers.forEach(t => t.tick(dt, trider));
+    /* towers.forEach(t => t.tick(dt, trider));
     
-    particlePathManager.tick(dt);
+    particlePathManager.tick(dt); */
     
 
     // follow cam (needs work!)

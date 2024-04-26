@@ -88,9 +88,9 @@ const centreTower = new TargetTower(
 
 const towers = [];
 
-cave.cells.forEach(
-    cell => {
-        const { point, normal } = cell.getRandomPointOnMesh();
+cave.chunks.forEach(
+    chunk => {
+        const { point, normal } = chunk.getRandomPointOnMesh();
         const tower = new RhombicTower();
         tower.init(point, normal)
         towers.push(tower);
@@ -99,12 +99,12 @@ cave.cells.forEach(
 
 //towers.push(centreTower);
 
-/* cave.cells.forEach(
-    cell => {
-        if (cell !== cave.centre && Math.random() > 0.5) {
+/* cave.chunks.forEach(
+    chunk => {
+        if (chunk !== cave.centre && Math.random() > 0.5) {
             towers.push(
                 new SourceTower(
-                    cell,
+                    chunk,
                     centreTower,
                     COLORS[Math.floor(COLORS.length * Math.random())]
                 )
@@ -137,8 +137,8 @@ const creatures = [];
 
 
 /* for (let i = 0; i < 1; i++) {
-    const cellNo = 1 + Math.floor(Math.random() * (cave.cells.length - 1));
-    const intersect = cave.cells[cellNo].getRandomPointOnMesh();
+    const chunkNo = 1 + Math.floor(Math.random() * (cave.chunks.length - 1));
+    const intersect = cave.chunks[chunkNo].getRandomPointOnMesh();
 
     const creature = new Pillslug();
 
