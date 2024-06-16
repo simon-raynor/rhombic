@@ -4,6 +4,7 @@ import { LoopSubdivision } from 'three-subdivide';
 
 import { RHOMBIC_FACES_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
 import Pathfinder from '../Pathfinder/index.js';
+import generateSurfaceGrid from './surface.js';
 
 const tmpVec3 = new THREE.Vector3();
 const raycaster = new THREE.Raycaster();
@@ -53,16 +54,16 @@ export class Cave {
 
         this.chunks.forEach(chunk => chunk.setCave(this));
 
-        const geometry = generateGeometry(this.chunks);
-        geometry.scale(this.scale, this.scale, this.scale);
+        this.geometry = generateGeometry(this.chunks);
 
-        this.mesh = new THREE.Mesh(
-            smoothGeometry(geometry),
-            blockMaterial
-        );
+        this.mesh = new THREE.Group();
+        this.chunks.forEach(chunk => this.mesh.add(chunk.mesh));
 
 
-        this.pathfinder = new Pathfinder(this, generatePFNodes(this.mesh.geometry));
+        this.surfaceGrid = generateSurfaceGrid(this);
+
+
+        //this.pathfinder = new Pathfinder(this, generatePFNodes(this.mesh.geometry));
 
     
         /* const deadends = [];
@@ -82,6 +83,7 @@ export class Cave {
 
 class Chunk {
     filled = true;
+    surfaceGrid = [];
 
     constructor(posn) {
         this.position = posn;
@@ -113,6 +115,88 @@ class Chunk {
         )
     }
 
+
+    generateGeometry() {
+        const vertices = RHOMBIC_VERTICES.slice();
+        const faces = RHOMBIC_FACES_2D.slice();
+
+        // used to indicate which vertices are
+        // around the openings, so that we don't
+        // move them away from the adjoining chunk
+        const holeVertices = new Set();
+
+        // remove the open faces while logging their
+        // vertices so that we can leave portals to
+        // match up between chunks
+        this.openFaces.forEach(
+            face => {
+                face.forEach(vidx => holeVertices.add(vidx));
+                faces[faces.indexOf(face)] = null;
+            }
+        );
+
+        if (INSET_FACTOR !== 1) {
+            for (let i = 0, l = 14; i < l; i++) {
+                if (!holeVertices.has(i)) {
+                    const n = i * 3;
+                    vertices[n] = vertices[n] * INSET_FACTOR;
+                    vertices[n + 1] = vertices[n + 1] * INSET_FACTOR;
+                    vertices[n + 2] = vertices[n + 2] * INSET_FACTOR;
+                }
+            }
+        }
+
+
+        // start creating the THREE geometry
+        const indexedgeometry = new THREE.BufferGeometry();
+        indexedgeometry.setAttribute(
+            'position',
+            new THREE.BufferAttribute(new Float32Array(vertices), 3)
+        );
+        indexedgeometry.setIndex(faces.filter(Boolean).flat());
+
+
+        // apply (different) uvs for the faces
+        const uvs = [];
+
+        faces.forEach(
+            face => {
+                const uvNum = 2;//Math.floor(Math.random() * RHOMBIC_UVS_2D.length);
+
+                uvs.push(
+                    //...RHOMBIC_UVS_2D[uvNum]
+                    0,1, 0,0, 1,0,
+                    0,1, 1,0, 1,1
+                );
+            }
+        );
+
+        const geometry = indexedgeometry.toNonIndexed();
+        geometry.computeVertexNormals();
+        geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
+        geometry.computeBoundsTree();
+
+
+        // move chunk into position
+        geometry.translate(...this.position.toArray());
+        geometry.scale(this.cave.scale, this.cave.scale, this.cave.scale);
+
+        this.geometry = smoothGeometry(geometry);
+        this.generateMesh();
+
+        return this.geometry;
+    }
+
+    generateMesh() {
+        this.mesh = new THREE.Mesh(
+            this.geometry,
+            blockMaterial
+        );
+
+        this.mesh._cavecell = this;
+    }
+
+
     #openings = [];
 
     set openings(indexes) {
@@ -134,7 +218,7 @@ class Chunk {
                 this.worldposition,
                 tmpVec3.randomDirection()
             );
-            const intersections = raycaster.intersectObject(this.cave.mesh);
+            const intersections = raycaster.intersectObject(this.mesh);console.log(intersections);
             if (intersections.length && intersections[0].distance < distance) {
                 intersection = intersections[0];
             }
@@ -143,6 +227,12 @@ class Chunk {
         } while(!intersection);
 
         return intersection;
+    }
+
+    getRandomGridCell() {
+        const rdIdx = Math.floor(Math.random() * (this.surfaceGrid.length));
+console.log(rdIdx);
+        return this.surfaceGrid[rdIdx];
     }
 }
 
@@ -232,7 +322,7 @@ function generateTunnel(grid, start) {
 
     // give em an ID so easier to debug
     tunnel.forEach((chunk, idx) => {
-        chunk.id = idx;
+        chunk.idx = idx;
 
         // check each neighbour, if it's open we
         // need to flag that face for removal
@@ -268,70 +358,7 @@ function generateGeometry(tunnel) {
 
     tunnel.forEach(
         chunk => {
-            const vertices = RHOMBIC_VERTICES.slice();
-            const faces = RHOMBIC_FACES_2D.slice();
-
-            // used to indicate which vertices are
-            // around the openings, so that we don't
-            // move them away from the adjoining chunk
-            const holeVertices = new Set();
-
-            // remove the open faces while logging their
-            // vertices so that we can leave portals to
-            // match up between chunks
-            chunk.openFaces.forEach(
-                face => {
-                    face.forEach(vidx => holeVertices.add(vidx));
-                    faces[faces.indexOf(face)] = null;
-                }
-            );
-
-            if (INSET_FACTOR !== 1) {
-                for (let i = 0, l = 14; i < l; i++) {
-                    if (!holeVertices.has(i)) {
-                        const n = i * 3;
-                        vertices[n] = vertices[n] * INSET_FACTOR;
-                        vertices[n + 1] = vertices[n + 1] * INSET_FACTOR;
-                        vertices[n + 2] = vertices[n + 2] * INSET_FACTOR;
-                    }
-                }
-            }
-
-
-            // start creating the THREE geometry
-            const indexedgeometry = new THREE.BufferGeometry();
-            indexedgeometry.setAttribute(
-                'position',
-                new THREE.BufferAttribute(new Float32Array(vertices), 3)
-            );
-            indexedgeometry.setIndex(faces.filter(Boolean).flat());
-
-
-            // apply (different) uvs for the faces
-            const uvs = [];
-
-            faces.forEach(
-                face => {
-                    const uvNum = 2;//Math.floor(Math.random() * RHOMBIC_UVS_2D.length);
-
-                    uvs.push(
-                        //...RHOMBIC_UVS_2D[uvNum]
-                        0,1, 0,0, 1,0,
-                        0,1, 1,0, 1,1
-                    );
-                }
-            );
-
-            const geometry = indexedgeometry.toNonIndexed();
-            geometry.computeVertexNormals();
-            geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
-            geometry.computeBoundsTree();
-
-
-            // move chunk into position
-            geometry.translate(...chunk.position.toArray());
-
-            geometries.push(geometry);
+            geometries.push(chunk.generateGeometry());
         }
     );
 
@@ -353,7 +380,8 @@ function smoothGeometry(geometry) {
         geometry,
         1,
         {
-            split: false
+            split: false,
+            preserveEdges: true
         }
     );
 
@@ -371,11 +399,6 @@ const tmpVec3A = new THREE.Vector3(),
 const tmpTriangle = new THREE.Triangle(),
     tmpPosn = new THREE.Vector3(),
     tmpNormal = new THREE.Vector3();
-
-
-function generateSurfaceGrid(geometry) {
-
-}
 
 
 function generatePFNodes(geometry) {

@@ -223,6 +223,8 @@ export class Camera {
                 // TODO: check for clicking on actual "things" e.g. triders
                 const intersect = raycaster.intersectObject(this.cave.mesh);
 
+                //console.log(intersect)
+
                 /* this.scene.add(
                     new THREE.ArrowHelper(
                         intersect[0].normal,

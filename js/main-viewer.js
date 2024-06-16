@@ -19,6 +19,7 @@ import Pillslug from './entities/pillslug/index.js';
 import Creature from './entities/creature/index.js';
 import { Camera } from './entities/camera/index.js';
 import RhombicTower from './entities/towers/RhombicTower.js';
+import Vine from './entities/vines/index.js';
 
 
 const stats = new Stats();
@@ -63,6 +64,36 @@ scene.add(cave.mesh);
 const line = new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0x999999 }));
 scene.add(line); */
 
+//////////////////////////
+// surface grid borders //
+//////////////////////////
+/* const segments = [];
+
+cave.surfaceGrid.forEach(
+    cell => {
+        segments.push(
+            ...cell.a.toArray(),
+            ...cell.b.toArray(),
+            ...cell.b.toArray(),
+            ...cell.c.toArray(),
+            ...cell.c.toArray(),
+            ...cell.a.toArray(),
+        );
+    }
+);
+const geom = new THREE.BufferGeometry();
+geom.setAttribute(
+    'position',
+    new THREE.BufferAttribute(new Float32Array(segments), 3)
+);
+const line = new THREE.LineSegments(
+    geom,
+    new THREE.LineBasicMaterial({ color: 0x999999 })
+);
+scene.add(line); */
+
+
+
 
 const veg = generateAmbientVegetation(cave);
 scene.add(veg);
@@ -82,36 +113,35 @@ trider.init(
 
 
 
-const centreTower = new TargetTower(
+/* const centreTower = new TargetTower(
     cave.centre
-);
+); */
 
 const towers = [];
 
 cave.chunks.forEach(
     chunk => {
-        const { point, normal } = chunk.getRandomPointOnMesh();
+        const cell = chunk.getRandomGridCell();
+
+        const vine = new Vine(cell);
+        towers.push(vine);
+
+        /* const { point, normal } = chunk.getRandomPointOnMesh();
+
+        const vine = new Vine();
+
+        const target = chunk.getRandomPointOnMesh();
+        vine.init(point, normal);
+
+        vine.target(target.point, target.normal);
+
+        towers.push(vine); */
+
         /* const tower = new RhombicTower();
         tower.init(point, normal)
         towers.push(tower); */
     }
 );
-
-//towers.push(centreTower);
-
-/* cave.chunks.forEach(
-    chunk => {
-        if (chunk !== cave.centre && Math.random() > 0.5) {
-            towers.push(
-                new SourceTower(
-                    chunk,
-                    centreTower,
-                    COLORS[Math.floor(COLORS.length * Math.random())]
-                )
-            );
-        }
-    }
-); */
 
 towers.map(
     t => scene.add(t.mesh)
