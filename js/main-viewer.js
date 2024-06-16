@@ -9,7 +9,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { Cave } from './entities/cave/index.js';
 //import ParticlePath from './entities/particlepath.js';
-import generateVegetation from './entities/vegetation/index.js';
+import generateAmbientVegetation from './entities/ambient-vegetation/index.js';
 import ParticlePath from './entities/particles/index.js';
 import Trider from './entities/trider/index.js';
 import COLORS from './entities/color/index.js';
@@ -64,7 +64,7 @@ const line = new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0x9
 scene.add(line); */
 
 
-const veg = generateVegetation(cave);
+const veg = generateAmbientVegetation(cave);
 scene.add(veg);
 
 
@@ -91,9 +91,9 @@ const towers = [];
 cave.chunks.forEach(
     chunk => {
         const { point, normal } = chunk.getRandomPointOnMesh();
-        const tower = new RhombicTower();
+        /* const tower = new RhombicTower();
         tower.init(point, normal)
-        towers.push(tower);
+        towers.push(tower); */
     }
 );
 

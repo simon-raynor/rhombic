@@ -27,7 +27,7 @@ const tmpVec3A = new THREE.Vector3();
 const tmpVec3B = new THREE.Vector3();
 const tmpVec3C = new THREE.Vector3();
 
-export default function generateVegetation(cave) {    
+export default function generateAmbientVegetation(cave) {    
     const { position, normal } = cave.mesh.geometry.attributes;
 
     const positions = [],

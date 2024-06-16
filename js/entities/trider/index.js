@@ -63,7 +63,7 @@ for (let i = 0, l = 12; i < l; i++) {
 
 
 const light = new THREE.PointLight( GLOW_COLOR, 1, 20 );
-light.position.add({x: 0, y: SQRT3, z: 0});
+light.position.add({x: 0, y: ORIENTATION_ORIGIN_HEIGHT, z: 0});
 
 
 /* const spotlight = new THREE.SpotLight(GLOW_COLOR, 1, 150, Math.PI / 6, 0.5, 4);
