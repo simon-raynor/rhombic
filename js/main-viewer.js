@@ -124,7 +124,14 @@ cave.chunks.forEach(
         const cell = chunk.getRandomGridCell();
 
         const vine = new Vine(cell);
-        towers.push(vine);
+        towers.push(
+            vine,
+            new Vine(cell),
+            new Vine(cell),
+            new Vine(vine.target)
+        );
+
+        
 
         /* const { point, normal } = chunk.getRandomPointOnMesh();
 

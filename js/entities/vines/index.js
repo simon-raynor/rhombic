@@ -20,6 +20,9 @@ const H = Math.sqrt(3) / 2;
 const geom = new THREE.ConeGeometry(1, 16, 3);
 
 
+const SEGMENT_SIZE = 4;
+
+
 export default class Vine {
     #uniforms = null;
 
@@ -34,21 +37,7 @@ export default class Vine {
         this.gridcell = gridcell;
         this.findTarget();
 
-        
-        const { centre, normal } = this.target;
-
-        const curve = new THREE.CubicBezierCurve3(
-            this.position,
-            this.normal.clone().multiplyScalar(12).add(this.position),
-            new THREE.Vector3().copy(normal).multiplyScalar(12).add(centre),
-            new THREE.Vector3().copy(centre)
-        );
-
-        const points = curve.getPoints(12);
-
-        const geom = new THREE.BufferGeometry().setFromPoints(points);
-
-        this.mesh = new THREE.Line(geom, new THREE.LineBasicMaterial( { color: 0xff0000 } ));
+        this.getGeometry();
 
         this.#uniforms = {
             t: { value: 0, type: 'f' },
@@ -77,6 +66,24 @@ export default class Vine {
         this.target = available[
             Math.floor(Math.random() * available.length)
         ];
+    }
+
+    getGeometry() {
+        const { centre, normal } = this.target;
+
+        this.curve = new THREE.CubicBezierCurve3(
+            this.position,
+            this.normal.clone().multiplyScalar(20).add(this.position),
+            new THREE.Vector3().copy(normal).multiplyScalar(20).add(centre),
+            new THREE.Vector3().copy(centre)
+        );
+
+        const length = this.curve.getLength();
+        const segmentCount = Math.floor(length / SEGMENT_SIZE);
+
+        const geom = new THREE.TubeGeometry(this.curve, segmentCount, 0.5, 3);
+
+        this.mesh = new THREE.Mesh(geom, new THREE.MeshPhongMaterial({ color: 0x22ee00, flatShading: true }));
     }
 
     tick(dt) {
