@@ -128,7 +128,7 @@ export default class SourceTower extends Tower {
     }
 
     #getGeometry() {
-        const cavemesh = this.cavecell.cave.mesh;
+        const cavemesh = this.cavecell.chunk.cave.mesh;
 
         const points = [],
             normals = [],
@@ -240,7 +240,7 @@ export default class SourceTower extends Tower {
         this.light = new THREE.PointLight(
             this.color,
             0.1,
-            this.cavecell.cave.scale * 2
+            this.cavecell.chunk.cave.scale * 2
         );
 
         this.light.position.copy(this.normal).multiplyScalar(3).add(this.position);

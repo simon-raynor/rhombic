@@ -231,7 +231,7 @@ class Chunk {
 
     getRandomGridCell() {
         const rdIdx = Math.floor(Math.random() * (this.surfaceGrid.length));
-console.log(rdIdx);
+        //console.log(rdIdx);
         return this.surfaceGrid[rdIdx];
     }
 }

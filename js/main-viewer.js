@@ -113,9 +113,9 @@ trider.init(
 
 
 
-/* const centreTower = new TargetTower(
-    cave.centre
-); */
+const centreTower = new TargetTower(
+    cave.centre.getRandomGridCell()
+);
 
 const towers = [];
 
@@ -131,22 +131,16 @@ cave.chunks.forEach(
             new Vine(vine.target)
         );
 
-        
+        const cell2 = chunk.getRandomGridCell();
 
-        /* const { point, normal } = chunk.getRandomPointOnMesh();
-
-        const vine = new Vine();
-
-        const target = chunk.getRandomPointOnMesh();
-        vine.init(point, normal);
-
-        vine.target(target.point, target.normal);
-
-        towers.push(vine); */
-
-        /* const tower = new RhombicTower();
-        tower.init(point, normal)
-        towers.push(tower); */
+        towers.push(
+            new SourceTower(
+                cell2,
+                centreTower,
+                COLORS[Math.floor(COLORS.length * Math.random())]
+                //tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
+            )
+        );
     }
 );
 
@@ -160,9 +154,11 @@ const particlePathManager = new ParticlePath();
 
 scene.add(particlePathManager.mesh);
 
+// TODO: draw the paths w/ pathfinder
+
 /* towers.forEach(
     tower => {
-        if (tower.target) {
+        if (tower instanceof SourceTower) {
             tower.generatePathToTarget(particlePathManager);
         }
     }

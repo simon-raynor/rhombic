@@ -20,9 +20,9 @@ export default class Tower {
     }
 
     placeInCell() {
-        const { point, normal } = this.cavecell.getRandomPointOnMesh();
+        const { centre, normal } = this.cavecell;
 
-        this.position = new THREE.Vector3().copy(point);
+        this.position = new THREE.Vector3().copy(centre);
         this.normal = new THREE.Vector3().copy(normal);
     }
 

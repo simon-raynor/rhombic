@@ -12,12 +12,12 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 import Stats from 'three/addons/libs/stats.module.js';
 import { Cave } from './entities/cave/index.js';
-import generateVegetation from './entities/vegetation/index.js';
 import ParticlePath from './entities/particles/index.js';
 import Trider from './entities/trider/index.js';
 import TargetTower from './entities/towers/TargetTower.js';
 import SourceTower from './entities/towers/SourceTower.js';
 import COLORS from './entities/color/index.js';
+import generateAmbientVegetation from './entities/ambient-vegetation/index.js';
 
 
 const stats = new Stats();
@@ -102,7 +102,7 @@ const CAVEDIMENSION = 3;
 const cave = new Cave(CAVEDIMENSION);
 scene.add(cave.mesh);
 
-const veg = generateVegetation(cave);
+const veg = generateAmbientVegetation(cave);
 scene.add(veg);
 
 
