@@ -148,7 +148,7 @@ export default class Trider {
     up = null
     forwards = null
 
-    #moveSpeed = 5
+    #moveSpeed = 7
 
 
     #footIKBones = [];

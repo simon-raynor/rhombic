@@ -243,7 +243,7 @@ export default class SourceTower extends Tower {
             this.cavecell.chunk.cave.scale * 2
         );
 
-        this.light.position.copy(this.normal).multiplyScalar(3).add(this.position);
+        this.light.position.copy(this.normal).multiplyScalar(5).add(this.position);
 
         this.mesh.add(this.light);
     }

@@ -3,23 +3,6 @@ import * as THREE from 'three';
 
 const tmpNormal = new THREE.Vector3();
 const tmpVertex = new THREE.Vector3();
-const tmpObj3d = new THREE.Object3D();
-const tmpQuat = new THREE.Quaternion();
-const STD_UP = new THREE.Vector3(0, 1, 0);
-
-
-const SEGMENT_COUNT = 1;
-
-const SQRT3 = Math.sqrt(3);
-const H = Math.sqrt(3) / 2;
-
-/* const geom = [
-    0, 0, -SQRT3/3,
-    1/2, 0, SQRT3/6,
-    -1/2, 0, SQRT3/6,
-    0, 16, 0,
-] */
-const geom = new THREE.ConeGeometry(1, 16, 3);
 
 
 const SEGMENT_SIZE = 3;
@@ -27,6 +10,47 @@ const SEGMENT_SIZE = 3;
 const STALK_POINTS = 3;
 const STALK_RADIUS = 0.4;
 
+
+const vshader = `
+#define PHONG
+varying vec3 vViewPosition;
+#include <common>
+#include <uv_pars_vertex>
+#include <displacementmap_pars_vertex>
+#include <envmap_pars_vertex>
+#include <color_pars_vertex>
+#include <fog_pars_vertex>
+#include <normal_pars_vertex>
+#include <morphtarget_pars_vertex>
+#include <skinning_pars_vertex>
+#include <shadowmap_pars_vertex>
+#include <logdepthbuf_pars_vertex>
+#include <clipping_planes_pars_vertex>
+void main() {
+	#include <uv_vertex>
+	#include <color_vertex>
+	#include <morphcolor_vertex>
+	#include <beginnormal_vertex>
+	#include <morphnormal_vertex>
+	#include <skinbase_vertex>
+	#include <skinnormal_vertex>
+	#include <defaultnormal_vertex>
+	#include <normal_vertex>
+	#include <begin_vertex>
+	#include <morphtarget_vertex>
+	#include <skinning_vertex>
+	#include <displacementmap_vertex>
+	#include <project_vertex>
+	#include <logdepthbuf_vertex>
+	#include <clipping_planes_vertex>
+	vViewPosition = - mvPosition.xyz;
+	#include <worldpos_vertex>
+	#include <envmap_vertex>
+	#include <shadowmap_vertex>
+	#include <fog_vertex>
+}
+`
+console.log(THREE.ShaderLib.phong.vertexShader)
 
 export default class Vine {
     #uniforms = null;
@@ -43,10 +67,6 @@ export default class Vine {
         this.findTarget();
 
         this.getGeometry();
-
-        this.#uniforms = {
-            t: { value: 0, type: 'f' },
-        }
 
         /* const material = new THREE.MeshPhongMaterial({
             color: 0x22dd00
@@ -92,7 +112,8 @@ export default class Vine {
             stalkVertices,
             //stalkNormals,
             stalkIndices,
-            stalkUVs
+            stalkUVs,
+            stalkColors
         ] = this.#generateStalk();
 
 
@@ -100,6 +121,7 @@ export default class Vine {
         //const normals = [...stalkNormals];
         const indices = [...stalkIndices];
         const uvs = [...stalkUVs];
+        const colors = [...stalkColors];
 
 
         const geom = new THREE.BufferGeometry();
@@ -107,13 +129,44 @@ export default class Vine {
         geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         //geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
         geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 1));
         geom.toNonIndexed();
         geom.computeVertexNormals();
 
 
+        this.#uniforms = THREE.UniformsUtils.merge([
+            THREE.ShaderLib.phong.uniforms,
+            //{ opacity: { value: 1 }},
+            //{ color: { value: new THREE.Color(0x22ee00) }},
+            //{ diffuse: { value: new THREE.Color(0xaaaaaa) }},
+            /*{ t: { value: 0, type: 'f' }} */
+        ]);
+
+        /* const mat = new THREE.ShaderMaterial({
+            uniforms: THREE.ShaderLib.phong.uniforms,
+            vertexShader: THREE.ShaderLib.phong.vertexShader,
+            fragmentShader: THREE.ShaderLib.phong.fragmentShader,
+
+            lights: true,
+            vertexColors: true
+        })
+
+        mat.setValues({
+            //color: 0x22ee00,
+            //flatShading: true
+        }); */
+
+        const mat = new THREE.MeshPhongMaterial({
+            color: 0x33ee00,
+            flatShading: true,
+            //vertexColors: true
+        })
+
+        console.log(mat, this.#uniforms)
+
         this.mesh = new THREE.Mesh(
             geom,
-            new THREE.MeshPhongMaterial({ color: 0x22ee00, flatShading: true })
+            mat
         );
     }
 
@@ -122,6 +175,7 @@ export default class Vine {
         //const normals = [];
         const indices = [];
         const uvs = [];
+        const colors = [];
 
         const frames = this.curve.computeFrenetFrames(this.segmentCount);
 
@@ -137,6 +191,7 @@ export default class Vine {
 
                 //normals.push(normal.x, normal.y, normal.z);
                 vertices.push(vertex.x, vertex.y, vertex.z);
+                colors.push(0x113300);
             }
 
             // leaf vertex
@@ -156,6 +211,7 @@ export default class Vine {
 
             //normals.push(tmpNormal.x, tmpNormal.y, tmpNormal.z);
             vertices.push(tmpVertex.x, tmpVertex.y, tmpVertex.z);
+            colors.push(0xff, 0x00, 0x33);
         }
 
         // generate faces + uvs
@@ -208,7 +264,8 @@ export default class Vine {
             vertices,
             //normals,
             indices,
-            uvs
+            uvs,
+            colors
         ];
     }
 
@@ -231,6 +288,6 @@ export default class Vine {
     }
 
     tick(dt) {
-        this.#uniforms.t.value += dt;
+        //this.#uniforms.t.value += dt;
     }
 }

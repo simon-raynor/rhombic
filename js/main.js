@@ -18,6 +18,7 @@ import TargetTower from './entities/towers/TargetTower.js';
 import SourceTower from './entities/towers/SourceTower.js';
 import COLORS from './entities/color/index.js';
 import generateAmbientVegetation from './entities/ambient-vegetation/index.js';
+import Vine from './entities/vines/index.js';
 
 
 const stats = new Stats();
@@ -119,50 +120,40 @@ trider.init(
 
 
 
-/* const centreTower = new TargetTower(
-    cave.centre,
-    null,
-    0xffffff
+
+const centreTower = new TargetTower(
+    cave.centre.getRandomGridCell()
 );
 
 const towers = [];
 
-towers.push(centreTower);
+cave.chunks.forEach(
+    chunk => {
+        const cell = chunk.getRandomGridCell();
 
-const tmpColor = new THREE.Color();
+        const vine = new Vine(cell);
+        towers.push(
+            vine,
+            new Vine(cell),
+            new Vine(vine.target)
+        );
 
-cave.cells.forEach(
-    cell => {
-        if (cell !== cave.centre) {
-            towers.push(
-                new SourceTower(
-                    cell,
-                    centreTower,
-                    COLORS[Math.floor(COLORS.length * Math.random())]
-                    //tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
-                )
-            );
-        }
+        const cell2 = chunk.getRandomGridCell();
+
+        towers.push(
+            new SourceTower(
+                cell2,
+                centreTower,
+                COLORS[Math.floor(COLORS.length * Math.random())]
+                //tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
+            )
+        );
     }
 );
 
 towers.map(
     t => scene.add(t.mesh)
-); */
-
-
-
-/* const particlePathManager = new ParticlePath();
-
-scene.add(particlePathManager.mesh);
-
-towers.forEach(
-    tower => {
-        if (tower.target) {
-            tower.generatePathToTarget(particlePathManager);
-        }
-    }
-) */
+);
 
 
 
@@ -228,9 +219,9 @@ function tick() {
 
     trider.tick(dt, cave.mesh, movinginput);
 
-    /* towers.forEach(t => t.tick(dt, trider));
+    towers.forEach(t => t.tick(dt, trider));
     
-    particlePathManager.tick(dt); */
+    /* particlePathManager.tick(dt); */
     
 
     // follow cam (needs work!)

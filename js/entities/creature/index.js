@@ -73,8 +73,8 @@ export default class Creature {
     }
 
     move(dt) {
-        if (!this.path) {
-            this.pathfind();
+        if (!this.path) {return;
+            //this.pathfind();
         }
         if (!this.moveTarget) {
             this.moveTarget = this.path.shift();

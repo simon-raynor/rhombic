@@ -127,8 +127,7 @@ cave.chunks.forEach(
         towers.push(
             vine,
             new Vine(cell),
-            /* new Vine(cell),
-            new Vine(vine.target) */
+            new Vine(vine.target)
         );
 
         const cell2 = chunk.getRandomGridCell();
@@ -169,7 +168,7 @@ scene.add(particlePathManager.mesh);
 const creatures = [];
 
 
-/* for (let i = 0; i < 1; i++) {
+for (let i = 0; i < 1; i++) {
     const chunkNo = 1 + Math.floor(Math.random() * (cave.chunks.length - 1));
     const intersect = cave.chunks[chunkNo].getRandomPointOnMesh();
 
@@ -177,15 +176,15 @@ const creatures = [];
 
     creature.init(cave, intersect.point, intersect.normal);
 
-    creature.target = centreTower;
-    creature.pathfind();
+    //creature.target = centreTower;
+    //creature.pathfind();
         
     scene.add(creature.mesh);
 
     creatures.push(creature);
 }
 
-console.log(creatures) */
+console.log(creatures)
 
 
 
