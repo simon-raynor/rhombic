@@ -22,7 +22,7 @@ const H = Math.sqrt(3) / 2;
 const geom = new THREE.ConeGeometry(1, 16, 3);
 
 
-const SEGMENT_SIZE = 4;
+const SEGMENT_SIZE = 3;
 
 const STALK_POINTS = 3;
 const STALK_RADIUS = 0.4;
@@ -86,73 +86,149 @@ export default class Vine {
         );
 
         const length = this.curve.getLength();
-        const segmentCount = Math.floor(length / SEGMENT_SIZE);
+        this.segmentCount = Math.floor(length / SEGMENT_SIZE);
 
-        const vertices = [];
-        const normals = [];
-        const indices = [];
-        const uvs = [];
-
-        const frames = this.curve.computeFrenetFrames(segmentCount);
-
-        for (let i = 0; i <= segmentCount; i++) {
-            const p = this.curve.getPointAt(i / segmentCount);
-            const n = frames.normals[i];
-            const b = frames.binormals[i];
-
-            for (let j = 0; j <= STALK_POINTS; j++) {
-                const theta = (j / STALK_POINTS) * Math.PI * 2;
-
-                const sin = Math.sin(theta);
-                const cos = - Math.cos(theta);
-
-                tmpNormal.x = (cos * n.x) + (sin * b.x);
-                tmpNormal.y = (cos * n.y) + (sin * b.y);
-                tmpNormal.z = (cos * n.z) + (sin * b.z);
-                tmpNormal.normalize();
-
-                normals.push(tmpNormal.x, tmpNormal.y, tmpNormal.z);
+        const [
+            stalkVertices,
+            //stalkNormals,
+            stalkIndices,
+            stalkUVs
+        ] = this.#generateStalk();
 
 
-                tmpVertex.x = p.x + (STALK_RADIUS * tmpNormal.x);
-                tmpVertex.y = p.y + (STALK_RADIUS * tmpNormal.y);
-                tmpVertex.z = p.z + (STALK_RADIUS * tmpNormal.z);
+        const vertices = [...stalkVertices];
+        //const normals = [...stalkNormals];
+        const indices = [...stalkIndices];
+        const uvs = [...stalkUVs];
 
-                vertices.push(tmpVertex.x, tmpVertex.y, tmpVertex.z);
-
-                // TODO: add leaf(s)
-            }
-        }
-
-        for (let i = 0; i < segmentCount; i++) {
-            for (let j = 0; j < STALK_POINTS; j++) {
-                const a = (STALK_POINTS + 1) * i + j;
-                const b = (STALK_POINTS + 1) * (i + 1) + j;
-                const c = (STALK_POINTS + 1) * (i + 1) + (j + 1);
-                const d = (STALK_POINTS + 1) * i + (j + 1);
-
-                indices.push(a, b, d);
-                indices.push(b, c, d);
-
-                uvs.push(i / segmentCount, j / STALK_POINTS);
-            }
-        }
-
-        console.log(vertices, normals)
 
         const geom = new THREE.BufferGeometry();
         geom.setIndex(indices);
         geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-        geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        //geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
         geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        //geom.toNonIndexed();
+        geom.toNonIndexed();
+        geom.computeVertexNormals();
 
-        //const geom = new THREE.TubeGeometry(this.curve, segmentCount, STALK_RADIUS, STALK_POINTS);
 
-        this.mesh = new THREE.Mesh(geom, new THREE.MeshPhongMaterial({ color: 0x22ee00, flatShading: true }));
+        this.mesh = new THREE.Mesh(
+            geom,
+            new THREE.MeshPhongMaterial({ color: 0x22ee00, flatShading: true })
+        );
     }
 
+    #generateStalk() {
+        const vertices = [];
+        //const normals = [];
+        const indices = [];
+        const uvs = [];
 
+        const frames = this.curve.computeFrenetFrames(this.segmentCount);
+
+        // generate vertices
+        for (let i = 0; i <= this.segmentCount; i++) {
+            const p = this.curve.getPointAt(i / this.segmentCount);
+            const t = frames.tangents[i];
+            const n = frames.normals[i];
+            const b = frames.binormals[i];
+
+            for (let j = 0; j <= STALK_POINTS; j++) {
+                const [vertex, normal] = this.#generateStalkPoint(j, p, n, b);
+
+                //normals.push(normal.x, normal.y, normal.z);
+                vertices.push(vertex.x, vertex.y, vertex.z);
+            }
+
+            // leaf vertex
+            const theta = ((i % STALK_POINTS) / STALK_POINTS) * Math.PI * 2;
+
+            const sin = Math.sin(theta);
+            const cos = - Math.cos(theta);
+
+            tmpNormal.x = (cos * n.x) + (sin * b.x);
+            tmpNormal.y = (cos * n.y) + (sin * b.y);
+            tmpNormal.z = (cos * n.z) + (sin * b.z);
+            tmpNormal.normalize();
+
+            tmpVertex.x = p.x + (t.x * 2) + (3 * STALK_RADIUS * tmpNormal.x);
+            tmpVertex.y = p.y + (t.y * 2) + (3 * STALK_RADIUS * tmpNormal.y);
+            tmpVertex.z = p.z + (t.z * 2) + (3 * STALK_RADIUS * tmpNormal.z);
+
+            //normals.push(tmpNormal.x, tmpNormal.y, tmpNormal.z);
+            vertices.push(tmpVertex.x, tmpVertex.y, tmpVertex.z);
+        }
+
+        // generate faces + uvs
+        for (let i = 0; i < this.segmentCount; i++) {
+            for (let j = 0; j < STALK_POINTS; j++) {
+                const a = (STALK_POINTS + 2) * i + j;
+                const b = (STALK_POINTS + 2) * (i + 1) + j;
+                const c = (STALK_POINTS + 2) * (i + 1) + (j + 1);
+                const d = (STALK_POINTS + 2) * i + (j + 1);
+
+                indices.push(a, b, d);
+                indices.push(b, c, d);
+
+                uvs.push(i / this.segmentCount, j / (STALK_POINTS * 2));
+            }
+
+            // leaf faces
+            const a = (STALK_POINTS + 2) * i;
+            const b = (STALK_POINTS + 2) * i + 1;
+            const c = (STALK_POINTS + 2) * i + 2;
+            const d = (STALK_POINTS + 2) * i + 4;
+
+            switch (i % STALK_POINTS) {
+                case 0:
+                    indices.push(a, b, d);
+                    indices.push(b, a, d);
+        
+                    indices.push(a, c, d);
+                    indices.push(c, a, d);
+                    break;
+                case 1:
+                    indices.push(c, b, d);
+                    indices.push(b, c, d);
+        
+                    indices.push(a, b, d);
+                    indices.push(b, a, d);
+                    break;
+                case 2:
+                    indices.push(c, b, d);
+                    indices.push(b, c, d);
+        
+                    indices.push(a, c, d);
+                    indices.push(c, a, d);
+                    break;
+            }
+
+        }
+
+        return [
+            vertices,
+            //normals,
+            indices,
+            uvs
+        ];
+    }
+
+    #generateStalkPoint(j, p, n, b) {
+        const theta = (j / STALK_POINTS) * Math.PI * 2;
+
+        const sin = Math.sin(theta);
+        const cos = - Math.cos(theta);
+
+        tmpNormal.x = (cos * n.x) + (sin * b.x);
+        tmpNormal.y = (cos * n.y) + (sin * b.y);
+        tmpNormal.z = (cos * n.z) + (sin * b.z);
+        tmpNormal.normalize();
+
+        tmpVertex.x = p.x + (STALK_RADIUS * tmpNormal.x);
+        tmpVertex.y = p.y + (STALK_RADIUS * tmpNormal.y);
+        tmpVertex.z = p.z + (STALK_RADIUS * tmpNormal.z);
+
+        return [tmpVertex, tmpNormal];
+    }
 
     tick(dt) {
         this.#uniforms.t.value += dt;
