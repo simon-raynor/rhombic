@@ -122,31 +122,4 @@ class SurfaceCell {
             );
         }
     }
-
-    #sharesEdge(otherCell) {
-        let matchcount = 0;
-
-        tmpVec3A.copy(this.a);
-        if (
-            tmpVec3A.equals(otherCell.a)
-            || tmpVec3A.equals(otherCell.b)
-            || tmpVec3A.equals(otherCell.c)
-        ) matchcount++;
-
-        tmpVec3A.copy(this.b);
-        if (
-            tmpVec3A.equals(otherCell.a)
-            || tmpVec3A.equals(otherCell.b)
-            || tmpVec3A.equals(otherCell.c)
-        ) matchcount++;
-
-        tmpVec3A.copy(this.c);
-        if (
-            tmpVec3A.equals(otherCell.a)
-            || tmpVec3A.equals(otherCell.b)
-            || tmpVec3A.equals(otherCell.c)
-        ) matchcount++;
-
-        return matchcount >= 2;
-    }
 }
