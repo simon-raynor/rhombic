@@ -51,7 +51,7 @@ export class Camera {
         // else could/should they live?
         this.composer = new EffectComposer( renderer );
 
-        const PIXEL_SIZE = 2;
+        const PIXEL_SIZE = 1;
         const pixelPass = new RenderPixelatedPass(PIXEL_SIZE, scene, this.instance);
         pixelPass.normalEdgeStrength = 0.05;
         pixelPass.depthEdgeStrength = 0.1;

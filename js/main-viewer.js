@@ -113,7 +113,7 @@ trider.init(
 
 
 
-const centreTower = new TargetTower(
+/* const centreTower = new TargetTower(
     cave.centre.getRandomGridCell()
 );
 
@@ -151,7 +151,7 @@ towers.map(
 
 const particlePathManager = new ParticlePath();
 
-scene.add(particlePathManager.mesh);
+scene.add(particlePathManager.mesh); */
 
 // TODO: draw the paths w/ pathfinder
 
@@ -184,7 +184,7 @@ for (let i = 0; i < 1; i++) {
     creatures.push(creature);
 }
 
-console.log(creatures)
+//console.log(creatures)
 
 
 
@@ -201,7 +201,7 @@ scene.add(maincamera.wrapper);
 maincamera.wrapper.position.set(...cave.centre.worldposition.toArray());
 maincamera.lookAt(trider.position, trider.up);
 
-console.log(maincamera);
+//console.log(maincamera);
 
 
 /* const controls = new OrbitControls( maincamera.instance, renderer.domElement );
@@ -229,17 +229,24 @@ scene.add( ikhelper ); */
     1
 )); */
 
-/* paths.forEach(
-    path => {
-    const pathMesh = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(
-            path.getPoints(1000)
-        ),
-        new THREE.LineDashedMaterial({ color: 0x00ff00, dashSize: 2, gapSize: 1 })
-    )
+/* const path = cave.findPathCellToCell(
+    cave.chunks[0].getRandomGridCell(),
+    cave.chunks[2].getRandomGridCell()
+);
+const pathMesh = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(
+        new THREE.CatmullRomCurve3(
+            path.map(node => node.position)
+        ).getPoints(1000)
+    ),
+    new THREE.LineDashedMaterial({ color: 0x00ff00, dashSize: 2, gapSize: 1 })
+)
 
-    scene.add(pathMesh);
-}) */
+scene.add(pathMesh); */
+
+
+
+console.log(cave)
 
 
 
@@ -271,22 +278,16 @@ function tick() {
 }
 
 
-let pathMesh = null;
 
 function tickGame(dt) {
     trider.tick(dt, cave.mesh, moving);
     //trider2.tick(dt, cave.mesh, moving);
 
-    towers.forEach(t => t.tick(dt, trider));
+    /* towers.forEach(t => t.tick(dt, trider));
 
-    particlePathManager.tick(dt);
+    particlePathManager.tick(dt); */
 
     creatures.forEach(c => c.tick(dt));
-
-    /* if (!pathMesh && creature.path) {
-        pathMesh = drawPath(creature.path);
-        scene.add(pathMesh);
-    } */
 }
 
 

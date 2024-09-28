@@ -1,23 +1,40 @@
 
 export default class Pathfinder {
-    constructor(cave, nodes) {
+    constructor(cave) {
         this.cave = cave;
+
+        const cellNodeMap = new Map();
         
-        this.nodes = nodes.map(
-            (node, idx) => new PFNode(this, node, idx)
+        this.nodes = cave.surfaceGrid.map(
+            (cell, idx) => {
+                const node = new PFNode(this, cell);
+                cellNodeMap.set(cell, node);
+                cell.pfNode = node;
+                return node;
+            }
         );
 
-        this.nodes.forEach(node => node.initEdges());
+        this.nodes.forEach(node => {
+            node.cell.neighbours.forEach(
+                othercell => {
+                    if (cellNodeMap.has(othercell)) {
+                        node.edges.push(
+                            new PFEdge(
+                                node,
+                                cellNodeMap.get(othercell)
+                            )
+                        )
+                    } else throw 'unable to build Pathfinder, unknown edge';
+                }
+            )
+        });
     }
 
     // algorithm adapted from pseudocode here:
     // https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/
     pathfind(from, to) {
-        // init start/end point as a tmp node,
-        // find closest node(s) add as edges
-        // N.B. for now assume @from is a node
-        const start = this.getClosestNode(from);
-        const end = this.getClosestNode(to);
+        const start = from;
+        const end = to;
 
         const openheap = new PFHeap();
         const closed = [];
@@ -94,54 +111,20 @@ export default class Pathfinder {
 
 
 class PFNode {
-    idx = null;
-
     g = 0;
     h = 0;
     get f() { return this.g + this.h; }
 
     parent = null;
+    edges = [];
 
-    constructor(finder, data, idx) {
+    constructor(finder, cell) {
         this.finder = finder;
-        this.idx = idx;
 
-        this.position = data.posn.clone();
-        this.normal = data.normal.clone();
+        this.cell = cell;
 
-        this._rawData = data;
-        this._rawEdges = data.edges;
-
-        this.edges = [];
-    }
-
-    initEdges() {
-        this._rawEdges.forEach(
-            rawEdge => {
-                this.finder.nodes.forEach(
-                    node => {
-                        if (node._rawData === rawEdge) {
-                            this.edges.push(
-                                new PFEdge(
-                                    this,
-                                    node
-                                )
-                            );
-                            if (!node.edges.find(({B}) => B === this)) {
-                                node.edges.push(
-                                    new PFEdge(
-                                        node,
-                                        this,
-                                    )
-                                );
-                            }
-                        }
-                    }
-                );
-            }
-        );
-        delete this._rawData;
-        delete this._rawEdges;
+        this.position = cell.centre;
+        this.normal = cell.normal;
     }
 }
 

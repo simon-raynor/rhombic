@@ -48,6 +48,8 @@ class SurfaceCell {
     neighbours = [];
     directNeighbours = [];
 
+    pfNode;
+
     constructor(chunk, shareMap, idx) {
         this.chunk = chunk;
         this.idx = idx;

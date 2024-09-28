@@ -40,7 +40,8 @@ export const blockMaterial = new THREE.MeshLambertMaterial({
     bumpMap: texturebump,
     bumpScale: 1,
     side: THREE.BackSide,
-    transparent: false
+    /* transparent: true,
+    opacity: 0.75 */
 });
 
 
@@ -63,20 +64,21 @@ export class Cave {
         this.surfaceGrid = generateSurfaceGrid(this);
 
 
-        //this.pathfinder = new Pathfinder(this, generatePFNodes(this.mesh.geometry));
+        this.pathfinder = new Pathfinder(this);
+    }
 
-    
-        /* const deadends = [];
-        tunnel.forEach(
-            chunk => {
-                if (chunk.openings.length === 1) {
-                    deadends.push(chunk);
-                }
-            }
-        ); */
-    
-    
-        const paths = [];
+    findPathArbitrary(from, to) {
+        return this.pathfinder.pathfind(
+            this.pathfinder.getClosestNode(from),
+            this.pathfinder.getClosestNode(to)
+        );
+    }
+
+    findPathCellToCell(from, to) {
+        return this.pathfinder.pathfind(
+            from.pfNode,
+            to.pfNode
+        );
     }
 }
 
