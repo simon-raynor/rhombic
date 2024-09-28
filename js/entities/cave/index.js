@@ -3,7 +3,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 import { LoopSubdivision } from 'three-subdivide';
 
 import { RHOMBIC_FACES_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
-import Pathfinder from '../Pathfinder/index.js';
+import Pathfinder from './pathfinder.js';
 import generateSurfaceGrid from './surface.js';
 
 const tmpVec3 = new THREE.Vector3();

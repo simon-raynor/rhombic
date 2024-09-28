@@ -221,8 +221,12 @@ export class Camera {
                 );
                 
                 // TODO: check for clicking on actual "things" e.g. triders
-                const intersect = raycaster.intersectObject(this.cave.mesh);
+                /* const intersect = raycaster.intersectObject(this.cave.mesh);
 
+                if (intersect[0]) {
+                    const clickedcell = this.cave.pathfinder.getClosestNode(intersect[0].point).cell;
+                }
+ */
                 //console.log(intersect)
 
                 /* this.scene.add(
