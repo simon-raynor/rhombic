@@ -162,7 +162,7 @@ export default class Vine {
             //vertexColors: true
         })
 
-        console.log(mat, this.#uniforms)
+        //console.log(mat, this.#uniforms)
 
         this.mesh = new THREE.Mesh(
             geom,

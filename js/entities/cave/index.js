@@ -172,9 +172,7 @@ class Chunk {
         );
 
         const geometry = indexedgeometry.toNonIndexed();
-        geometry.computeVertexNormals();
         geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
-        geometry.computeBoundsTree();
 
 
         // move chunk into position
@@ -218,7 +216,8 @@ class Chunk {
                 this.worldposition,
                 tmpVec3.randomDirection()
             );
-            const intersections = raycaster.intersectObject(this.mesh);console.log(intersections);
+            const intersections = raycaster.intersectObject(this.mesh);
+            //console.log(intersections);
             if (intersections.length && intersections[0].distance < distance) {
                 intersection = intersections[0];
             }
@@ -351,7 +350,7 @@ function generateTunnel(grid, start) {
 // used to inset vertices for smoothing (prevents
 // nastiness when chunks are corner-to-corner)
 //const INSET_FACTOR = 0.75;
-const INSET_FACTOR = 2 / 3;
+const INSET_FACTOR = 1;//4/5;//2 / 3;
 
 function generateGeometry(tunnel) {
     const geometries = [];
@@ -365,17 +364,14 @@ function generateGeometry(tunnel) {
     // return all of them merged together, should be nice
     // and neat with no overlapping anything, no interior
     // walls just a nice clean "cave"
+    //
+    // the merged geom is used to generate the pathfinding grid, but
+    // not for rendering (that's more performant when there's a mesh
+    // per chunk)
     return BufferGeometryUtils.mergeGeometries(geometries);
 }
 
 function smoothGeometry(geometry) {
-
-    // TODO: detect vertices that are common without a
-    //      shared edge and separate them slightly?
-    //      INSET_FACTOR can do that but ideally can
-    //      find a way to just fix the ones that go all
-    //      pointy
-
     const smoothed = LoopSubdivision.modify(
         geometry,
         1,
@@ -387,6 +383,30 @@ function smoothGeometry(geometry) {
 
     smoothed.computeVertexNormals();
     smoothed.computeBoundsTree();
+
+
+    // BELOW: unsuccessful attempt to find the gaps around the holes
+    //      when preserveEdges = false
+    //
+    // it failed because there's no easy way to tell which
+    // vertices are next to a hole or not, can find a couple
+    // by counting how many faces use each but that's not
+    // sufficient alone
+
+    /* const merged = BufferGeometryUtils.mergeVertices(smoothed);
+
+    const idxMap = new Map();
+
+    for (let i = 0; i < merged.index.count; i++) {
+        const idx = merged.index.array[i];
+        if (idxMap.has(idx)) {
+            idxMap.set(idx, idxMap.get(idx) + 1);
+        } else {
+            idxMap.set(idx, 1);
+        }
+    }
+
+    console.log(smoothed, merged, idxMap); */
 
     return smoothed;
 }
