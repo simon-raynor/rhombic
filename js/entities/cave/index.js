@@ -350,7 +350,7 @@ function generateTunnel(grid, start) {
 // used to inset vertices for smoothing (prevents
 // nastiness when chunks are corner-to-corner)
 //const INSET_FACTOR = 0.75;
-const INSET_FACTOR = 1;//4/5;//2 / 3;
+const INSET_FACTOR = 2 / 3;
 
 function generateGeometry(tunnel) {
     const geometries = [];
