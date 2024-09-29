@@ -20,6 +20,7 @@ import Creature from './entities/creature/index.js';
 import { Camera } from './entities/camera/index.js';
 import RhombicTower from './entities/towers/RhombicTower.js';
 import Vine from './entities/vines/index.js';
+import GameGUI from './entities/GUI/index.js';
 
 
 const stats = new Stats();
@@ -45,9 +46,6 @@ document.body.appendChild(renderer.domElement);
 
 
 
-/* const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-directionalLight.position.set(3, 2, 1);
-scene.add( directionalLight ); */
 const light = new THREE.AmbientLight( 0x202020 ); // soft white light
 //const light = new THREE.AmbientLight( 0x808080 ); // bright white light
 scene.add( light );
@@ -59,10 +57,6 @@ const CAVEDIMENSION = 3;
 const cave = new Cave(CAVEDIMENSION);
 scene.add(cave.mesh);
 
-
-/* const wf = new THREE.WireframeGeometry(cave.mesh.geometry);
-const line = new THREE.LineSegments(wf, new THREE.LineBasicMaterial({ color: 0x999999 }));
-scene.add(line); */
 
 //////////////////////////
 // surface grid borders //
@@ -210,6 +204,12 @@ controls.target = centreTower.position;
 controls.update(); */
 
 
+const gamegui = new GameGUI(cave, maincamera);
+
+
+
+
+
 
 /* const axesHelper = new THREE.AxesHelper( 5 );
 scene.add( axesHelper ); */
@@ -288,6 +288,8 @@ function tickGame(dt) {
     particlePathManager.tick(dt); */
 
     creatures.forEach(c => c.tick(dt));
+
+    gamegui.swarm.tick(dt);
 }
 
 

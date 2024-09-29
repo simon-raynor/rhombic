@@ -43,7 +43,7 @@ export class Camera {
 
     init(renderer, scene, cave) {
         this.renderer = renderer;
-
+        this.scene = scene;
 
         this.cave = cave;
 
@@ -76,15 +76,11 @@ export class Camera {
             new OutputPass()
         );
 
-        this.#addEventListeners();
-
-
-        // TODO ditch this once I'm done debugging
-        this.scene = scene;
+        //this.#addEventListeners();
     }
 
     destroy() {
-        this.#removeEventListeners();
+        //this.#removeEventListeners();
     }
 
 
