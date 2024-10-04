@@ -289,7 +289,7 @@ function tickGame(dt) {
 
     creatures.forEach(c => c.tick(dt));
 
-    gamegui.swarm.tick(dt);
+    gamegui.tick(dt);
 }
 
 

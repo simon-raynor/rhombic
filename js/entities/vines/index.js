@@ -50,7 +50,7 @@ void main() {
 	#include <fog_vertex>
 }
 `
-console.log(THREE.ShaderLib.phong.vertexShader)
+//console.log(THREE.ShaderLib.phong.vertexShader)
 
 export default class Vine {
     #uniforms = null;

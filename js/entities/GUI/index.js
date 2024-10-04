@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Swarm from './Swarm.js';
+import Pin from './Pin.js';
 
 
 const tmpVec2 = new THREE.Vector2();
@@ -17,12 +18,15 @@ export default class GameGUI {
         this.cave = cave;
         this.camera = camera;
 
+
+        this.pin = new Pin();
+        this.pin.init(camera.scene);
+
         this.swarm = new Swarm();
         this.swarm.init(
             camera.scene,
             camera.renderer
         );
-        //this.camera.scene.add(this.selectedCell.mesh);
 
         window.addEventListener(
             'click',
@@ -52,11 +56,17 @@ export default class GameGUI {
                     if (this.swarm.targeting === clickedcell) {
                         this.camera.lookAt(clickedcell.centre, clickedcell.normal);
                     } else {
+                        this.pin.target(clickedcell);
                         this.swarm.target(clickedcell);
                     }
                 }
             }
         )
+    }
+
+    tick(dt) { 
+        this.pin.tick(dt);
+        this.swarm.tick(dt);
     }
 }
 

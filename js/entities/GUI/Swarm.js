@@ -240,7 +240,9 @@ export default class Swarm {
     target(targetcell) {
         this.targeting = targetcell;
 
-        this.#uniforms.target.value.copy(targetcell.centre).add(targetcell.normal);
+        this.#uniforms.target.value.copy(targetcell.normal)
+                                    .multiplyScalar(10)
+                                    .add(targetcell.centre);
         this.#uniforms.target.needsUpdate = true;
     }
 }
