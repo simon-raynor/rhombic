@@ -19,14 +19,14 @@ export default class GameGUI {
         this.camera = camera;
 
 
-        this.pin = new Pin();
+        /* this.pin = new Pin();
         this.pin.init(camera.scene);
 
         this.swarm = new Swarm();
         this.swarm.init(
             camera.scene,
             camera.renderer
-        );
+        ); */
 
         window.addEventListener(
             'click',

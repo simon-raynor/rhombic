@@ -17,14 +17,17 @@ attribute float type;
 
 varying vec2 vUv;
 varying vec4 vColor;
+varying float vType;
 
 //float height = 15.;
-float width = 0.8;
+//float width = 0.8;
 
 void main() {
     vec3 newPosn;
 
-    vec3 tnormal = cellnormal * smoothstep(0., 1., t);
+    float startupT = smoothstep(0., 1., t*t);
+
+    vec3 tnormal = cellnormal * startupT;
 
     if (type == 1.) {
         newPosn = position;
@@ -65,10 +68,11 @@ void main() {
 
         newPosn += centre;
 
-        vUv = vec2(0., 1.);
-        vColor = vec4(1., 1., 0.8, 1.);
+        vUv = uv;
+        vColor = vec4(vec3(1., 1., 0.8) * startupT, 1.);
     } else {
-        float r = (1. - position.y) * (1. - position.y) * width;
+        float yInv = 1. - position.y;
+        float r = yInv*yInv/*  * width */;
 
         vec3 corner;
         vec3 rgb;
@@ -92,12 +96,14 @@ void main() {
 
         newPosn += centre;
 
-        vUv = vec2(r, position.y);
+        vUv = vec2((r * uv.x) + ((1. - r) / 2.), uv.y);
 
-        float alpha = (1. - smoothstep(0.5 * width, width, r))
-                    * smoothstep(0., 1.25, t - r);
+        float alpha = smoothstep(0., 1., startupT)
+                    * smoothstep(.25, .75, 1. - r);
         vColor = vec4(rgb, alpha);
     }
+
+    vType = type;
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosn, 1.0);
 }
@@ -108,9 +114,19 @@ uniform float t;
 
 varying vec2 vUv;
 varying vec4 vColor;
+varying float vType;
 
 void main() {
-    gl_FragColor = vColor;
+    float alpha = vColor.w;
+
+    float sx = 1. + sin((vUv.x * 101.)/*  + (t * 13.) */) / 2.;
+    float cy = 1. + sin((vUv.y * 97.)/*  + (t * 11.) */) / 2.;
+
+    /* alpha *= vType == 0.
+            ? sx * cy
+            : 1.; */
+
+    gl_FragColor = vec4(vColor.xyz, alpha);
 }
 `;
 
@@ -148,18 +164,21 @@ export default class Pin {
         const uv = [];
         const type = [];
 
-        
         // rows
         for (let r = 1; r <= ROWS; r++) {
             const y1 = (r-1)/ROWS,
                 y2 = r/ROWS;
 
-            position.push(...getRow(y1, y2));
-            type.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            const [v, u, t] = getRow(y1, y2);
+
+            position.push(...v);
+            uv.push(...u);
+            type.push(...t);
         }
 
         // tip
         position.push(...trigon.attributes.position.array);
+        uv.push(...trigon.attributes.uv.array);
         type.push(...trigon.index.array.map(i => 1));
 
         this.#geometry.setAttribute(
@@ -167,6 +186,13 @@ export default class Pin {
             new THREE.BufferAttribute(
                 new Float32Array(position),
                 3
+            )
+        );
+        this.#geometry.setAttribute(
+            'uv',
+            new THREE.BufferAttribute(
+                new Float32Array(uv),
+                2
             )
         );
         this.#geometry.setAttribute(
@@ -179,7 +205,6 @@ export default class Pin {
 
         this.#material = new THREE.ShaderMaterial({
             uniforms: this.#uniforms,
-            color: 0xffff88,
             vertexShader,
             fragmentShader,
             side: THREE.DoubleSide,
@@ -224,7 +249,7 @@ export default class Pin {
 }
 
 function getRow(y1, y2) {
-    return [
+    const vertices = [
         0, y1, 0,  0, y2, 0,  1, y1, 0,
         1, y1, 0,  0, y2, 0,  1, y2, 0,
         
@@ -233,5 +258,22 @@ function getRow(y1, y2) {
 
         2, y1, 0,  2, y2, 0,  0, y1, 0,
         0, y1, 0,  2, y2, 0,  0, y2, 0,
-    ]
+    ];
+    const uvs = [
+        0, y1,  0, y2,  1, y1,
+        1, y1,  0, y2,  1, y2,
+
+        0, y1,  0, y2,  1, y1,
+        1, y1,  0, y2,  1, y2,
+
+        0, y1,  0, y2,  1, y1,
+        1, y1,  0, y2,  1, y2
+    ];
+    const types = [
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0
+    ];
+
+    return [vertices, uvs, types];
 }

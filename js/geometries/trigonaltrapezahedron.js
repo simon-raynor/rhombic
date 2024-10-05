@@ -55,7 +55,7 @@ const uvs = [
 ]
 
 export const TRIGONAL_UVS = [
-    uvs, uvs, uvs, uvs, uvs, uvs
+    ...uvs, ...uvs, ...uvs, ...uvs, ...uvs, ...uvs
 ];
 
 
