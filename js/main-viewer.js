@@ -109,7 +109,7 @@ trider.init(
 
 /* const centreTower = new TargetTower(
     cave.centre.getRandomGridCell()
-);
+); */
 
 const towers = [];
 
@@ -124,7 +124,7 @@ cave.chunks.forEach(
             new Vine(vine.target)
         );
 
-        const cell2 = chunk.getRandomGridCell();
+        /* const cell2 = chunk.getRandomGridCell();
 
         towers.push(
             new SourceTower(
@@ -133,7 +133,7 @@ cave.chunks.forEach(
                 COLORS[Math.floor(COLORS.length * Math.random())]
                 //tmpColor.setHSL(Math.random(), 1.0, 0.5).getHex()
             )
-        );
+        ); */
     }
 );
 
@@ -143,7 +143,7 @@ towers.map(
 
 
 
-const particlePathManager = new ParticlePath();
+/* const particlePathManager = new ParticlePath();
 
 scene.add(particlePathManager.mesh); */
 

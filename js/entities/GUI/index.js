@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Swarm from './Swarm.js';
 import Pin from './Pin.js';
+import Hiliter from './Hilite.js';
 
 
 const tmpVec2 = new THREE.Vector2();
@@ -11,6 +12,8 @@ const raycaster = new THREE.Raycaster();
 const trimat = new THREE.MeshBasicMaterial({ color: 0xdddd88 });
 
 export default class GameGUI {
+    #targeting
+
     constructor(
         cave,
         camera
@@ -27,6 +30,10 @@ export default class GameGUI {
             camera.scene,
             camera.renderer
         ); */
+
+        this.hilite = new Hiliter();
+        this.hilite.init(camera.scene);
+
 
         window.addEventListener(
             'click',
@@ -53,11 +60,13 @@ export default class GameGUI {
                         )
                     ); */
 
-                    if (this.swarm.targeting === clickedcell) {
+                    if (this.#targeting === clickedcell) {
                         this.camera.lookAt(clickedcell.centre, clickedcell.normal);
                     } else {
-                        this.pin.target(clickedcell);
-                        this.swarm.target(clickedcell);
+                        this.#targeting = clickedcell;
+                        /* this.pin.target(clickedcell);
+                        this.swarm.target(clickedcell); */
+                        this.hilite.retarget(clickedcell);
                     }
                 }
             }
@@ -65,8 +74,9 @@ export default class GameGUI {
     }
 
     tick(dt) { 
-        this.pin.tick(dt);
-        this.swarm.tick(dt);
+        /* this.pin.tick(dt);
+        this.swarm.tick(dt); */
+        this.hilite.tick(dt);
     }
 }
 
