@@ -6,7 +6,7 @@ const TRI_PER_CORNER = 5;
 const PER_CORNER = 3 * TRI_PER_CORNER;
 const PER_LAYER = PER_CORNER * 3;
 
-const LAYER_COUNT = 5;
+const LAYER_COUNT = 4;
 
 const CORNER_MARK_LENGTH = 1 / 3;
 const CORNER_MARK_WIDTH = 1 - 0.08;
@@ -30,7 +30,7 @@ void main() {
     float tMult = t / 2.;
     float theta = (tMult + instanceNo) * radians(360.);
     float pulseX = .95 - (cos(theta) / 20.);
-    float pulseY = (1. + sin(theta));
+    float pulseY = (1. - sin(theta));
 
     vec3 newPosn = position * pulseX;
 
@@ -162,18 +162,13 @@ export default class Hiliter {
             LAYER_COUNT
         );
 
-        //this.#mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-
-        //const cols = [0xff4444, 0x44ff44, 0x4444ff, 0xbbbbbb, 0xbbbbbb];
-        const cols = [0x888888, 0xbbbbbb];
-
         for (let i = 0; i < LAYER_COUNT; i++) {
             tmpObj3d.position.set(0, i / LAYER_COUNT, 0);
             tmpObj3d.updateMatrix();
             
             this.#mesh.setMatrixAt( i, tmpObj3d.matrix );
-            this.#mesh.setColorAt( i, new THREE.Color(cols[i % cols.length]) );
         }
+        this.#setColor();
 
 
         scene.add(this.#mesh);
@@ -244,6 +239,17 @@ export default class Hiliter {
         );
 
         this.#geometry.attributes.position.set( newPosns, idx );
+
+        this.#setColor();
+    }
+
+    #setColor() {console.log(this.#target?.hiliteColors)
+        const colors = this.#target?.hiliteColors ?? [0x000000];
+        const l = colors.length;
+        for (let i = 0; i < LAYER_COUNT; i++) {
+            this.#mesh.setColorAt( i, new THREE.Color(colors[i % l]) );
+        }
+        this.#mesh.instanceColor.needsUpdate = true;
     }
 
 

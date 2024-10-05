@@ -22,15 +22,6 @@ export default class GameGUI {
         this.camera = camera;
 
 
-        /* this.pin = new Pin();
-        this.pin.init(camera.scene);
-
-        this.swarm = new Swarm();
-        this.swarm.init(
-            camera.scene,
-            camera.renderer
-        ); */
-
         this.hilite = new Hiliter();
         this.hilite.init(camera.scene);
 
@@ -61,12 +52,12 @@ export default class GameGUI {
                     ); */
 
                     if (this.#targeting === clickedcell) {
-                        this.camera.lookAt(clickedcell.centre, clickedcell.normal);
+                        this.camera.lookAt(clickedcell.centre, clickedcell.normal, 1);
                     } else {
                         this.#targeting = clickedcell;
-                        /* this.pin.target(clickedcell);
-                        this.swarm.target(clickedcell); */
                         this.hilite.retarget(clickedcell);
+
+                        this.camera.lookAt(clickedcell.centre, clickedcell.normal, 0.05);
                     }
                 }
             }
@@ -74,8 +65,6 @@ export default class GameGUI {
     }
 
     tick(dt) { 
-        /* this.pin.tick(dt);
-        this.swarm.tick(dt); */
         this.hilite.tick(dt);
     }
 }

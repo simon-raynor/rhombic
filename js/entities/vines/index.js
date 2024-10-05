@@ -4,11 +4,13 @@ import * as THREE from 'three';
 const tmpNormal = new THREE.Vector3();
 const tmpVertex = new THREE.Vector3();
 
+const tmpVec3 = new THREE.Vector3();
+
 
 const SEGMENT_SIZE = 3;
 
 const STALK_POINTS = 3;
-const STALK_RADIUS = 0.4;
+const STALK_RADIUS = 1;
 
 
 const vshader = `
@@ -64,6 +66,8 @@ export default class Vine {
 
     constructor(gridcell) {
         this.gridcell = gridcell;
+        this.gridcell.setContents(this);
+
         this.findTarget();
 
         this.getGeometry();
@@ -91,6 +95,8 @@ export default class Vine {
         this.target = available[
             Math.floor(Math.random() * available.length)
         ];
+
+        this.target.setContents(this);
     }
 
     getGeometry() {
@@ -99,10 +105,10 @@ export default class Vine {
         // TODO: adjust curve based on proximity of endpoints and
         //      the angle between normals
         this.curve = new THREE.CubicBezierCurve3(
-            this.position,
+            this.position.clone().add(tmpVec3.randomDirection().projectOnPlane(normal)),
             this.normal.clone().multiplyScalar(20).add(this.position),
             new THREE.Vector3().copy(normal).multiplyScalar(20).add(centre),
-            new THREE.Vector3().copy(centre)
+            new THREE.Vector3().copy(centre).add(tmpVec3.randomDirection().projectOnPlane(normal))
         );
 
         const length = this.curve.getLength();
@@ -168,6 +174,10 @@ export default class Vine {
             geom,
             mat
         );
+    }
+
+    get hiliteColors() {
+        return [0x33ee00, 0x168200];
     }
 
     #generateStalk() {

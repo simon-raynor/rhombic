@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import Vine from '../vines/index.js';
 
 
 const tmpVec3 = new THREE.Vector3(),
@@ -50,6 +51,8 @@ class SurfaceCell {
 
     pfNode;
 
+    contents = [];
+
     constructor(chunk, shareMap, idx) {
         this.chunk = chunk;
         this.idx = idx;
@@ -83,6 +86,22 @@ class SurfaceCell {
                 }
             }
         );
+    }
+
+    setContents(newContents) {
+        /* if (this.contents) {
+            throw new Error('SurfaceCell already has contents');
+        } */
+
+        this.contents.push(newContents);
+    }
+
+    get hiliteColors() {
+        if (this.contents[0]?.hiliteColors) {
+            return this.contents[0]?.hiliteColors;
+        } else {
+            return [0x888888, 0xbbbbbb];
+        }
     }
 
     get a() {

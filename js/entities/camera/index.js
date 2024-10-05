@@ -90,9 +90,11 @@ export class Camera {
     #quaternion = new THREE.Quaternion();
     #nextquaternion = new THREE.Quaternion();
 
+    #speed
+
     tick(dt) {
         if (this.#t >= 0) {
-            this.#t += dt;
+            this.#t += dt * this.#speed;
 
             if (this.#t > 1) {
                 this.#t = 1;
@@ -128,7 +130,7 @@ export class Camera {
 
 
 
-    lookAt(point, normal) {
+    lookAt(point, normal, speed) {
         this.#position.copy(this.wrapper.position);
         this.#quaternion.copy(this.wrapper.quaternion);
 
@@ -141,6 +143,7 @@ export class Camera {
         );
         
         this.#t = 0;
+        this.#speed = speed ?? 1;
     }
 
 
