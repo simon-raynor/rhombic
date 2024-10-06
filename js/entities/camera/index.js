@@ -29,7 +29,7 @@ export class Camera {
 
         this.light = new THREE.SpotLight(
             0x888888,
-            10,
+            3,
             CAVESCALE * 6,
             Math.PI / 4,
             0.75,

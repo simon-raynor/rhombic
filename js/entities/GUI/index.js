@@ -27,8 +27,8 @@ export default class GameGUI {
         this.hilite.init(camera.scene);
 
 
-        this.path = new ClickPath();
-        this.path.init(cave, camera.scene);
+        /* this.path = new ClickPath();
+        this.path.init(cave, camera.scene); */
 
 
         window.addEventListener(
@@ -56,12 +56,12 @@ export default class GameGUI {
 
                         this.camera.lookAt(clickedcell.centre, clickedcell.normal, 0.05);
 
-                        if (this.#targeting && this.#previouslyTargeting) {
+                        /* if (this.#targeting && this.#previouslyTargeting) {
                             this.path.setPoints(
                                 this.#previouslyTargeting,
                                 this.#targeting
                             );
-                        }
+                        } */
                     }
                 }
             }

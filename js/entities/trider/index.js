@@ -62,7 +62,7 @@ for (let i = 0, l = 12; i < l; i++) {
 
 
 
-const light = new THREE.PointLight( GLOW_COLOR, 50, 50 );
+const light = new THREE.PointLight( GLOW_COLOR, 1, 20, 0.5 );
 light.position.add({x: 0, y: ORIENTATION_ORIGIN_HEIGHT, z: 0});
 
 
