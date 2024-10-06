@@ -129,8 +129,8 @@ class PFNode {
         this.normal = cell.normal;
     }
 
-    setInboundMultiplier(value) {
-        this.inboundEdges.forEach(e => e.setMultiplier(value));
+    addInboundMultiplier(value) {
+        this.inboundEdges.forEach(e => e.addMultiplier(value));
     }
 
 
@@ -147,8 +147,8 @@ class PFEdge {
         this.#_size = nodeA.position.distanceTo(nodeB.position);
     }
 
-    setMultiplier(value) {
-        this.#_size_multiplier = value;
+    addMultiplier(value) {
+        this.#_size_multiplier += value;
     }
 
     get size() {

@@ -95,7 +95,7 @@ class SurfaceCell {
 
         this.contents.push(newContents);
 
-        this.pfNode.setInboundMultiplier(100);
+        this.pfNode.addInboundMultiplier(100);
     }
 
     get hiliteColors() {
