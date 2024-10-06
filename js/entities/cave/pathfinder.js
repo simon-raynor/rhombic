@@ -18,12 +18,13 @@ export default class Pathfinder {
             node.cell.neighbours.forEach(
                 othercell => {
                     if (cellNodeMap.has(othercell)) {
-                        node.edges.push(
-                            new PFEdge(
-                                node,
-                                cellNodeMap.get(othercell)
-                            )
-                        )
+                        const other = cellNodeMap.get(othercell);
+                        const edge = new PFEdge(
+                            node,
+                            other
+                        );
+                        node.edges.push(edge);
+                        other.inboundEdges.push(edge);
                     } else throw 'unable to build Pathfinder, unknown edge';
                 }
             )
@@ -117,6 +118,7 @@ class PFNode {
 
     parent = null;
     edges = [];
+    inboundEdges = [];
 
     constructor(finder, cell) {
         this.finder = finder;
@@ -126,14 +128,31 @@ class PFNode {
         this.position = cell.centre;
         this.normal = cell.normal;
     }
+
+    setInboundMultiplier(value) {
+        this.inboundEdges.forEach(e => e.setMultiplier(value));
+    }
+
+
 }
 
 class PFEdge {
+    #_size
+    #_size_multiplier = 1
+
     constructor(nodeA, nodeB) {
         this.A = nodeA;
         this.B = nodeB;
 
-        this.size = nodeA.position.distanceTo(nodeB.position);
+        this.#_size = nodeA.position.distanceTo(nodeB.position);
+    }
+
+    setMultiplier(value) {
+        this.#_size_multiplier = value;
+    }
+
+    get size() {
+        return this.#_size * this.#_size_multiplier;
     }
 }
 

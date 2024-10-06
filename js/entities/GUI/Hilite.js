@@ -83,6 +83,9 @@ export default class Hiliter {
     #material
     #mesh
 
+    #parent
+    #child
+
     #_target
 
     #a = new THREE.Vector3()
@@ -101,11 +104,18 @@ export default class Hiliter {
         return this.#_target;
     }
 
-    constructor() {
+    constructor(parent) {
         this.#uniforms = {
             t: { value: 0, type: 'f' },
             cellnormal: { value: new THREE.Vector3() },
         };
+
+        if (parent) {
+            this.#parent = parent;
+        } else {
+            this.#child = new Hiliter(this);
+        }
+
     }
     init(scene) {
         this.#geometry = new THREE.BufferGeometry();
@@ -117,15 +127,15 @@ export default class Hiliter {
 
             switch(i % 3) {
                 case 0:
-                    position.push(0, 0, 0);
+                    position.push(8, 0, -8);
                     barycoord.push(1, 0, 0);
                     break;
                 case 1:
-                    position.push(0, 0, 0);
+                    position.push(-8, 8, 0);
                     barycoord.push(0, 1, 0);
                     break;
                 case 2:
-                    position.push(0, 0, 0);
+                    position.push(0, -8, 8);
                     barycoord.push(0, 0, 1);
                     break;
             }
@@ -172,9 +182,16 @@ export default class Hiliter {
 
 
         scene.add(this.#mesh);
+
+
+        this.#child?.init(scene);
     }
 
     retarget(targetcell) {
+        if (!targetcell) return;
+
+        this.#child?.retarget(this.#target);
+
         this.#target = targetcell;
 
         this.#mesh.position.copy(this.#target.centre);
@@ -243,7 +260,7 @@ export default class Hiliter {
         this.#setColor();
     }
 
-    #setColor() {console.log(this.#target?.hiliteColors)
+    #setColor() {//console.log(this.#target?.hiliteColors)
         const colors = this.#target?.hiliteColors ?? [0x000000];
         const l = colors.length;
         for (let i = 0; i < LAYER_COUNT; i++) {
@@ -255,5 +272,7 @@ export default class Hiliter {
 
     tick(dt) {
         this.#uniforms.t.value += dt;
+
+        this.#child?.tick(dt);
     }
 }

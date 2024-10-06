@@ -94,13 +94,15 @@ class SurfaceCell {
         } */
 
         this.contents.push(newContents);
+
+        this.pfNode.setInboundMultiplier(100);
     }
 
     get hiliteColors() {
         if (this.contents[0]?.hiliteColors) {
             return this.contents[0]?.hiliteColors;
         } else {
-            return [0x888888, 0xbbbbbb];
+            return [0x888888, 0xaaaaaa];
         }
     }
 
