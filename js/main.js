@@ -1,24 +1,24 @@
 // add the bvh collision methods to the THREE classes
-import './three-extended.js';
+import './three-extended';
 import * as THREE from 'three';
 import nipplejs from 'nipplejs';
 
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass';
+import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass';
 
 
-import Stats from 'three/addons/libs/stats.module.js';
-import { Cave } from './entities/cave/index.js';
-import ParticlePath from './entities/particles/index.js';
-import Trider from './entities/trider/index.js';
-import TargetTower from './entities/towers/TargetTower.js';
-import SourceTower from './entities/towers/SourceTower.js';
-import COLORS from './entities/color/index.js';
-import generateAmbientVegetation from './entities/ambient-vegetation/index.js';
-import Vine from './entities/vines/index.js';
+import Stats from 'three/addons/libs/stats.module';
+import { Cave } from './entities/cave/index';
+import ParticlePath from './entities/particles/index';
+import Trider from './entities/trider/index';
+import TargetTower from './entities/towers/TargetTower';
+import SourceTower from './entities/towers/SourceTower';
+import COLORS from './entities/color/index';
+import generateAmbientVegetation from './entities/ambient-vegetation/index';
+import Vine from './entities/vines/index';
 
 
 const stats = new Stats();

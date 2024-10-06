@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import CustomShaderMaterial from "three-custom-shader-material/vanilla";
 
 
 const tmpNormal = new THREE.Vector3();
@@ -10,7 +11,7 @@ const tmpVec3 = new THREE.Vector3();
 const SEGMENT_SIZE = 3;
 
 const STALK_POINTS = 3;
-const STALK_RADIUS = 1;
+const STALK_RADIUS = 1.5;
 
 
 const vshader = `
@@ -85,7 +86,7 @@ export default class Vine {
     findTarget() {
         const available = this.gridcell.neighbours.flatMap(
             othercell => othercell.neighbours.map(
-                otherothercell => otherothercell !== this.gridcell
+                otherothercell => !otherothercell.contents.length
                             && !this.gridcell.neighbours.includes(otherothercell)
                                 ? otherothercell
                                 : null
@@ -141,11 +142,10 @@ export default class Vine {
 
 
         this.#uniforms = THREE.UniformsUtils.merge([
-            THREE.ShaderLib.phong.uniforms,
             //{ opacity: { value: 1 }},
             //{ color: { value: new THREE.Color(0x22ee00) }},
             //{ diffuse: { value: new THREE.Color(0xaaaaaa) }},
-            /*{ t: { value: 0, type: 'f' }} */
+            { t: { value: 0, type: 'f' }}
         ]);
 
         /* const mat = new THREE.ShaderMaterial({
@@ -298,6 +298,6 @@ export default class Vine {
     }
 
     tick(dt) {
-        //this.#uniforms.t.value += dt;
+        this.#uniforms.t.value += dt;
     }
 }

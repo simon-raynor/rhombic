@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils';
 
 import { TRIGONAL_ROTATER, createTrigonal } from "../../geometries/trigonaltrapezahedron.js";
 

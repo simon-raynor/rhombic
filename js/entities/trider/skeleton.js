@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { geometry, knees } from './geometry.js';
+import { geometry, knees } from './geometry';
 
 
 const SQRT3 = Math.sqrt(3);

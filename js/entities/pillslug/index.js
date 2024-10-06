@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Creature from '../creature/index.js';
+import Creature from '../creature/index';
 
 const SIZE = 0.1;
 

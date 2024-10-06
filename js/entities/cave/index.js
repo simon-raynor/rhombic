@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils';
 import { LoopSubdivision } from 'three-subdivide';
 
-import { RHOMBIC_FACES_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron.js';
-import Pathfinder from './pathfinder.js';
-import generateSurfaceGrid from './surface.js';
+import { RHOMBIC_FACES_2D, RHOMBIC_VERTICES } from '../../geometries/rhombicdodecahedron';
+import Pathfinder from './pathfinder';
+import generateSurfaceGrid from './surface';
 
 const tmpVec3 = new THREE.Vector3();
 const raycaster = new THREE.Raycaster();

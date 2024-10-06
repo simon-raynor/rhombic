@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer.js';
-import { createTrigonal } from '../../geometries/trigonaltrapezahedron.js';
+import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer';
+import { createTrigonal } from '../../geometries/trigonaltrapezahedron';
 
 const GPU_SIZE = 8;
 const SWARM_SIZE = GPU_SIZE*GPU_SIZE;

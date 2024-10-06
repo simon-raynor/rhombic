@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Vine from '../vines/index.js';
+import Vine from '../vines/index';
 
 
 const tmpVec3 = new THREE.Vector3(),

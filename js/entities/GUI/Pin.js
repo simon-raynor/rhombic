@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createTrigonal } from '../../geometries/trigonaltrapezahedron.js';
+import { createTrigonal } from '../../geometries/trigonaltrapezahedron';
 
 
 const ROWS = 11;

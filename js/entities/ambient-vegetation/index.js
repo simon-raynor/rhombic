@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import noise from '../../lib/noise.js';
+import noise from '../../lib/noise';
 
 const HEIGHT = 1;
 

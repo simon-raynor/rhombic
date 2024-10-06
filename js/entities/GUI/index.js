@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-//import Swarm from './Swarm.js';
-//import Pin from './Pin.js';
-import Hiliter from './Hilite.js';
+//import Swarm from './Swarm';
+//import Pin from './Pin';
+import Hiliter from './Hilite';
 
 
 const tmpVec2 = new THREE.Vector2();

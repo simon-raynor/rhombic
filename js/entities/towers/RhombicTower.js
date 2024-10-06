@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import COLORS from '../color/index.js';
+import COLORS from '../color/index';
 
 
 const twoOverRtFive = 2 / Math.sqrt(5);

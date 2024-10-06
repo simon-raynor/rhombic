@@ -1,26 +1,17 @@
 // add the bvh collision methods to the THREE classes
 import './three-extended';
 import * as THREE from 'three';
-import nipplejs from 'nipplejs';
-
-import { OrbitControls } from 'three/addons/controls/OrbitControls';
 
 
 import Stats from 'three/addons/libs/stats.module';
-import { Cave } from './entities/cave/index';
+import { Cave } from './js/entities/cave/index';
 //import ParticlePath from './entities/particlepath';
-import generateAmbientVegetation from './entities/ambient-vegetation/index';
-import ParticlePath from './entities/particles/index';
-import Trider from './entities/trider/index';
-import COLORS from './entities/color/index';
-import TargetTower from './entities/towers/TargetTower';
-import SourceTower from './entities/towers/SourceTower';
-import Pillslug from './entities/pillslug/index';
-import Creature from './entities/creature/index';
-import { Camera } from './entities/camera/index';
-import RhombicTower from './entities/towers/RhombicTower';
-import Vine from './entities/vines/index';
-import GameGUI from './entities/GUI/index';
+import generateAmbientVegetation from './js/entities/ambient-vegetation/index';
+import Trider from './js/entities/trider/index';
+import Pillslug from './js/entities/pillslug/index';
+import { Camera } from './js/entities/camera/index';
+import Vine from './js/entities/vines/index';
+import GameGUI from './js/entities/GUI/index';
 
 
 const stats = new Stats();

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { CAVESCALE } from '../cave/index.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass';
+import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass';
+import { CAVESCALE } from '../cave/index';
 
 
 const tmpVec2 = new THREE.Vector2();
@@ -29,11 +29,11 @@ export class Camera {
 
         this.light = new THREE.SpotLight(
             0x888888,
-            0.5,
+            10,
             CAVESCALE * 6,
             Math.PI / 4,
             0.75,
-            2
+            0.5
         );
         this.light.position.set(0, 0, 1);
         this.wrapper.add(this.light);

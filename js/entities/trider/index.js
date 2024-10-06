@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { CCDIKSolver } from 'three/addons/animation/CCDIKSolver.js';
+import { CCDIKSolver } from 'three/addons/animation/CCDIKSolver';
 
-import { geometry, knees } from './geometry.js';
-import { BONES_PER_LEG, iks, skeleton } from './skeleton.js';
-import createMixer, { OPEN_FACTOR } from './animations.js';
-import COLORS from '../color/index.js';
+import { geometry, knees } from './geometry';
+import { BONES_PER_LEG, iks, skeleton } from './skeleton';
+import createMixer, { OPEN_FACTOR } from './animations';
+import COLORS from '../color/index';
 
 
 
@@ -62,7 +62,7 @@ for (let i = 0, l = 12; i < l; i++) {
 
 
 
-const light = new THREE.PointLight( GLOW_COLOR, 1, 20 );
+const light = new THREE.PointLight( GLOW_COLOR, 50, 50 );
 light.position.add({x: 0, y: ORIENTATION_ORIGIN_HEIGHT, z: 0});
 
 
