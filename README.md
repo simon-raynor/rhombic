@@ -1,4 +1,4 @@
-# Rhomibic
+# Rhombic
 
 A 3d maze inside a rhombic dodecahedral honeycomb - one day it'll be a full game!
 
